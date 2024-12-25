@@ -7,7 +7,6 @@ import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import AuthPage from "./pages/Auth";
-import LandingPage from "./pages/Landing";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -49,10 +48,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route
-              path="/bookings"
+              path="/"
               element={
                 <ProtectedRoute>
                   <Index />

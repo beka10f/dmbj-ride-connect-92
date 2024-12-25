@@ -1,12 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
-  const navigate = useNavigate();
-  
   return (
-    <div className="relative min-h-[90vh] flex items-center justify-center bg-primary text-white p-4 mt-16">
+    <div className="relative min-h-[80vh] flex items-center justify-center bg-primary text-white p-4">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
         style={{
@@ -21,7 +18,7 @@ export const Hero = () => {
           transition={{ duration: 0.8 }}
           className="text-4xl md:text-6xl font-bold mb-6"
         >
-          Premium Transportation
+          Luxury Transportation
           <span className="block text-secondary mt-2">At Your Service</span>
         </motion.h1>
         <motion.p
@@ -30,13 +27,13 @@ export const Hero = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-lg md:text-xl mb-8 text-gray-300"
         >
-          Experience luxury transportation with our fleet of premium vehicles
+          Experience the epitome of comfort and elegance with our premium
+          limousine service
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="space-x-4"
         >
           <Button
             size="lg"
@@ -44,14 +41,6 @@ export const Hero = () => {
             onClick={() => document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" })}
           >
             Book Your Ride
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="text-white border-white hover:bg-white/10"
-            onClick={() => navigate("/driver")}
-          >
-            Become a Driver
           </Button>
         </motion.div>
       </div>
