@@ -9,118 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      bookings: {
-        Row: {
-          created_at: string
-          dropoff_location: string
-          id: string
-          pickup_date: string
-          pickup_location: string
-          special_instructions: string | null
-          status: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          dropoff_location: string
-          id?: string
-          pickup_date: string
-          pickup_location: string
-          special_instructions?: string | null
-          status?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          dropoff_location?: string
-          id?: string
-          pickup_date?: string
-          pickup_location?: string
-          special_instructions?: string | null
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bookings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      driver_applications: {
-        Row: {
-          about_text: string | null
-          created_at: string
-          id: string
-          license_number: string
-          status: string
-          user_id: string
-          years_experience: number
-        }
-        Insert: {
-          about_text?: string | null
-          created_at?: string
-          id?: string
-          license_number: string
-          status?: string
-          user_id: string
-          years_experience: number
-        }
-        Update: {
-          about_text?: string | null
-          created_at?: string
-          id?: string
-          license_number?: string
-          status?: string
-          user_id?: string
-          years_experience?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "driver_applications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          email: string | null
-          first_name: string | null
-          id: string
-          last_name: string | null
-          phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -129,7 +18,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      user_role: "customer" | "driver"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never

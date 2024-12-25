@@ -8,78 +8,25 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import type { TablesInsert } from "@/integrations/supabase/types";
 
 export const BookingForm = () => {
   const [date, setDate] = useState<Date>();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    toast({
+      title: "Booking Submitted",
+      description: "We'll contact you shortly to confirm your reservation.",
+    });
+    // Reset form
     const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-
-      if (!date) {
-        toast({
-          title: "Error",
-          description: "Please select a date",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const bookingData: TablesInsert<"bookings"> = {
-        user_id: user.id,
-        pickup_location: formData.get("pickup") as string,
-        dropoff_location: formData.get("dropoff") as string,
-        pickup_date: new Date(
-          `${format(date, "yyyy-MM-dd")}T${formData.get("time")}`
-        ).toISOString(),
-        special_instructions: formData.get("notes")?.toString() || null,
-      };
-
-      const { error } = await supabase.from("bookings").insert(bookingData);
-
-      if (error) throw error;
-
-      // Send email notification
-      const { error: emailError } = await supabase.functions.invoke('send-notification', {
-        body: { type: 'booking', data: bookingData }
-      });
-
-      if (emailError) {
-        console.error('Error sending email:', emailError);
-      }
-
-      toast({
-        title: "Booking Submitted",
-        description: "We'll contact you shortly to confirm your reservation.",
-      });
-      
-      form.reset();
-      setDate(undefined);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was an error submitting your booking. Please try again.",
-        variant: "destructive",
-      });
-    }
+    form.reset();
+    setDate(undefined);
   };
 
   return (
-    <div id="booking" className="bg-white py-16 px-4 sm:px-6 lg:px-8">
+    <div id="booking" className="bg-white py-16 px-4">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-bold text-primary mb-8 text-center">
           Book Your Ride
@@ -87,12 +34,20 @@ export const BookingForm = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input id="name" required placeholder="John Doe" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" required type="tel" placeholder="+1 (555) 000-0000" />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="pickup">Pickup Location</Label>
-              <Input name="pickup" id="pickup" required placeholder="Enter pickup address" />
+              <Input id="pickup" required placeholder="Enter pickup address" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dropoff">Drop-off Location</Label>
-              <Input name="dropoff" id="dropoff" required placeholder="Enter destination address" />
+              <Input id="dropoff" required placeholder="Enter destination address" />
             </div>
             <div className="space-y-2">
               <Label>Date</Label>
@@ -121,12 +76,12 @@ export const BookingForm = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="time">Pickup Time</Label>
-              <Input name="time" id="time" required type="time" />
+              <Input id="time" required type="time" />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Special Instructions</Label>
-            <Input name="notes" id="notes" placeholder="Any special requirements?" />
+            <Input id="notes" placeholder="Any special requirements?" />
           </div>
           <Button
             type="submit"
