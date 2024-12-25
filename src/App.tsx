@@ -48,12 +48,13 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route
-              path="/"
+              path="/booking"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <BookingForm />
                 </ProtectedRoute>
               }
             />

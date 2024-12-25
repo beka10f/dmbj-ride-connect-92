@@ -1,13 +1,13 @@
 import { Hero } from "@/components/Hero";
-import { BookingForm } from "@/components/BookingForm";
-import { DriverForm } from "@/components/DriverForm";
+import { Features } from "@/components/Features";
+import { Navigation } from "@/components/Navigation";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-white">
+      <Navigation />
       <Hero />
-      <BookingForm />
-      <DriverForm />
+      <Features />
     </div>
   );
 };
