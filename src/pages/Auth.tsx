@@ -1,43 +1,44 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { useNavigate } from "react-router-dom";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Navigation } from "@/components/Navigation";
 
 const AuthPage = () => {
+  const supabase = useSupabaseClient();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get("mode");
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          navigate("/");
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/");
       }
-    );
+    });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, supabase.auth]);
+
+  if (!mode) {
+    navigate("/");
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-center text-primary mb-8">
-          Welcome to DMBJ Transportation
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <div className="container max-w-lg mx-auto pt-24 px-4">
+        <h1 className="text-2xl font-bold text-center mb-8">
+          {mode === "signin" ? "Welcome Back" : "Create an Account"}
         </h1>
         <Auth
           supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: '#1e293b',
-                  brandAccent: '#334155',
-                },
-              },
-            },
-          }}
+          appearance={{ theme: ThemeSupa }}
+          view={mode === "signin" ? "sign_in" : "sign_up"}
+          theme="light"
+          showLinks={false}
           providers={[]}
         />
       </div>

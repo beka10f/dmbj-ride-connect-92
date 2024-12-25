@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useState, useEffect } from "react";
 
 export const Navigation = () => {
   const supabase = useSupabaseClient();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -45,10 +46,10 @@ export const Navigation = () => {
             ) : (
               <>
                 <Button variant="ghost" asChild>
-                  <Link to="/auth">Sign In</Link>
+                  <Link to="/auth?mode=signin">Sign In</Link>
                 </Button>
                 <Button asChild>
-                  <Link to="/auth">Sign Up</Link>
+                  <Link to="/auth?mode=signup">Sign Up</Link>
                 </Button>
               </>
             )}
