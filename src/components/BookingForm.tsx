@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import type { TablesInsert } from "@/integrations/supabase/types";
 
 export const BookingForm = () => {
   const [date, setDate] = useState<Date>();
@@ -38,15 +39,17 @@ export const BookingForm = () => {
         return;
       }
 
-      const { error } = await supabase.from("bookings").insert({
+      const bookingData: TablesInsert<"bookings"> = {
         user_id: user.id,
-        pickup_location: formData.get("pickup"),
-        dropoff_location: formData.get("dropoff"),
+        pickup_location: formData.get("pickup") as string,
+        dropoff_location: formData.get("dropoff") as string,
         pickup_date: new Date(
           `${format(date, "yyyy-MM-dd")}T${formData.get("time")}`
         ).toISOString(),
-        special_instructions: formData.get("notes") || null,
-      });
+        special_instructions: formData.get("notes")?.toString() || null,
+      };
+
+      const { error } = await supabase.from("bookings").insert(bookingData);
 
       if (error) throw error;
 

@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import type { TablesInsert } from "@/integrations/supabase/types";
 
 export const DriverForm = () => {
   const { toast } = useToast();
@@ -22,12 +23,14 @@ export const DriverForm = () => {
         return;
       }
 
-      const { error } = await supabase.from("driver_applications").insert({
+      const applicationData: TablesInsert<"driver_applications"> = {
         user_id: user.id,
         years_experience: parseInt(formData.get("experience") as string),
-        license_number: formData.get("license"),
-        about_text: formData.get("about") || null,
-      });
+        license_number: formData.get("license") as string,
+        about_text: formData.get("about")?.toString() || null,
+      };
+
+      const { error } = await supabase.from("driver_applications").insert(applicationData);
 
       if (error) throw error;
 
