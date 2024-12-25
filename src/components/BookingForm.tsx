@@ -8,21 +8,62 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const BookingForm = () => {
   const [date, setDate] = useState<Date>();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Booking Submitted",
-      description: "We'll contact you shortly to confirm your reservation.",
-    });
-    // Reset form
     const form = e.target as HTMLFormElement;
-    form.reset();
-    setDate(undefined);
+    const formData = new FormData(form);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      if (!date) {
+        toast({
+          title: "Error",
+          description: "Please select a date",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.from("bookings").insert({
+        user_id: user.id,
+        pickup_location: formData.get("pickup"),
+        dropoff_location: formData.get("dropoff"),
+        pickup_date: new Date(
+          `${format(date, "yyyy-MM-dd")}T${formData.get("time")}`
+        ).toISOString(),
+        special_instructions: formData.get("notes") || null,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking Submitted",
+        description: "We'll contact you shortly to confirm your reservation.",
+      });
+      
+      form.reset();
+      setDate(undefined);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error submitting your booking. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -34,20 +75,12 @@ export const BookingForm = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" required placeholder="John Doe" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" required type="tel" placeholder="+1 (555) 000-0000" />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="pickup">Pickup Location</Label>
-              <Input id="pickup" required placeholder="Enter pickup address" />
+              <Input name="pickup" id="pickup" required placeholder="Enter pickup address" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dropoff">Drop-off Location</Label>
-              <Input id="dropoff" required placeholder="Enter destination address" />
+              <Input name="dropoff" id="dropoff" required placeholder="Enter destination address" />
             </div>
             <div className="space-y-2">
               <Label>Date</Label>
@@ -76,12 +109,12 @@ export const BookingForm = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="time">Pickup Time</Label>
-              <Input id="time" required type="time" />
+              <Input name="time" id="time" required type="time" />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Special Instructions</Label>
-            <Input id="notes" placeholder="Any special requirements?" />
+            <Input name="notes" id="notes" placeholder="Any special requirements?" />
           </div>
           <Button
             type="submit"

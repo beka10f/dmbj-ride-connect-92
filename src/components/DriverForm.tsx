@@ -2,19 +2,56 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const DriverForm = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Application Submitted",
-      description: "Thank you for your interest! We'll review your application and contact you soon.",
-    });
-    // Reset form
     const form = e.target as HTMLFormElement;
-    form.reset();
+    const formData = new FormData(form);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      const { error } = await supabase.from("driver_applications").insert({
+        user_id: user.id,
+        years_experience: parseInt(formData.get("experience") as string),
+        license_number: formData.get("license"),
+        about_text: formData.get("about") || null,
+      });
+
+      if (error) throw error;
+
+      // Update user role to driver
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ role: "driver" })
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: "Application Submitted",
+        description: "Thank you for your interest! We'll review your application and contact you soon.",
+      });
+      
+      form.reset();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error submitting your application. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -26,30 +63,9 @@ export const DriverForm = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="driverName">Full Name</Label>
-              <Input id="driverName" required placeholder="John Doe" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="driverPhone">Phone Number</Label>
-              <Input
-                id="driverPhone"
-                required
-                type="tel"
-                placeholder="+1 (555) 000-0000"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="driverEmail">Email</Label>
-              <Input
-                id="driverEmail"
-                required
-                type="email"
-                placeholder="john@example.com"
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="experience">Years of Experience</Label>
               <Input
+                name="experience"
                 id="experience"
                 required
                 type="number"
@@ -57,14 +73,20 @@ export const DriverForm = () => {
                 placeholder="Years of driving experience"
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="license">Driver's License Number</Label>
-            <Input id="license" required placeholder="Enter your license number" />
+            <div className="space-y-2">
+              <Label htmlFor="license">Driver's License Number</Label>
+              <Input
+                name="license"
+                id="license"
+                required
+                placeholder="Enter your license number"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="about">Tell us about yourself</Label>
             <Input
+              name="about"
               id="about"
               placeholder="Brief description of your experience and why you'd like to join us"
             />
