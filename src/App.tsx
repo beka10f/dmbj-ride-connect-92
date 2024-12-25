@@ -7,6 +7,7 @@ import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import AuthPage from "./pages/Auth";
+import { BookingForm } from "@/components/BookingForm";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
