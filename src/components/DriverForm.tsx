@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -30,21 +31,24 @@ export const DriverForm = () => {
         about_text: formData.get("about")?.toString() || null,
       };
 
-      const { error } = await supabase.from("driver_applications").insert(applicationData);
+      const { error } = await supabase
+        .from("driver_applications")
+        .insert(applicationData);
 
       if (error) throw error;
 
-      // Update user role to driver
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ role: "driver" })
-        .eq("id", user.id);
+      // Send email notification
+      const { error: emailError } = await supabase.functions.invoke('send-notification', {
+        body: { type: 'driver', data: applicationData }
+      });
 
-      if (profileError) throw profileError;
+      if (emailError) {
+        console.error('Error sending email:', emailError);
+      }
 
       toast({
         title: "Application Submitted",
-        description: "Thank you for your interest! We'll review your application and contact you soon.",
+        description: "We'll review your application and get back to you soon.",
       });
       
       form.reset();
@@ -58,7 +62,7 @@ export const DriverForm = () => {
   };
 
   return (
-    <div id="driver" className="bg-gray-50 py-16 px-4">
+    <div className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-bold text-primary mb-8 text-center">
           Become a Driver
@@ -70,10 +74,10 @@ export const DriverForm = () => {
               <Input
                 name="experience"
                 id="experience"
-                required
                 type="number"
                 min="0"
-                placeholder="Years of driving experience"
+                required
+                placeholder="Enter years of experience"
               />
             </div>
             <div className="space-y-2">
@@ -82,16 +86,17 @@ export const DriverForm = () => {
                 name="license"
                 id="license"
                 required
-                placeholder="Enter your license number"
+                placeholder="Enter license number"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="about">Tell us about yourself</Label>
-            <Input
+            <Label htmlFor="about">About You</Label>
+            <Textarea
               name="about"
               id="about"
-              placeholder="Brief description of your experience and why you'd like to join us"
+              placeholder="Tell us about your experience and why you'd like to join our team"
+              className="min-h-[100px]"
             />
           </div>
           <Button

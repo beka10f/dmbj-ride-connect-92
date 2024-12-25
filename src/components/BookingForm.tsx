@@ -53,6 +53,15 @@ export const BookingForm = () => {
 
       if (error) throw error;
 
+      // Send email notification
+      const { error: emailError } = await supabase.functions.invoke('send-notification', {
+        body: { type: 'booking', data: bookingData }
+      });
+
+      if (emailError) {
+        console.error('Error sending email:', emailError);
+      }
+
       toast({
         title: "Booking Submitted",
         description: "We'll contact you shortly to confirm your reservation.",
@@ -70,7 +79,7 @@ export const BookingForm = () => {
   };
 
   return (
-    <div id="booking" className="bg-white py-16 px-4">
+    <div id="booking" className="bg-white py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-bold text-primary mb-8 text-center">
           Book Your Ride
