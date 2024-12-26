@@ -27,6 +27,8 @@ const Login = () => {
         password,
       });
 
+      console.log("Auth response:", { data: authData, error: authError });
+
       if (authError) {
         console.error("Authentication error:", authError);
         toast({
