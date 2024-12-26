@@ -21,7 +21,7 @@ const Login = () => {
     
     try {
       // Step 1: Sign in with email and password
-      console.log("Attempting authentication...");
+      console.log("Attempting authentication with email:", email);
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
