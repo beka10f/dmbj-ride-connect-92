@@ -8,21 +8,79 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const BookingForm = () => {
   const [date, setDate] = useState<Date>();
+  const [loading, setLoading] = useState(false);
+  const [distance, setDistance] = useState<string>("");
+  const [cost, setCost] = useState<string>("");
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const calculateRide = async (formData: FormData) => {
+    const pickup = formData.get("pickup") as string;
+    const dropoff = formData.get("dropoff") as string;
+    const rate = 3; // Rate per mile
+
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${encodeURIComponent(
+          pickup
+        )}&destinations=${encodeURIComponent(
+          dropoff
+        )}&key=AIzaSyB46w_yxT1TE3wbnUntUVPh32SVyEecjN8`
+      );
+
+      if (!response.ok) {
+        throw new Error("Error calculating distance");
+      }
+
+      const data = await response.json();
+      if (data.rows[0].elements[0].status !== "OK") {
+        throw new Error("Unable to calculate distance. Please check addresses.");
+      }
+
+      const distanceText = data.rows[0].elements[0].distance.text;
+      const distanceValue = data.rows[0].elements[0].distance.value; // in meters
+      const distanceInMiles = distanceValue / 1609.34;
+      const totalCost = (distanceInMiles * rate).toFixed(2);
+
+      setDistance(distanceText);
+      setCost(`$${totalCost}`);
+      return { distanceText, totalCost };
+    } catch (error) {
+      console.error("Error calculating ride:", error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast({
-      title: "Booking Submitted",
-      description: "We'll contact you shortly to confirm your reservation.",
-    });
-    // Reset form
-    const form = e.target as HTMLFormElement;
-    form.reset();
-    setDate(undefined);
+    setLoading(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const { distanceText, totalCost } = await calculateRide(formData);
+
+      toast({
+        title: "Booking Submitted",
+        description: `Distance: ${distanceText} | Estimated Cost: $${totalCost}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to calculate ride. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,19 +93,59 @@ export const BookingForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" required placeholder="John Doe" />
+              <Input id="name" name="name" required placeholder="John Doe" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder="john@example.com"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" required type="tel" placeholder="+1 (555) 000-0000" />
+              <Input
+                id="phone"
+                name="phone"
+                required
+                type="tel"
+                placeholder="+1 (555) 000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="passengers">Number of Passengers</Label>
+              <Select name="passengers" defaultValue="1">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select passengers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 Passenger</SelectItem>
+                  <SelectItem value="2">2 Passengers</SelectItem>
+                  <SelectItem value="3">3 Passengers</SelectItem>
+                  <SelectItem value="4">4 Passengers</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="pickup">Pickup Location</Label>
-              <Input id="pickup" required placeholder="Enter pickup address" />
+              <Input
+                id="pickup"
+                name="pickup"
+                required
+                placeholder="Enter pickup address"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dropoff">Drop-off Location</Label>
-              <Input id="dropoff" required placeholder="Enter destination address" />
+              <Input
+                id="dropoff"
+                name="dropoff"
+                required
+                placeholder="Enter destination address"
+              />
             </div>
             <div className="space-y-2">
               <Label>Date</Label>
@@ -76,18 +174,27 @@ export const BookingForm = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="time">Pickup Time</Label>
-              <Input id="time" required type="time" />
+              <Input id="time" name="time" required type="time" />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Special Instructions</Label>
-            <Input id="notes" placeholder="Any special requirements?" />
-          </div>
+
+          {(distance || cost) && (
+            <div className="p-4 bg-secondary/20 rounded-lg space-y-2">
+              <p className="text-sm font-medium">
+                Estimated Distance: {distance}
+              </p>
+              <p className="text-sm font-medium">
+                Estimated Cost: {cost}
+              </p>
+            </div>
+          )}
+
           <Button
             type="submit"
             className="w-full bg-secondary text-primary hover:bg-secondary/90"
+            disabled={loading}
           >
-            Submit Booking
+            {loading ? "Calculating..." : "Submit Booking"}
           </Button>
         </form>
       </div>
