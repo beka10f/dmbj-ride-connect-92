@@ -33,7 +33,24 @@ export const SignInForm = () => {
     setLoading(true);
     setError(null);
 
+    // Log the attempt (without password)
+    console.log("Attempting to sign in with email:", formData.email);
+
     try {
+      // First, check if the user exists
+      const { data: userExists } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', formData.email.trim())
+        .single();
+
+      if (!userExists) {
+        console.log("No user found with this email");
+        setError("No account found with this email address. Please sign up first.");
+        setLoading(false);
+        return;
+      }
+
       // Attempt to sign in
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
@@ -42,9 +59,10 @@ export const SignInForm = () => {
 
       if (signInError) {
         console.error("Sign in error:", signInError);
+        
         if (signInError.message === "Invalid login credentials") {
           setError(
-            "The email or password you entered is incorrect. Please check your credentials and try again. If you haven't signed up yet, please create an account first."
+            "The email or password you entered is incorrect. Please check your credentials and try again."
           );
         } else if (signInError.message.includes("Email not confirmed")) {
           setError(
@@ -57,6 +75,7 @@ export const SignInForm = () => {
       }
 
       if (data.user) {
+        console.log("Sign in successful");
         toast({
           title: "Success!",
           description: "Successfully signed in.",
@@ -64,7 +83,7 @@ export const SignInForm = () => {
         navigate("/dashboard");
       }
     } catch (error: any) {
-      console.error("Unexpected error:", error);
+      console.error("Unexpected error during sign in:", error);
       setError("An unexpected error occurred. Please try again later.");
     } finally {
       setLoading(false);
