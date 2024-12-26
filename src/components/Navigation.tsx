@@ -47,23 +47,23 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-[#0F172A] border-b border-[#BFA181]/20 fixed top-0 left-0 right-0 z-50">
+    <nav className="bg-[#0F172A] border-b border-[#BFA181]/20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-bold text-[#BFA181] tracking-tight">DMBJ Transportation</span>
+              <span className="text-xl font-bold text-[#BFA181]">DMBJ Transportation</span>
             </Link>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {isLoggedIn ? (
               <>
                 {isAdmin && <NotificationBell />}
                 <Link to="/dashboard">
                   <Button 
                     variant="ghost"
-                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 rounded-full text-sm"
+                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10"
                   >
                     Dashboard
                   </Button>
@@ -71,7 +71,7 @@ export const Navigation = () => {
                 <Button 
                   onClick={handleSignOut} 
                   variant="ghost"
-                  className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 rounded-full text-sm"
+                  className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10"
                 >
                   Sign Out
                 </Button>
@@ -81,7 +81,7 @@ export const Navigation = () => {
                 <Link to="/login">
                   <Button 
                     variant="ghost"
-                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 rounded-full text-sm"
+                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10"
                   >
                     Sign In
                   </Button>
@@ -89,7 +89,7 @@ export const Navigation = () => {
                 <Link to="/become-driver">
                   <Button 
                     variant="secondary"
-                    className="bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90 rounded-full text-sm px-6"
+                    className="bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90"
                   >
                     Become a Driver
                   </Button>

@@ -26,9 +26,9 @@ export const Benefits = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gray-50">
+    <section className="py-16 px-4 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary tracking-tight">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">
           Why Choose Us
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -38,17 +38,17 @@ export const Benefits = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white text-center p-8 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              className="bg-white text-center p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow"
             >
               <div className="mb-6 flex justify-center">
-                <div className="p-4 bg-gray-50 rounded-full">
+                <div className="p-3 bg-gray-50 rounded-full">
                   {benefit.icon}
                 </div>
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-primary tracking-tight">
+              <h3 className="text-xl font-semibold mb-3 text-primary">
                 {benefit.title}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600">
                 {benefit.description}
               </p>
             </motion.div>
