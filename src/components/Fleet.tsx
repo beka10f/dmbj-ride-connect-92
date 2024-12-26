@@ -20,10 +20,10 @@ export const Fleet = () => {
   ];
 
   return (
-    <section id="fleet" className="py-16 px-4 bg-white">
+    <section id="fleet" className="py-12 sm:py-16 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">Our Fleet</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12 text-primary">Our Fleet</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {cars.map((car, index) => (
             <motion.div
               key={car.name}
@@ -32,16 +32,16 @@ export const Fleet = () => {
               transition={{ duration: 0.5, delay: index * 0.2 }}
               className="bg-white rounded-3xl shadow-sm overflow-hidden ios-btn-active"
             >
-              <div className="h-48 overflow-hidden">
+              <div className="h-48 sm:h-56 overflow-hidden">
                 <img
                   src={car.image}
                   alt={car.name}
                   className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2 text-primary">{car.name}</h3>
-                <p className="text-gray-600 leading-relaxed">{car.description}</p>
+              <div className="p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-primary">{car.name}</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{car.description}</p>
               </div>
             </motion.div>
           ))}
