@@ -22,7 +22,7 @@ export const ProtectedRoute = ({
           description: "Please sign in to access this page",
           variant: "destructive",
         });
-        navigate("/");
+        navigate("/login"); // Changed from "/" to "/login"
       } else if (requireAdmin && !isAdmin) {
         toast({
           title: "Access denied",

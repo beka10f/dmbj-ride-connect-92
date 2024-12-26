@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import BecomeDriver from "./pages/BecomeDriver";
 import Admin from "./pages/Admin";
+import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
             <Navigation />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/become-driver" element={<BecomeDriver />} />
               <Route
                 path="/admin"
