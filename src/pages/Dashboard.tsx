@@ -5,25 +5,6 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
 
-interface BookingData {
-  id: string;
-  pickup_location: string;
-  dropoff_location: string;
-  pickup_date: string;
-  status: string;
-  user_id: string;
-  special_instructions?: string;
-}
-
-interface DriverApplication {
-  id: string;
-  years_experience: number;
-  license_number: string;
-  about_text?: string;
-  status: string;
-  created_at: string;
-}
-
 const Dashboard = () => {
   const { profile } = useUserProfile();
 
@@ -34,13 +15,11 @@ const Dashboard = () => {
 
       const query = supabase.from("bookings").select("*");
 
-      // Filter bookings based on user role
       if (profile.role === 'client') {
         query.eq('user_id', await supabase.auth.getUser().then(res => res.data.user?.id));
       } else if (profile.role === 'driver') {
         query.eq('assigned_driver_id', await supabase.auth.getUser().then(res => res.data.user?.id));
       }
-      // Admin sees all bookings (no filter)
 
       const { data, error } = await query;
 
@@ -71,58 +50,60 @@ const Dashboard = () => {
   if (!profile) return null;
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome, {profile?.first_name || "User"}!
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 py-6 space-y-8 animate-fade-in">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 space-y-4">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Welcome, {profile?.first_name || "User"}
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400">
             {profile?.role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
           </p>
         </div>
+
+        <DashboardStats
+          bookingsCount={bookings.length}
+          applicationsCount={driverApplications.length}
+          isAdmin={profile.role === "admin"}
+        />
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4">
+          <Tabs defaultValue="bookings" className="space-y-6">
+            <TabsList className="w-full flex space-x-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
+              <TabsTrigger 
+                value="bookings"
+                className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-sm"
+              >
+                Bookings
+              </TabsTrigger>
+              {profile?.role === "admin" && (
+                <TabsTrigger 
+                  value="applications"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-sm"
+                >
+                  Applications
+                </TabsTrigger>
+              )}
+            </TabsList>
+
+            <TabsContent value="bookings" className="space-y-4 pt-2">
+              <BookingsTable 
+                bookings={bookings} 
+                onBookingUpdated={refetchBookings}
+              />
+            </TabsContent>
+
+            {profile?.role === "admin" && (
+              <TabsContent value="applications" className="space-y-4 pt-2">
+                <BookingsTable 
+                  bookings={bookings}
+                  onBookingUpdated={refetchBookings}
+                />
+              </TabsContent>
+            )}
+          </Tabs>
+        </div>
       </div>
-
-      <DashboardStats
-        bookingsCount={bookings.length}
-        applicationsCount={driverApplications.length}
-        isAdmin={profile.role === "admin"}
-      />
-
-      <Tabs defaultValue="bookings" className="space-y-6">
-        <TabsList className="bg-gray-100/50 p-1 rounded-lg">
-          <TabsTrigger 
-            value="bookings"
-            className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2 text-sm font-medium transition-all"
-          >
-            Bookings
-          </TabsTrigger>
-          {profile?.role === "admin" && (
-            <TabsTrigger 
-              value="applications"
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2 text-sm font-medium transition-all"
-            >
-              Driver Applications
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        <TabsContent value="bookings" className="space-y-4">
-          <BookingsTable 
-            bookings={bookings} 
-            onBookingUpdated={refetchBookings}
-          />
-        </TabsContent>
-
-        {profile?.role === "admin" && (
-          <TabsContent value="applications" className="space-y-4">
-            <BookingsTable 
-              bookings={bookings}
-              onBookingUpdated={refetchBookings}
-            />
-          </TabsContent>
-        )}
-      </Tabs>
     </div>
   );
 };

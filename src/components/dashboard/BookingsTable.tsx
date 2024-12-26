@@ -45,87 +45,88 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
     fetchCosts();
   }, [bookings]);
 
-  // Filter bookings based on user role and ID
   const filteredBookings = bookings.filter(booking => {
     if (!profile) return false;
     
     if (profile.role === 'admin') {
-      return true; // Admins see all bookings
+      return true;
     } else if (profile.role === 'driver') {
-      return booking.assigned_driver_id === profile.id; // Drivers see only their assigned bookings
+      return booking.assigned_driver_id === profile.id;
     } else {
-      return booking.user_id === profile.id; // Clients see only their bookings
+      return booking.user_id === profile.id;
     }
   });
 
   return (
     <>
-      <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50/50">
-              <TableHead className="text-sm font-medium text-gray-500">Pickup</TableHead>
-              <TableHead className="text-sm font-medium text-gray-500">Dropoff</TableHead>
-              <TableHead className="text-sm font-medium text-gray-500">Date</TableHead>
-              <TableHead className="text-sm font-medium text-gray-500">Time</TableHead>
-              <TableHead className="text-sm font-medium text-gray-500">Price</TableHead>
-              <TableHead className="text-sm font-medium text-gray-500">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredBookings.map((booking) => (
-              <TableRow 
-                key={booking.id}
-                className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer"
-                onClick={() => setSelectedBooking(booking)}
-              >
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-700 truncate max-w-[150px]">
-                      {booking.pickup_location}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-700 truncate max-w-[150px]">
-                      {booking.dropoff_location}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-700">
-                      {format(new Date(booking.pickup_date), "MMM d")}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-700">
-                      {format(new Date(booking.pickup_date), "h:mm a")}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-700">
-                      ${bookingCosts[booking.id] || '...'}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3">
-                  <BookingStatus status={booking.status} />
-                </TableCell>
+      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Pickup</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Dropoff</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Date</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Time</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Price</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredBookings.map((booking) => (
+                <TableRow 
+                  key={booking.id}
+                  className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer dark:border-gray-800 dark:hover:bg-gray-800/50"
+                  onClick={() => setSelectedBooking(booking)}
+                >
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
+                        {booking.pickup_location}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
+                        {booking.dropoff_location}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {format(new Date(booking.pickup_date), "MMM d")}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {format(new Date(booking.pickup_date), "h:mm a")}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        ${bookingCosts[booking.id] || '...'}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <BookingStatus status={booking.status} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <BookingDetailsDialog
