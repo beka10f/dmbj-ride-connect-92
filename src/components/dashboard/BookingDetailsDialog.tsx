@@ -1,11 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, MapPin, User, Calendar, Info } from "lucide-react";
+import { ExternalLink, MapPin, User, Calendar, Info, DollarSign, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { calculateDistance } from "../booking/DistanceCalculator";
+import { useState, useEffect } from "react";
 
 interface BookingDetailsDialogProps {
   booking: {
@@ -29,6 +31,7 @@ export const BookingDetailsDialog = ({
   onStatusUpdate,
 }: BookingDetailsDialogProps) => {
   const { toast } = useToast();
+  const [tripDetails, setTripDetails] = useState<{ distanceText: string; totalCost: string } | null>(null);
 
   const { data: userProfile } = useQuery({
     queryKey: ["userProfile", booking?.user_id],
@@ -45,6 +48,21 @@ export const BookingDetailsDialog = ({
     },
     enabled: !!booking?.user_id,
   });
+
+  useEffect(() => {
+    const fetchTripDetails = async () => {
+      if (booking) {
+        try {
+          const details = await calculateDistance(booking.pickup_location, booking.dropoff_location);
+          setTripDetails(details);
+        } catch (error) {
+          console.error("Error calculating trip details:", error);
+        }
+      }
+    };
+
+    fetchTripDetails();
+  }, [booking]);
 
   const handleLocationClick = (location: string) => {
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`, '_blank');
@@ -105,6 +123,27 @@ export const BookingDetailsDialog = ({
             </div>
           </div>
 
+          {/* Trip Details */}
+          <div className="space-y-2">
+            <h3 className="font-medium flex items-center gap-2">
+              <Info className="h-4 w-4" />
+              Trip Details
+            </h3>
+            <div className="pl-6 space-y-1">
+              {tripDetails && (
+                <>
+                  <p className="text-sm text-gray-600">
+                    Distance: {tripDetails.distanceText}
+                  </p>
+                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Estimated Cost: ${tripDetails.totalCost}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Locations */}
           <div className="space-y-4">
             <div className="space-y-2">
@@ -140,12 +179,18 @@ export const BookingDetailsDialog = ({
             </div>
           </div>
 
-          {/* Date and Status */}
+          {/* Date and Time */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gray-500" />
               <span className="text-sm">
-                {format(new Date(booking.pickup_date), "PPP 'at' p")}
+                {format(new Date(booking.pickup_date), "MMMM d, yyyy")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-gray-500" />
+              <span className="text-sm">
+                {format(new Date(booking.pickup_date), "h:mm a")}
               </span>
             </div>
             <div className="flex items-center gap-2">
