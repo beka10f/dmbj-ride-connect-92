@@ -34,12 +34,6 @@ export const SignInForm = () => {
     setError(null);
 
     try {
-      // First, check if the session exists and clear it if it does
-      const existingSession = await supabase.auth.getSession();
-      if (existingSession.data.session) {
-        await supabase.auth.signOut();
-      }
-
       // Attempt to sign in
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
@@ -63,12 +57,6 @@ export const SignInForm = () => {
       }
 
       if (data.user) {
-        // Verify the session was created
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          throw new Error("Failed to create session");
-        }
-
         toast({
           title: "Success!",
           description: "Successfully signed in.",
