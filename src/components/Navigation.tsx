@@ -47,15 +47,15 @@ export const Navigation = () => {
 
   return (
     <nav className="bg-[#0F172A] border-b border-[#BFA181]/20 fixed top-0 left-0 right-0 w-full z-50">
-      <div className="px-4 sm:px-6">
-        <div className="flex justify-between h-16 items-center">
+      <div className="px-4 sm:px-6 py-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
               <span className="text-xl font-semibold text-[#BFA181]">DMBJ Transportation</span>
             </Link>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
             {isLoggedIn ? (
               <>
                 {isAdmin && (
