@@ -19,14 +19,16 @@ function App() {
         <Router>
           <div className="min-h-screen flex flex-col">
             <Navigation />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/become-driver" element={<BecomeDriver />} />
-              <Route path="/admin" element={<Admin />} />
-            </Routes>
+            <main className="flex-1 mt-14 sm:mt-16">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/become-driver" element={<BecomeDriver />} />
+                <Route path="/admin" element={<Admin />} />
+              </Routes>
+            </main>
             <Toaster />
           </div>
         </Router>
