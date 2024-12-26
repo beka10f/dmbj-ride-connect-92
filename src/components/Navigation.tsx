@@ -47,12 +47,12 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-primary border-b">
+    <nav className="bg-[#0F172A] border-b border-[#BFA181]/20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-bold text-accent">DMBJ Transportation</span>
+              <span className="text-xl font-bold text-[#BFA181]">DMBJ Transportation</span>
             </Link>
           </div>
 
@@ -63,7 +63,7 @@ export const Navigation = () => {
                 <Link to="/dashboard">
                   <Button 
                     variant="ghost"
-                    className="text-accent hover:text-accent-foreground hover:bg-accent/10"
+                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10"
                   >
                     Dashboard
                   </Button>
@@ -71,7 +71,7 @@ export const Navigation = () => {
                 <Button 
                   onClick={handleSignOut} 
                   variant="ghost"
-                  className="text-accent hover:text-accent-foreground hover:bg-accent/10"
+                  className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10"
                 >
                   Sign Out
                 </Button>
@@ -81,7 +81,7 @@ export const Navigation = () => {
                 <Link to="/login">
                   <Button 
                     variant="ghost"
-                    className="text-accent hover:text-accent-foreground hover:bg-accent/10"
+                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10"
                   >
                     Sign In
                   </Button>
@@ -89,7 +89,7 @@ export const Navigation = () => {
                 <Link to="/become-driver">
                   <Button 
                     variant="secondary"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    className="bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90"
                   >
                     Become a Driver
                   </Button>
