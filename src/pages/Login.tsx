@@ -22,12 +22,18 @@ const Login = () => {
     try {
       // Step 1: Sign in with email and password
       console.log("Attempting authentication with email:", email);
+      console.log("Starting Supabase auth call...");
+      
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log("Auth response:", { data: authData, error: authError });
+      console.log("Received response from Supabase auth:", { 
+        success: !!authData?.user,
+        error: authError?.message || null,
+        user: authData?.user ? { id: authData.user.id, email: authData.user.email } : null
+      });
 
       if (authError) {
         console.error("Authentication error:", authError);
@@ -52,13 +58,18 @@ const Login = () => {
       console.log("Authentication successful, checking admin status...");
 
       // Step 2: Check if user is admin
+      console.log("Querying profiles table for user:", authData.user.id);
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", authData.user.id)
         .single();
 
-      console.log("Profile query result:", { profileData, profileError });
+      console.log("Profile query result:", { 
+        success: !!profileData,
+        error: profileError?.message || null,
+        role: profileData?.role || null 
+      });
 
       if (profileError) {
         console.error("Profile fetch error:", profileError);
