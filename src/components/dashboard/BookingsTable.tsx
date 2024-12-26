@@ -5,6 +5,8 @@ import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { BookingDetailsDialog } from "./BookingDetailsDialog";
 import { calculateDistance } from "../booking/DistanceCalculator";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Booking {
   id: string;
@@ -24,6 +26,7 @@ interface BookingsTableProps {
 export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps) => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingCosts, setBookingCosts] = useState<Record<string, string>>({});
+  const { profile } = useUserProfile();
 
   useEffect(() => {
     const fetchCosts = async () => {
@@ -42,6 +45,19 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
     fetchCosts();
   }, [bookings]);
 
+  // Filter bookings based on user role and ID
+  const filteredBookings = bookings.filter(booking => {
+    if (!profile) return false;
+    
+    if (profile.role === 'admin') {
+      return true; // Admins see all bookings
+    } else if (profile.role === 'driver') {
+      return booking.assigned_driver_id === profile.id; // Drivers see only their assigned bookings
+    } else {
+      return booking.user_id === profile.id; // Clients see only their bookings
+    }
+  });
+
   return (
     <>
       <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
@@ -57,7 +73,7 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bookings.map((booking) => (
+            {filteredBookings.map((booking) => (
               <TableRow 
                 key={booking.id}
                 className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer"
