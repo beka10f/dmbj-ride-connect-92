@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export interface ProfileData {
+  id: string;
   first_name: string | null;
   last_name: string | null;
   email: string | null;
@@ -26,7 +27,7 @@ export const useUserProfile = () => {
       try {
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("first_name, last_name, email, role")
+          .select("id, first_name, last_name, email, role")
           .eq("id", session.user.id)
           .single();
 
