@@ -28,41 +28,41 @@ export const SignInForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+    
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email.trim(),
         password: formData.password,
       });
 
-      if (error) {
-        console.error("Sign in error:", error);
-        if (error.message === "Invalid login credentials") {
+      if (signInError) {
+        console.error("Sign in error:", signInError);
+        if (signInError.message === "Invalid login credentials") {
           setError(
             "The email or password you entered is incorrect. Please check your credentials and try again. If you haven't signed up yet, please create an account first."
           );
-        } else if (error.message.includes("Email not confirmed")) {
+        } else if (signInError.message.includes("Email not confirmed")) {
           setError(
             "Please verify your email address before signing in. Check your inbox for a confirmation email."
           );
         } else {
-          setError(error.message);
+          setError(signInError.message);
         }
         return;
       }
 
-      if (data.user) {
-        toast({
-          title: "Success!",
-          description: "Successfully signed in.",
-        });
-        navigate("/dashboard");
-      }
+      toast({
+        title: "Success!",
+        description: "Successfully signed in.",
+      });
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Unexpected error:", error);
-      setError("An unexpected error occurred. Please try again.");
+      setError("An unexpected error occurred. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -96,6 +96,7 @@ export const SignInForm = () => {
                 setFormData({ ...formData, email: e.target.value })
               }
               required
+              disabled={loading}
             />
           </div>
 
@@ -110,6 +111,7 @@ export const SignInForm = () => {
                 setFormData({ ...formData, password: e.target.value })
               }
               required
+              disabled={loading}
             />
           </div>
 
