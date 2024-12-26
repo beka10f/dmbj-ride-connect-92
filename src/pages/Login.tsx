@@ -17,112 +17,45 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log("Starting login process...");
-    
+
     try {
-      // Step 1: Sign in with email and password
-      console.log("Attempting authentication with email:", email);
-      console.log("Starting Supabase auth call...");
-      
-      let authResponse;
-      try {
-        authResponse = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        console.log("Raw auth response received:", authResponse);
-      } catch (signInError) {
-        console.error("Error during sign in call:", signInError);
-        throw signInError;
-      }
-
-      const { data: authData, error: authError } = authResponse;
-
-      console.log("Processed auth response:", { 
-        success: !!authData?.user,
-        error: authError?.message || null,
-        user: authData?.user ? { id: authData.user.id, email: authData.user.email } : null
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (authError) {
-        console.error("Authentication error:", authError);
+      if (error) {
         toast({
-          title: "Authentication Error",
-          description: authError.message,
+          title: "Login failed",
+          description: error.message,
           variant: "destructive",
         });
         return;
       }
 
-      if (!authData.user) {
-        console.error("No user data received after authentication");
-        toast({
-          title: "Error",
-          description: "Failed to retrieve user data",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log("Authentication successful, checking admin status...");
-
-      // Step 2: Check if user is admin
-      console.log("Querying profiles table for user:", authData.user.id);
-      let profileResponse;
-      try {
-        profileResponse = await supabase
+      if (data?.user) {
+        const { data: profileData } = await supabase
           .from("profiles")
           .select("role")
-          .eq("id", authData.user.id)
+          .eq("id", data.user.id)
           .single();
-        console.log("Raw profile response:", profileResponse);
-      } catch (profileQueryError) {
-        console.error("Error during profile query:", profileQueryError);
-        throw profileQueryError;
-      }
 
-      const { data: profileData, error: profileError } = profileResponse;
+        if (profileData?.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
 
-      console.log("Profile query result:", { 
-        success: !!profileData,
-        error: profileError?.message || null,
-        role: profileData?.role || null 
-      });
-
-      if (profileError) {
-        console.error("Profile fetch error:", profileError);
         toast({
-          title: "Error",
-          description: "Could not verify admin status",
-          variant: "destructive",
+          title: "Success",
+          description: "Logged in successfully",
         });
-        return;
       }
-
-      if (profileData?.role !== "admin") {
-        console.log("Non-admin access attempt");
-        toast({
-          title: "Access Denied",
-          description: "You do not have admin privileges",
-          variant: "destructive",
-        });
-        // Sign out non-admin users
-        await supabase.auth.signOut();
-        return;
-      }
-
-      console.log("Admin access confirmed, redirecting...");
-      toast({
-        title: "Success",
-        description: "Welcome to the admin dashboard",
-      });
-      navigate("/admin");
-
     } catch (error) {
-      console.error("Unexpected error during login:", error);
+      console.error("Login error:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred during login",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
