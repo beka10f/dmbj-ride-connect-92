@@ -33,25 +33,10 @@ export const SignInForm = () => {
     setLoading(true);
     setError(null);
 
-    // Log the attempt (without password)
     console.log("Attempting to sign in with email:", formData.email);
 
     try {
-      // First, check if the user exists
-      const { data: userExists } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', formData.email.trim())
-        .single();
-
-      if (!userExists) {
-        console.log("No user found with this email");
-        setError("No account found with this email address. Please sign up first.");
-        setLoading(false);
-        return;
-      }
-
-      // Attempt to sign in
+      // Attempt to sign in directly without checking profiles first
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
         password: formData.password,
