@@ -34,7 +34,14 @@ export const SignInForm = () => {
     setError(null);
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // First, check if the session exists and clear it if it does
+      const existingSession = await supabase.auth.getSession();
+      if (existingSession.data.session) {
+        await supabase.auth.signOut();
+      }
+
+      // Attempt to sign in
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
         password: formData.password,
       });
@@ -55,11 +62,19 @@ export const SignInForm = () => {
         return;
       }
 
-      toast({
-        title: "Success!",
-        description: "Successfully signed in.",
-      });
-      navigate("/dashboard");
+      if (data.user) {
+        // Verify the session was created
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error("Failed to create session");
+        }
+
+        toast({
+          title: "Success!",
+          description: "Successfully signed in.",
+        });
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error("Unexpected error:", error);
       setError("An unexpected error occurred. Please try again later.");
