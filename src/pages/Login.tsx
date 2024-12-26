@@ -17,6 +17,7 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("Attempting login...");
     
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -25,6 +26,7 @@ const Login = () => {
       });
 
       if (authError) {
+        console.error("Auth error:", authError);
         toast({
           title: "Error",
           description: authError.message === "Invalid login credentials" 
@@ -32,8 +34,11 @@ const Login = () => {
             : authError.message,
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
+
+      console.log("Auth successful:", authData);
 
       if (authData.user) {
         // Check if user is admin
@@ -41,25 +46,30 @@ const Login = () => {
           .from("profiles")
           .select("role")
           .eq("id", authData.user.id)
-          .maybeSingle();
+          .single();
+
+        console.log("Profile data:", profileData, "Profile error:", profileError);
 
         if (profileError) {
-          console.error("Error fetching profile:", profileError);
+          console.error("Profile error:", profileError);
           toast({
             title: "Error",
             description: "Could not verify admin status",
             variant: "destructive",
           });
+          setIsLoading(false);
           return;
         }
 
         if (profileData?.role === "admin") {
+          console.log("Admin access granted");
           toast({
             title: "Success",
             description: "Welcome to the admin dashboard",
           });
           navigate("/admin");
         } else {
+          console.log("Non-admin access denied");
           toast({
             title: "Access Denied",
             description: "You do not have admin privileges",
