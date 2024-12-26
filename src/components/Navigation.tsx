@@ -46,27 +46,29 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-[#0F172A] border-b border-[#BFA181]/20 fixed top-0 left-0 right-0 w-full z-50">
-      <div className="px-4 sm:px-6 py-2">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-          <div className="flex-shrink-0">
+    <nav className="bg-[#0F172A] fixed top-0 left-0 right-0 w-full z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4">
+          {/* Logo */}
+          <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-semibold text-[#BFA181]">DMBJ Transportation</span>
+              <span className="text-2xl font-semibold text-[#BFA181]">DMBJ Transportation</span>
             </Link>
           </div>
 
-          <div className="flex items-center space-x-4 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
+          {/* Navigation Items */}
+          <div className="flex flex-col sm:flex-row items-center mt-4 sm:mt-0 space-y-3 sm:space-y-0 sm:space-x-4">
             {isLoggedIn ? (
               <>
                 {isAdmin && (
-                  <div className="mr-2">
+                  <div className="sm:mr-2">
                     <NotificationBell />
                   </div>
                 )}
-                <Link to="/dashboard">
+                <Link to="/dashboard" className="w-full sm:w-auto">
                   <Button 
                     variant="ghost"
-                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-4 h-10 text-base font-medium"
+                    className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
                   >
                     Dashboard
                   </Button>
@@ -74,25 +76,25 @@ export const Navigation = () => {
                 <Button 
                   onClick={handleSignOut} 
                   variant="ghost"
-                  className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-4 h-10 text-base font-medium"
+                  className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
                 >
                   Sign Out
                 </Button>
               </>
             ) : (
               <>
-                <Link to="/login">
+                <Link to="/login" className="w-full sm:w-auto">
                   <Button 
                     variant="ghost"
-                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-4 h-10 text-base font-medium"
+                    className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
                   >
                     Sign In
                   </Button>
                 </Link>
-                <Link to="/become-driver">
+                <Link to="/become-driver" className="w-full sm:w-auto">
                   <Button 
                     variant="secondary"
-                    className="bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90 px-4 h-10 text-base font-medium whitespace-nowrap"
+                    className="w-full sm:w-auto bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90 px-6 py-2 text-lg font-medium"
                   >
                     Become a Driver
                   </Button>
