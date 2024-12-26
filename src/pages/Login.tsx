@@ -32,11 +32,21 @@ const Login = () => {
 
     if (data.user) {
       // Check if user is admin
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
         .single();
+
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        toast({
+          title: "Error",
+          description: "Could not verify admin status",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (profileData?.role === "admin") {
         toast({
