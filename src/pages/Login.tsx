@@ -24,12 +24,21 @@ const Login = () => {
       console.log("Attempting authentication with email:", email);
       console.log("Starting Supabase auth call...");
       
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      let authResponse;
+      try {
+        authResponse = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        console.log("Raw auth response received:", authResponse);
+      } catch (signInError) {
+        console.error("Error during sign in call:", signInError);
+        throw signInError;
+      }
 
-      console.log("Received response from Supabase auth:", { 
+      const { data: authData, error: authError } = authResponse;
+
+      console.log("Processed auth response:", { 
         success: !!authData?.user,
         error: authError?.message || null,
         user: authData?.user ? { id: authData.user.id, email: authData.user.email } : null
@@ -59,11 +68,20 @@ const Login = () => {
 
       // Step 2: Check if user is admin
       console.log("Querying profiles table for user:", authData.user.id);
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", authData.user.id)
-        .single();
+      let profileResponse;
+      try {
+        profileResponse = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authData.user.id)
+          .single();
+        console.log("Raw profile response:", profileResponse);
+      } catch (profileQueryError) {
+        console.error("Error during profile query:", profileQueryError);
+        throw profileQueryError;
+      }
+
+      const { data: profileData, error: profileError } = profileResponse;
 
       console.log("Profile query result:", { 
         success: !!profileData,
@@ -104,7 +122,7 @@ const Login = () => {
       console.error("Unexpected error during login:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred during login",
         variant: "destructive",
       });
     } finally {
