@@ -32,7 +32,6 @@ const Login = () => {
             : authError.message,
           variant: "destructive",
         });
-        setIsLoading(false);
         return;
       }
 
@@ -51,7 +50,6 @@ const Login = () => {
             description: "Could not verify admin status",
             variant: "destructive",
           });
-          setIsLoading(false);
           return;
         }
 
