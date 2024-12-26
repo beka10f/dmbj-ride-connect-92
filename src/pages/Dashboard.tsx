@@ -40,15 +40,19 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
 
   const { data: bookings = [], refetch: refetchBookings } = useQuery({
-    queryKey: ["bookings"],
+    queryKey: ["bookings", profile?.role],
     queryFn: async () => {
       const { data: bookingsData, error: bookingsError } = await supabase
         .from("bookings")
         .select("*");
 
-      if (bookingsError) throw bookingsError;
+      if (bookingsError) {
+        console.error("Error fetching bookings:", bookingsError);
+        throw bookingsError;
+      }
       return bookingsData || [];
     },
+    enabled: !!profile,
   });
 
   const { data: driverApplications = [] } = useQuery({
