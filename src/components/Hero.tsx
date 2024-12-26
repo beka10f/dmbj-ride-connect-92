@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 export const Hero = () => {
   return (
-    <div className="relative min-h-[80vh] flex items-center justify-center bg-primary text-white p-4">
+    <div className="relative min-h-screen flex items-center justify-center bg-primary text-white p-4">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
         style={{
@@ -16,16 +16,16 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-3xl md:text-6xl font-bold mb-6"
+          className="text-4xl md:text-6xl font-bold mb-8 tracking-tight"
         >
           Luxury Transportation
-          <span className="block text-secondary mt-2">At Your Service</span>
+          <span className="block text-secondary mt-3 text-3xl md:text-5xl">At Your Service</span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-base md:text-xl mb-8 text-gray-300"
+          className="text-lg md:text-xl mb-12 text-gray-300 leading-relaxed max-w-2xl mx-auto"
         >
           Experience the epitome of comfort and elegance with our premium
           limousine service
@@ -34,10 +34,11 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
+          className="space-y-4"
         >
           <Button
             size="lg"
-            className="bg-secondary text-primary hover:bg-secondary/90"
+            className="bg-secondary text-primary hover:bg-secondary/90 text-lg px-8 py-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
             onClick={() => document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" })}
           >
             Book Your Ride
