@@ -18,59 +18,69 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message === "Invalid login credentials" 
-          ? "Incorrect email or password" 
-          : error.message,
-        variant: "destructive",
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      setIsLoading(false);
-      return;
-    }
 
-    if (data.user) {
-      // Check if user is admin
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
-
-      if (profileError) {
-        console.error("Error fetching profile:", profileError);
+      if (error) {
         toast({
           title: "Error",
-          description: "Could not verify admin status",
+          description: error.message === "Invalid login credentials" 
+            ? "Incorrect email or password" 
+            : error.message,
           variant: "destructive",
         });
         setIsLoading(false);
         return;
       }
 
-      if (profileData?.role === "admin") {
-        toast({
-          title: "Success",
-          description: "Welcome to the admin dashboard",
-        });
-        navigate("/admin");
-      } else {
-        toast({
-          title: "Access Denied",
-          description: "You do not have admin privileges",
-          variant: "destructive",
-        });
-        // Sign out the non-admin user
-        await supabase.auth.signOut();
+      if (data.user) {
+        // Check if user is admin
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          toast({
+            title: "Error",
+            description: "Could not verify admin status",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        if (profileData?.role === "admin") {
+          toast({
+            title: "Success",
+            description: "Welcome to the admin dashboard",
+          });
+          navigate("/admin");
+        } else {
+          toast({
+            title: "Access Denied",
+            description: "You do not have admin privileges",
+            variant: "destructive",
+          });
+          // Sign out the non-admin user
+          await supabase.auth.signOut();
+        }
       }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
