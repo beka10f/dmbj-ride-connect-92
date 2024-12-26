@@ -1,9 +1,6 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 
 export const Footer = () => {
-  const { user } = useAuth();
-
   return (
     <footer className="bg-primary text-white py-12 px-4">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -28,10 +25,10 @@ export const Footer = () => {
             </li>
             <li>
               <Link 
-                to={user ? "/admin" : "/login"} 
+                to="/login" 
                 className="text-gray-300 hover:text-secondary transition-colors"
               >
-                {user ? "Admin Dashboard" : "Login"}
+                Login
               </Link>
             </li>
           </ul>
