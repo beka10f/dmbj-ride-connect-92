@@ -7,6 +7,7 @@ import { Navigation } from "@/components/Navigation";
 import Index from "./pages/Index";
 import BecomeDriver from "./pages/BecomeDriver";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/become-driver" element={<BecomeDriver />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </div>
       </BrowserRouter>
