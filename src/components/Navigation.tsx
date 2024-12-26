@@ -1,57 +1,19 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 
 export const Navigation = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-    });
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
   return (
-    <nav className="border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold">
-              DMBJ Transportation
-            </Link>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {user ? (
-              <>
-                <Link to="/become-driver">
-                  <Button variant="outline">Become a Driver</Button>
-                </Link>
-                <Button onClick={handleLogout} variant="ghost">
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <Link to="/auth">
-                <Button>Login</Button>
-              </Link>
-            )}
-          </div>
+    <nav className="bg-primary text-white py-4 px-6 shadow-md">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <Link to="/" className="text-2xl font-bold text-secondary">
+          DMBJ Transportation
+        </Link>
+        <div className="space-x-4">
+          <Link to="/" className="text-white hover:text-secondary transition-colors">
+            Home
+          </Link>
+          <Link to="/become-driver" className="text-white hover:text-secondary transition-colors">
+            Become a Driver
+          </Link>
         </div>
       </div>
     </nav>
