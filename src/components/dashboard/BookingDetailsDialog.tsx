@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { CustomerInfo } from "./CustomerInfo";
 import { TripDetails } from "./TripDetails";
 import { LocationDetails } from "./LocationDetails";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface BookingDetailsDialogProps {
   booking: {
@@ -34,7 +35,10 @@ export const BookingDetailsDialog = ({
   onStatusUpdate,
 }: BookingDetailsDialogProps) => {
   const { toast } = useToast();
+  const { profile } = useUserProfile();
   const [tripDetails, setTripDetails] = useState<{ distanceText: string; totalCost: string } | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedInstructions, setEditedInstructions] = useState(booking?.special_instructions || "");
 
   const { data: userProfile } = useQuery({
     queryKey: ["userProfile", booking?.user_id],
@@ -65,6 +69,7 @@ export const BookingDetailsDialog = ({
     };
 
     fetchTripDetails();
+    setEditedInstructions(booking?.special_instructions || "");
   }, [booking]);
 
   const handleLocationClick = (location: string) => {
@@ -95,7 +100,61 @@ export const BookingDetailsDialog = ({
     onStatusUpdate();
   };
 
+  const handleCancelBooking = async () => {
+    if (!booking) return;
+
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "cancelled" })
+      .eq("id", booking.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to cancel booking",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Booking cancelled successfully",
+    });
+    onStatusUpdate();
+    onClose();
+  };
+
+  const handleSaveChanges = async () => {
+    if (!booking) return;
+
+    const { error } = await supabase
+      .from("bookings")
+      .update({ special_instructions: editedInstructions })
+      .eq("id", booking.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update booking",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Booking updated successfully",
+    });
+    setIsEditing(false);
+    onStatusUpdate();
+  };
+
   if (!booking) return null;
+
+  const isClient = profile?.role === 'client';
+  const isAdmin = profile?.role === 'admin';
+  const canEdit = isClient && booking.status === 'pending';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -107,7 +166,7 @@ export const BookingDetailsDialog = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          <CustomerInfo profile={userProfile} />
+          {!isClient && <CustomerInfo profile={userProfile} />}
           <TripDetails tripDetails={tripDetails} />
           <LocationDetails
             pickup={booking.pickup_location}
@@ -136,22 +195,53 @@ export const BookingDetailsDialog = ({
             </div>
           </div>
 
-          {booking.special_instructions && (
-            <div className="space-y-2">
-              <h3 className="font-medium">Special Instructions</h3>
+          <div className="space-y-2">
+            <h3 className="font-medium">Special Instructions</h3>
+            {isEditing ? (
+              <textarea
+                value={editedInstructions}
+                onChange={(e) => setEditedInstructions(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                rows={3}
+              />
+            ) : (
               <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                {booking.special_instructions}
+                {booking.special_instructions || "No special instructions"}
               </p>
-            </div>
-          )}
+            )}
+          </div>
 
-          {booking.status === "pending" && (
-            <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4">
+            {isAdmin && booking.status === "pending" && (
               <Button onClick={handleAcceptBooking}>
                 Accept Booking
               </Button>
-            </div>
-          )}
+            )}
+            
+            {canEdit && (
+              <>
+                {isEditing ? (
+                  <>
+                    <Button variant="outline" onClick={() => setIsEditing(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveChanges}>
+                      Save Changes
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                      Edit
+                    </Button>
+                    <Button variant="destructive" onClick={handleCancelBooking}>
+                      Cancel Booking
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
