@@ -34,6 +34,7 @@ export const SignInForm = () => {
     setError(null);
 
     try {
+      // Trim whitespace from email to prevent common user errors
       const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
         password: formData.password,
@@ -42,6 +43,7 @@ export const SignInForm = () => {
       if (signInError) {
         console.error("Sign in error:", signInError);
         
+        // Provide more specific error messages based on the error type
         if (signInError.message === "Invalid login credentials") {
           setError(
             "The email or password you entered is incorrect. Please check your credentials and try again. If you haven't signed up yet, please create an account first."
