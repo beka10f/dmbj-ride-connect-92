@@ -1,16 +1,27 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const Admin = () => {
   const navigate = useNavigate();
-  const isAuthenticated = false; // This should be replaced with actual auth logic
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Check if user is logged in and has the correct email
+    if (!user) {
+      navigate("/login");
+    } else if (user.email !== "DmbjTransportation@gmail.com") {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access the admin dashboard.",
+        variant: "destructive",
+      });
       navigate("/");
     }
-  }, [isAuthenticated, navigate]);
+  }, [user, navigate, toast]);
 
   const metrics = [
     { title: "Total Drivers", value: "25", change: "+3 this month" },
