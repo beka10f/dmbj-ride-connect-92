@@ -14,6 +14,9 @@ export const Navigation = () => {
           <Link to="/become-driver" className="text-white hover:text-secondary transition-colors">
             Become a Driver
           </Link>
+          <Link to="/login" className="text-white hover:text-secondary transition-colors">
+            Login / Register
+          </Link>
         </div>
       </div>
     </nav>
