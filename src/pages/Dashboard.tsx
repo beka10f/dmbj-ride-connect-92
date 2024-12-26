@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Car, CheckCircle, Clock, MapPin, User, XCircle } from "lucide-react";
+import { Calendar, Car } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { BookingsTable } from "@/components/dashboard/BookingsTable";
+import { StatsCard } from "@/components/dashboard/StatsCard";
 
 interface BookingData {
   id: string;
@@ -91,19 +90,6 @@ const Dashboard = () => {
     checkAuth();
   }, [navigate, toast, profile?.role]);
 
-  const getStatusBadge = (status: string) => {
-    const statusStyles = {
-      pending: "bg-yellow-100 text-yellow-800",
-      completed: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800",
-    };
-    return (
-      <Badge className={`${statusStyles[status as keyof typeof statusStyles]}`}>
-        {status}
-      </Badge>
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -116,120 +102,55 @@ const Dashboard = () => {
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-primary">
+          <h1 className="text-3xl font-bold text-gray-900">
             Welcome, {profile?.first_name || 'User'}!
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-gray-500 mt-1">
             {profile?.role === 'admin' ? 'Admin Dashboard' : 'Your Dashboard'}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{bookings.length}</div>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Total Bookings"
+          value={bookings.length}
+          icon={Calendar}
+        />
         {profile?.role === 'admin' && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Driver Applications</CardTitle>
-              <Car className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{driverApplications.length}</div>
-            </CardContent>
-          </Card>
+          <StatsCard
+            title="Driver Applications"
+            value={driverApplications.length}
+            icon={Car}
+          />
         )}
       </div>
 
       <Tabs defaultValue="bookings" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="bookings">Bookings</TabsTrigger>
+        <TabsList className="bg-gray-100/50 p-1 rounded-lg">
+          <TabsTrigger 
+            value="bookings"
+            className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2 text-sm font-medium transition-all"
+          >
+            Bookings
+          </TabsTrigger>
           {profile?.role === 'admin' && (
-            <TabsTrigger value="applications">Driver Applications</TabsTrigger>
+            <TabsTrigger 
+              value="applications"
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2 text-sm font-medium transition-all"
+            >
+              Driver Applications
+            </TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="bookings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Bookings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Pickup Location</TableHead>
-                    <TableHead>Dropoff Location</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {bookings.map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {booking.pickup_location}
-                      </TableCell>
-                      <TableCell className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {booking.dropoff_location}
-                      </TableCell>
-                      <TableCell className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        {new Date(booking.pickup_date).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <BookingsTable bookings={bookings} />
         </TabsContent>
 
         {profile?.role === 'admin' && (
           <TabsContent value="applications" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Driver Applications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>License Number</TableHead>
-                      <TableHead>Experience</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Applied On</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {driverApplications.map((application) => (
-                      <TableRow key={application.id}>
-                        <TableCell className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          {application.license_number}
-                        </TableCell>
-                        <TableCell>{application.years_experience} years</TableCell>
-                        <TableCell>{getStatusBadge(application.status)}</TableCell>
-                        <TableCell className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          {new Date(application.created_at).toLocaleDateString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            <BookingsTable bookings={bookings} />
           </TabsContent>
         )}
       </Tabs>
