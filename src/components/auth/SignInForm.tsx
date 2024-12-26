@@ -13,7 +13,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 export const SignInForm = () => {
   const navigate = useNavigate();
@@ -37,8 +38,15 @@ export const SignInForm = () => {
       });
 
       if (error) {
+        console.error("Sign in error:", error);
         if (error.message === "Invalid login credentials") {
-          setError("Please check your email and password. If you haven't signed up yet, please create an account first.");
+          setError(
+            "The email or password you entered is incorrect. Please check your credentials and try again. If you haven't signed up yet, please create an account first."
+          );
+        } else if (error.message.includes("Email not confirmed")) {
+          setError(
+            "Please verify your email address before signing in. Check your inbox for a confirmation email."
+          );
         } else {
           setError(error.message);
         }
@@ -53,6 +61,7 @@ export const SignInForm = () => {
         navigate("/dashboard");
       }
     } catch (error: any) {
+      console.error("Unexpected error:", error);
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -69,7 +78,9 @@ export const SignInForm = () => {
       </CardHeader>
       <CardContent>
         {error && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-6">
+            <InfoIcon className="h-4 w-4" />
+            <AlertTitle>Authentication Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -79,6 +90,7 @@ export const SignInForm = () => {
             <Input
               id="email"
               type="email"
+              placeholder="Enter your email"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
@@ -92,6 +104,7 @@ export const SignInForm = () => {
             <Input
               id="password"
               type="password"
+              placeholder="Enter your password"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
