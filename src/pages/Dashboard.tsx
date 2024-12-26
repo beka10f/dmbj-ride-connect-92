@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Car } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { BookingsTable } from "@/components/dashboard/BookingsTable";
-import { StatsCard } from "@/components/dashboard/StatsCard";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
 
 interface BookingData {
@@ -27,30 +24,31 @@ interface DriverApplication {
   created_at: string;
 }
 
-interface ProfileData {
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  role: string;
-}
-
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const { profile } = useUserProfile();
 
   const { data: bookings = [], refetch: refetchBookings } = useQuery({
     queryKey: ["bookings", profile?.role],
     queryFn: async () => {
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from("bookings")
-        .select("*");
+      if (!profile) return [];
 
-      if (bookingsError) {
-        console.error("Error fetching bookings:", bookingsError);
-        throw bookingsError;
+      const query = supabase.from("bookings").select("*");
+
+      // Filter bookings based on user role
+      if (profile.role === 'client') {
+        query.eq('user_id', await supabase.auth.getUser().then(res => res.data.user?.id));
+      } else if (profile.role === 'driver') {
+        query.eq('assigned_driver_id', await supabase.auth.getUser().then(res => res.data.user?.id));
       }
-      return bookingsData || [];
+      // Admin sees all bookings (no filter)
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error fetching bookings:", error);
+        throw error;
+      }
+      return data || [];
     },
     enabled: !!profile,
   });
@@ -70,34 +68,7 @@ const Dashboard = () => {
     enabled: profile?.role === "admin",
   });
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("first_name, last_name, email, role")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        setProfile(profileData);
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    };
-
-    checkAuth();
-  }, [navigate, toast]);
+  if (!profile) return null;
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -112,20 +83,11 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Total Bookings"
-          value={bookings.length}
-          icon={Calendar}
-        />
-        {profile?.role === "admin" && (
-          <StatsCard
-            title="Driver Applications"
-            value={driverApplications.length}
-            icon={Car}
-          />
-        )}
-      </div>
+      <DashboardStats
+        bookingsCount={bookings.length}
+        applicationsCount={driverApplications.length}
+        isAdmin={profile.role === "admin"}
+      />
 
       <Tabs defaultValue="bookings" className="space-y-6">
         <TabsList className="bg-gray-100/50 p-1 rounded-lg">
