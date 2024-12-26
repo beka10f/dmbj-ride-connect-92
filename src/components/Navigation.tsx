@@ -46,23 +46,27 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-[#0F172A] border-b border-[#BFA181]/20 fixed top-0 w-full z-50">
-      <div className="max-w-7xl mx-auto px-4">
+    <nav className="bg-[#0F172A] border-b border-[#BFA181]/20 fixed top-0 left-0 right-0 w-full z-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
         <div className="flex justify-between h-14 sm:h-16 items-center">
-          <div className="flex">
+          <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <span className="text-lg sm:text-xl font-bold text-[#BFA181] truncate">DMBJ Transportation</span>
+              <span className="text-base sm:text-lg font-bold text-[#BFA181] truncate">DMBJ Transportation</span>
             </Link>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center gap-1 sm:gap-2">
             {isLoggedIn ? (
               <>
-                {isAdmin && <NotificationBell />}
+                {isAdmin && (
+                  <div className="mr-1">
+                    <NotificationBell />
+                  </div>
+                )}
                 <Link to="/dashboard">
                   <Button 
                     variant="ghost"
-                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base"
+                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-2 sm:px-3 py-1 text-sm whitespace-nowrap"
                   >
                     Dashboard
                   </Button>
@@ -70,7 +74,7 @@ export const Navigation = () => {
                 <Button 
                   onClick={handleSignOut} 
                   variant="ghost"
-                  className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base"
+                  className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-2 sm:px-3 py-1 text-sm"
                 >
                   Sign Out
                 </Button>
@@ -80,7 +84,7 @@ export const Navigation = () => {
                 <Link to="/login">
                   <Button 
                     variant="ghost"
-                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base"
+                    className="text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-2 sm:px-3 py-1 text-sm"
                   >
                     Sign In
                   </Button>
@@ -88,7 +92,7 @@ export const Navigation = () => {
                 <Link to="/become-driver">
                   <Button 
                     variant="secondary"
-                    className="bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90 px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base whitespace-nowrap"
+                    className="bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90 px-2 sm:px-3 py-1 text-sm whitespace-nowrap"
                   >
                     Become a Driver
                   </Button>
