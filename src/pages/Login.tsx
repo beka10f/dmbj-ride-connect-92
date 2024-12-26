@@ -17,70 +17,78 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log("Attempting login...");
+    console.log("Starting login process...");
     
     try {
+      // Step 1: Sign in with email and password
+      console.log("Attempting authentication...");
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) {
-        console.error("Auth error:", authError);
+        console.error("Authentication error:", authError);
         toast({
-          title: "Error",
-          description: authError.message === "Invalid login credentials" 
-            ? "Incorrect email or password" 
-            : authError.message,
+          title: "Authentication Error",
+          description: authError.message,
           variant: "destructive",
         });
-        setIsLoading(false);
         return;
       }
 
-      console.log("Auth successful:", authData);
-
-      if (authData.user) {
-        // Check if user is admin
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", authData.user.id)
-          .single();
-
-        console.log("Profile data:", profileData, "Profile error:", profileError);
-
-        if (profileError) {
-          console.error("Profile error:", profileError);
-          toast({
-            title: "Error",
-            description: "Could not verify admin status",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        if (profileData?.role === "admin") {
-          console.log("Admin access granted");
-          toast({
-            title: "Success",
-            description: "Welcome to the admin dashboard",
-          });
-          navigate("/admin");
-        } else {
-          console.log("Non-admin access denied");
-          toast({
-            title: "Access Denied",
-            description: "You do not have admin privileges",
-            variant: "destructive",
-          });
-          // Sign out the non-admin user
-          await supabase.auth.signOut();
-        }
+      if (!authData.user) {
+        console.error("No user data received after authentication");
+        toast({
+          title: "Error",
+          description: "Failed to retrieve user data",
+          variant: "destructive",
+        });
+        return;
       }
+
+      console.log("Authentication successful, checking admin status...");
+
+      // Step 2: Check if user is admin
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+
+      console.log("Profile query result:", { profileData, profileError });
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        toast({
+          title: "Error",
+          description: "Could not verify admin status",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (profileData?.role !== "admin") {
+        console.log("Non-admin access attempt");
+        toast({
+          title: "Access Denied",
+          description: "You do not have admin privileges",
+          variant: "destructive",
+        });
+        // Sign out non-admin users
+        await supabase.auth.signOut();
+        return;
+      }
+
+      console.log("Admin access confirmed, redirecting...");
+      toast({
+        title: "Success",
+        description: "Welcome to the admin dashboard",
+      });
+      navigate("/admin");
+
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Unexpected error during login:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
