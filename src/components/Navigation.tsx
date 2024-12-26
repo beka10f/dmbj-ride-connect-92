@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 export const Navigation = () => {
@@ -9,15 +8,11 @@ export const Navigation = () => {
           DMBJ Transportation
         </Link>
         <div className="space-x-4">
-          <Link to="/">
-            <Button variant="ghost" className="text-white hover:text-secondary">
-              Home
-            </Button>
+          <Link to="/" className="text-white hover:text-secondary transition-colors">
+            Home
           </Link>
-          <Link to="/become-driver">
-            <Button variant="ghost" className="text-white hover:text-secondary">
-              Become a Driver
-            </Button>
+          <Link to="/become-driver" className="text-white hover:text-secondary transition-colors">
+            Become a Driver
           </Link>
         </div>
       </div>

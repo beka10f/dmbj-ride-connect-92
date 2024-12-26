@@ -11,12 +11,12 @@ export const Hero = () => {
             "url('https://images.unsplash.com/photo-1631486360162-27c02d76ef57?q=80&w=2070')",
         }}
       />
-      <div className="relative z-10 max-w-4xl mx-auto text-center">
+      <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-4xl md:text-6xl font-bold mb-6"
+          className="text-3xl md:text-6xl font-bold mb-6"
         >
           Luxury Transportation
           <span className="block text-secondary mt-2">At Your Service</span>
@@ -25,7 +25,7 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-lg md:text-xl mb-8 text-gray-300"
+          className="text-base md:text-xl mb-8 text-gray-300"
         >
           Experience the epitome of comfort and elegance with our premium
           limousine service
