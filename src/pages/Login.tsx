@@ -9,9 +9,16 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Check current session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        navigate("/");
+      }
+    });
+
+    // Then listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
         navigate("/");
       }
     });
