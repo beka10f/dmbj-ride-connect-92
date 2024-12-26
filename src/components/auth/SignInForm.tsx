@@ -33,11 +33,9 @@ export const SignInForm = () => {
     setLoading(true);
     setError(null);
 
-    console.log("Attempting to sign in with email:", formData.email);
-
     try {
-      // Attempt to sign in directly without checking profiles first
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      // First, check if the user exists in auth
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
         password: formData.password,
       });
@@ -47,7 +45,7 @@ export const SignInForm = () => {
         
         if (signInError.message === "Invalid login credentials") {
           setError(
-            "The email or password you entered is incorrect. Please check your credentials and try again."
+            "The email or password you entered is incorrect. Please check your credentials and try again. If you haven't signed up yet, please create an account first."
           );
         } else if (signInError.message.includes("Email not confirmed")) {
           setError(
@@ -59,7 +57,7 @@ export const SignInForm = () => {
         return;
       }
 
-      if (data.user) {
+      if (session) {
         console.log("Sign in successful");
         toast({
           title: "Success!",
