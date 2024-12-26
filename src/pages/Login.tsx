@@ -54,12 +54,13 @@ const Login = () => {
               },
             }}
             providers={[]}
-            onError={(error) => {
-              toast({
-                title: "Error",
-                description: error.message,
-                variant: "destructive",
-              });
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'Email',
+                  password_label: 'Password',
+                },
+              },
             }}
           />
         </CardContent>
