@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { BookingFormFields } from "./booking/BookingFormFields";
 import { calculateDistance } from "./booking/DistanceCalculator";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const BookingForm = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<string>("");
   const [cost, setCost] = useState<string>("");
@@ -60,7 +63,6 @@ export const BookingForm = () => {
       setDistance(distanceText);
       setCost(`$${totalCost}`);
       
-      // Set booking details for confirmation
       setBookingDetails({
         ...formData,
         distance: distanceText,
@@ -81,13 +83,54 @@ export const BookingForm = () => {
   };
 
   const handleConfirmBooking = async () => {
-    // Here we would typically make an API call to send the email
-    // For now, we'll just show a success toast
-    toast({
-      title: "Booking Confirmed!",
-      description: "A confirmation email has been sent to your inbox.",
-    });
-    setShowConfirmation(false);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user) {
+        toast({
+          title: "Error",
+          description: "Please sign in to make a booking",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
+      const { error: bookingError } = await supabase.from("bookings").insert({
+        user_id: session.session.user.id,
+        pickup_location: formData.pickup,
+        dropoff_location: formData.dropoff,
+        pickup_date: new Date(
+          `${formData.date?.toISOString().split("T")[0]}T${formData.time}`
+        ).toISOString(),
+        special_instructions: `Passengers: ${formData.passengers}`,
+      });
+
+      if (bookingError) {
+        console.error("Booking error:", bookingError);
+        toast({
+          title: "Error",
+          description: "Failed to create booking. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Booking Confirmed!",
+        description: "Your booking has been created successfully.",
+      });
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setShowConfirmation(false);
+    }
   };
 
   return (

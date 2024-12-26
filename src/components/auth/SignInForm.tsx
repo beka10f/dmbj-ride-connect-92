@@ -34,7 +34,6 @@ export const SignInForm = () => {
     setError(null);
 
     try {
-      // First, check if the user exists in auth
       const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
         password: formData.password,
