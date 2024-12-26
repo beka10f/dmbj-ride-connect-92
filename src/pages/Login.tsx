@@ -10,11 +10,13 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -24,9 +26,12 @@ const Login = () => {
     if (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message === "Invalid login credentials" 
+          ? "Incorrect email or password" 
+          : error.message,
         variant: "destructive",
       });
+      setIsLoading(false);
       return;
     }
 
@@ -45,6 +50,7 @@ const Login = () => {
           description: "Could not verify admin status",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
@@ -64,6 +70,7 @@ const Login = () => {
         await supabase.auth.signOut();
       }
     }
+    setIsLoading(false);
   };
 
   return (
@@ -85,6 +92,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter admin email"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -96,10 +104,11 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
                 required
+                disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </Card>
