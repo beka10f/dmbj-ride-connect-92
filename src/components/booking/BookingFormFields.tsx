@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,9 +38,18 @@ export const BookingFormFields = ({
   setFormData,
   onSubmit,
   loading,
-  distance,
-  cost,
 }: BookingFormFieldsProps) => {
+  const timeSlots = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2);
+    const minute = i % 2 === 0 ? "00" : "30";
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return {
+      value: `${hour.toString().padStart(2, "0")}:${minute}`,
+      label: `${displayHour}:${minute} ${ampm}`,
+    };
+  });
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -134,28 +143,43 @@ export const BookingFormFields = ({
                 selected={formData.date}
                 onSelect={(date) => setFormData({ ...formData, date })}
                 initialFocus
+                disabled={(date) => date < new Date()}
               />
             </PopoverContent>
           </Popover>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="time">Pickup Time</Label>
-          <Input
-            id="time"
-            type="time"
+          <Label>Pickup Time</Label>
+          <Select
             value={formData.time}
-            onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-          />
+            onValueChange={(value) => setFormData({ ...formData, time: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select pickup time">
+                {formData.time ? (
+                  <div className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4" />
+                    {timeSlots.find((slot) => slot.value === formData.time)?.label}
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span>Select pickup time</span>
+                  </div>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {timeSlots.map((slot) => (
+                <SelectItem key={slot.value} value={slot.value}>
+                  {slot.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-
-      {(distance || cost) && (
-        <div className="p-4 bg-secondary/20 rounded-lg space-y-2">
-          <p className="text-sm font-medium">Estimated Distance: {distance}</p>
-          <p className="text-sm font-medium">Estimated Cost: {cost}</p>
-        </div>
-      )}
 
       <Button
         type="submit"

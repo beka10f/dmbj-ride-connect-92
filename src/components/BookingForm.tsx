@@ -106,26 +106,45 @@ export const BookingForm = () => {
         />
 
         <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Your Booking</AlertDialogTitle>
+              <AlertDialogTitle className="text-2xl font-bold text-primary">
+                Confirm Your Booking
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                <div className="space-y-2 mt-4">
-                  <p><strong>Name:</strong> {bookingDetails?.name}</p>
-                  <p><strong>Email:</strong> {bookingDetails?.email}</p>
-                  <p><strong>Phone:</strong> {bookingDetails?.phone}</p>
-                  <p><strong>Pickup:</strong> {bookingDetails?.pickup}</p>
-                  <p><strong>Dropoff:</strong> {bookingDetails?.dropoff}</p>
-                  <p><strong>Passengers:</strong> {bookingDetails?.passengers}</p>
-                  <p><strong>Date & Time:</strong> {bookingDetails?.dateTime}</p>
-                  <p><strong>Distance:</strong> {bookingDetails?.distance}</p>
-                  <p><strong>Total Cost:</strong> {bookingDetails?.cost}</p>
+                <div className="space-y-4 mt-6">
+                  <div className="bg-secondary/10 p-4 rounded-lg">
+                    <h3 className="font-semibold text-lg mb-2">Passenger Details</h3>
+                    <div className="space-y-2">
+                      <p><strong>Name:</strong> {bookingDetails?.name}</p>
+                      <p><strong>Email:</strong> {bookingDetails?.email}</p>
+                      <p><strong>Phone:</strong> {bookingDetails?.phone}</p>
+                      <p><strong>Passengers:</strong> {bookingDetails?.passengers}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-secondary/10 p-4 rounded-lg">
+                    <h3 className="font-semibold text-lg mb-2">Trip Details</h3>
+                    <div className="space-y-2">
+                      <p><strong>Pickup:</strong> {bookingDetails?.pickup}</p>
+                      <p><strong>Dropoff:</strong> {bookingDetails?.dropoff}</p>
+                      <p><strong>Date & Time:</strong> {bookingDetails?.dateTime}</p>
+                      <p><strong>Distance:</strong> {bookingDetails?.distance}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-secondary p-4 rounded-lg text-primary">
+                    <p className="text-lg font-bold">Total Cost: {bookingDetails?.cost}</p>
+                  </div>
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmBooking}>
+            <AlertDialogFooter className="mt-6">
+              <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200">Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleConfirmBooking}
+                className="bg-secondary text-primary hover:bg-secondary/90"
+              >
                 Confirm Booking
               </AlertDialogAction>
             </AlertDialogFooter>

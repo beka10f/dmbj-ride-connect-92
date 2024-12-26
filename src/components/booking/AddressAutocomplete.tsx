@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface AddressAutocompleteProps {
   id: string;
@@ -18,23 +18,27 @@ export const AddressAutocomplete = ({
   placeholder,
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+    const newAutocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ["address"],
+      componentRestrictions: { country: "us" },
     });
 
-    autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
+    newAutocomplete.addListener("place_changed", () => {
+      const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
         onChange(place.formatted_address);
       }
     });
 
+    setAutocomplete(newAutocomplete);
+
     return () => {
-      if (window.google) {
+      if (autocomplete) {
         google.maps.event.clearInstanceListeners(autocomplete);
       }
     };
@@ -49,6 +53,7 @@ export const AddressAutocomplete = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        className="bg-white"
       />
     </div>
   );
