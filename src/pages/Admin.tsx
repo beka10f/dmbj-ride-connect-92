@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const Admin = () => {
   const metrics = [
