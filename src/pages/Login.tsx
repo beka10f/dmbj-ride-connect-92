@@ -1,11 +1,8 @@
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { SignUpForm } from "@/components/auth/SignUpForm";
+import { SignInForm } from "@/components/auth/SignInForm";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -29,7 +26,7 @@ const Login = () => {
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
-      <SignUpForm />
+      <SignInForm />
     </div>
   );
 };
