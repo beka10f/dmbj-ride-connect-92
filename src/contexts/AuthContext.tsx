@@ -32,10 +32,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        await checkAdminStatus(session.user.id);
+      } else {
+        setIsAdmin(false);
       }
       setIsLoading(false);
     });
@@ -44,14 +46,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
-    const { data, error } = await supabase
+    // First check if profile exists
+    const { data: profile, error } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
-    if (!error && data) {
-      setIsAdmin(data.role === "admin");
+    if (error) {
+      console.error("Error checking admin status:", error);
+      setIsAdmin(false);
+      return;
+    }
+
+    // If profile exists, check if admin
+    if (profile) {
+      setIsAdmin(profile.role === "admin");
+    } else {
+      // If no profile exists, create one with default role 'customer'
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert([
+          {
+            id: userId,
+            role: "customer",
+          },
+        ]);
+
+      if (insertError) {
+        console.error("Error creating profile:", insertError);
+      }
+      setIsAdmin(false);
     }
   };
 
