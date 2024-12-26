@@ -20,8 +20,9 @@ export const calculateDistance = async (pickup: string, dropoff: string) => {
     const distanceText = data.rows[0].elements[0].distance.text;
     const distanceValue = data.rows[0].elements[0].distance.value; // in meters
     const distanceInMiles = distanceValue / 1609.34;
-    const rate = 3; // Rate per mile
-    const totalCost = (distanceInMiles * rate).toFixed(2);
+    const rate = 5; // Rate per mile
+    const baseFee = 15; // Base fee for all rides
+    const totalCost = (distanceInMiles * rate + baseFee).toFixed(2);
 
     return { distanceText, totalCost };
   } catch (error) {

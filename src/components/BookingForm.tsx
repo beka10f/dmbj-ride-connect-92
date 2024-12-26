@@ -1,12 +1,24 @@
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { BookingFormFields } from "./booking/BookingFormFields";
 import { calculateDistance } from "./booking/DistanceCalculator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const BookingForm = () => {
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<string>("");
   const [cost, setCost] = useState<string>("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
@@ -47,11 +59,16 @@ export const BookingForm = () => {
 
       setDistance(distanceText);
       setCost(`$${totalCost}`);
-
-      toast({
-        title: "Booking Submitted",
-        description: `Distance: ${distanceText} | Estimated Cost: $${totalCost}`,
+      
+      // Set booking details for confirmation
+      setBookingDetails({
+        ...formData,
+        distance: distanceText,
+        cost: `$${totalCost}`,
+        dateTime: `${formData.date?.toLocaleDateString()} ${formData.time}`,
       });
+      
+      setShowConfirmation(true);
     } catch (error) {
       toast({
         title: "Error",
@@ -61,6 +78,16 @@ export const BookingForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmBooking = async () => {
+    // Here we would typically make an API call to send the email
+    // For now, we'll just show a success toast
+    toast({
+      title: "Booking Confirmed!",
+      description: "A confirmation email has been sent to your inbox.",
+    });
+    setShowConfirmation(false);
   };
 
   return (
@@ -77,6 +104,33 @@ export const BookingForm = () => {
           distance={distance}
           cost={cost}
         />
+
+        <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Your Booking</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div className="space-y-2 mt-4">
+                  <p><strong>Name:</strong> {bookingDetails?.name}</p>
+                  <p><strong>Email:</strong> {bookingDetails?.email}</p>
+                  <p><strong>Phone:</strong> {bookingDetails?.phone}</p>
+                  <p><strong>Pickup:</strong> {bookingDetails?.pickup}</p>
+                  <p><strong>Dropoff:</strong> {bookingDetails?.dropoff}</p>
+                  <p><strong>Passengers:</strong> {bookingDetails?.passengers}</p>
+                  <p><strong>Date & Time:</strong> {bookingDetails?.dateTime}</p>
+                  <p><strong>Distance:</strong> {bookingDetails?.distance}</p>
+                  <p><strong>Total Cost:</strong> {bookingDetails?.cost}</p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmBooking}>
+                Confirm Booking
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
