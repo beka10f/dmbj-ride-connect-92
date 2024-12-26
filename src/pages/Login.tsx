@@ -19,12 +19,6 @@ const Login = () => {
         });
         navigate("/dashboard");
       }
-      if (event === "SIGNED_OUT") {
-        toast({
-          title: "Signed out",
-          description: "You have been signed out.",
-        });
-      }
     });
 
     return () => {
@@ -61,6 +55,10 @@ const Login = () => {
                   password_label: 'Password',
                 },
               },
+            }}
+            // Set default role to client for new users
+            additionalData={{
+              role: 'client'
             }}
           />
         </CardContent>
