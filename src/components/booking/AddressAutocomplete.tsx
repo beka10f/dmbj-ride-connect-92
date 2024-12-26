@@ -20,9 +20,9 @@ export const AddressAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!inputRef.current) return;
+    if (!inputRef.current || !window.google) return;
 
-    const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ["address"],
     });
 
@@ -34,7 +34,9 @@ export const AddressAutocomplete = ({
     });
 
     return () => {
-      google.maps.event.clearInstanceListeners(autocomplete);
+      if (window.google) {
+        google.maps.event.clearInstanceListeners(autocomplete);
+      }
     };
   }, [onChange]);
 
