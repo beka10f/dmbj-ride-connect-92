@@ -84,20 +84,7 @@ export const BookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to make a booking.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       const { error: bookingError } = await supabase.from("bookings").insert({
-        user_id: user.id,
         pickup_location: formData.pickup,
         dropoff_location: formData.dropoff,
         pickup_date: new Date(
@@ -118,9 +105,20 @@ export const BookingForm = () => {
 
       toast({
         title: "Booking Confirmed!",
-        description: "Your booking has been created successfully.",
+        description: "Your booking has been created successfully. We'll contact you shortly with the details.",
       });
-      navigate("/dashboard");
+      setShowConfirmation(false);
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        pickup: "",
+        dropoff: "",
+        passengers: "1",
+        date: undefined,
+        time: "",
+      });
     } catch (error) {
       console.error("Error creating booking:", error);
       toast({
@@ -128,8 +126,6 @@ export const BookingForm = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setShowConfirmation(false);
     }
   };
 
@@ -149,44 +145,48 @@ export const BookingForm = () => {
         />
 
         <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-          <AlertDialogContent className="max-w-md">
+          <AlertDialogContent className="max-w-[95vw] w-full sm:max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-bold text-primary">
+              <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-primary">
                 Confirm Your Booking
               </AlertDialogTitle>
-              <AlertDialogDescription>
-                <div className="space-y-4 mt-6">
-                  <div className="bg-secondary/10 p-4 rounded-lg">
-                    <h3 className="font-semibold text-lg mb-2">Passenger Details</h3>
-                    <div className="space-y-2">
-                      <p><strong>Name:</strong> {bookingDetails?.name}</p>
-                      <p><strong>Email:</strong> {bookingDetails?.email}</p>
-                      <p><strong>Phone:</strong> {bookingDetails?.phone}</p>
-                      <p><strong>Passengers:</strong> {bookingDetails?.passengers}</p>
+              <AlertDialogDescription className="space-y-4 mt-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="bg-secondary/10 p-3 rounded-lg">
+                    <h3 className="font-semibold text-base sm:text-lg mb-2">Passenger Details</h3>
+                    <div className="space-y-1 text-sm sm:text-base">
+                      <p><span className="font-medium">Name:</span> {bookingDetails?.name}</p>
+                      <p><span className="font-medium">Email:</span> {bookingDetails?.email}</p>
+                      <p><span className="font-medium">Phone:</span> {bookingDetails?.phone}</p>
+                      <p><span className="font-medium">Passengers:</span> {bookingDetails?.passengers}</p>
                     </div>
                   </div>
                   
-                  <div className="bg-secondary/10 p-4 rounded-lg">
-                    <h3 className="font-semibold text-lg mb-2">Trip Details</h3>
-                    <div className="space-y-2">
-                      <p><strong>Pickup:</strong> {bookingDetails?.pickup}</p>
-                      <p><strong>Dropoff:</strong> {bookingDetails?.dropoff}</p>
-                      <p><strong>Date & Time:</strong> {bookingDetails?.dateTime}</p>
-                      <p><strong>Distance:</strong> {bookingDetails?.distance}</p>
+                  <div className="bg-secondary/10 p-3 rounded-lg">
+                    <h3 className="font-semibold text-base sm:text-lg mb-2">Trip Details</h3>
+                    <div className="space-y-1 text-sm sm:text-base">
+                      <p><span className="font-medium">Pickup:</span> {bookingDetails?.pickup}</p>
+                      <p><span className="font-medium">Dropoff:</span> {bookingDetails?.dropoff}</p>
+                      <p><span className="font-medium">Date & Time:</span> {bookingDetails?.dateTime}</p>
+                      <p><span className="font-medium">Distance:</span> {bookingDetails?.distance}</p>
                     </div>
                   </div>
-                  
-                  <div className="bg-secondary p-4 rounded-lg text-primary">
-                    <p className="text-lg font-bold">Total Cost: {bookingDetails?.cost}</p>
-                  </div>
+                </div>
+                
+                <div className="bg-secondary p-3 rounded-lg text-primary mt-4">
+                  <p className="text-lg sm:text-xl font-bold text-center">
+                    Total Cost: {bookingDetails?.cost}
+                  </p>
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="mt-6">
-              <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200">Cancel</AlertDialogCancel>
+            <AlertDialogFooter className="mt-6 gap-2">
+              <AlertDialogCancel className="sm:w-auto w-full bg-gray-100 hover:bg-gray-200">
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction 
                 onClick={handleConfirmBooking}
-                className="bg-secondary text-primary hover:bg-secondary/90"
+                className="sm:w-auto w-full bg-secondary text-primary hover:bg-secondary/90"
               >
                 Confirm Booking
               </AlertDialogAction>
