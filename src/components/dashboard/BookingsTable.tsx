@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 import { BookingDetailsDialog } from "./BookingDetailsDialog";
 import { calculateDistance } from "../booking/DistanceCalculator";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { supabase } from "@/integrations/supabase/client";
 
 interface Booking {
   id: string;
@@ -15,6 +14,7 @@ interface Booking {
   pickup_date: string;
   status: string;
   user_id: string;
+  assigned_driver_id?: string;
   special_instructions?: string;
 }
 
