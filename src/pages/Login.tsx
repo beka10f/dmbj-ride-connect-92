@@ -19,30 +19,30 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
+      if (authError) {
         toast({
           title: "Error",
-          description: error.message === "Invalid login credentials" 
+          description: authError.message === "Invalid login credentials" 
             ? "Incorrect email or password" 
-            : error.message,
+            : authError.message,
           variant: "destructive",
         });
         setIsLoading(false);
         return;
       }
 
-      if (data.user) {
+      if (authData.user) {
         // Check if user is admin
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("role")
-          .eq("id", data.user.id)
-          .single();
+          .eq("id", authData.user.id)
+          .maybeSingle();
 
         if (profileError) {
           console.error("Error fetching profile:", profileError);
