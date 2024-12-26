@@ -20,7 +20,7 @@ export const Fleet = () => {
   ];
 
   return (
-    <section id="fleet" className="py-16 px-4 bg-gray-50">
+    <section id="fleet" className="py-16 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">Our Fleet</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -30,7 +30,7 @@ export const Fleet = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.2 }}
-              className="bg-white rounded-lg shadow-lg overflow-hidden"
+              className="bg-white rounded-3xl shadow-sm overflow-hidden ios-btn-active"
             >
               <div className="h-48 overflow-hidden">
                 <img
@@ -41,7 +41,7 @@ export const Fleet = () => {
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-semibold mb-2 text-primary">{car.name}</h3>
-                <p className="text-gray-600">{car.description}</p>
+                <p className="text-gray-600 leading-relaxed">{car.description}</p>
               </div>
             </motion.div>
           ))}

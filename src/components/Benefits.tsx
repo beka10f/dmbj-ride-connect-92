@@ -26,29 +26,29 @@ export const Benefits = () => {
   ];
 
   return (
-    <section className="py-16 px-4 bg-gray-50">
+    <section className="py-16 px-4 bg-gray-50/80 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">
           Why Choose Us
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {benefits.map((benefit, index) => (
             <motion.div
               key={benefit.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white text-center p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow"
+              className="bg-white text-center p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 ios-btn-active"
             >
               <div className="mb-6 flex justify-center">
-                <div className="p-3 bg-gray-50 rounded-full">
+                <div className="p-4 bg-gray-50 rounded-2xl">
                   {benefit.icon}
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-3 text-primary">
                 {benefit.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {benefit.description}
               </p>
             </motion.div>
