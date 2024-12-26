@@ -47,12 +47,12 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-white border-b">
+    <nav className="bg-primary border-b">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-bold text-primary">DMBJ</span>
+              <span className="text-xl font-bold text-accent">DMBJ Transportation</span>
             </Link>
           </div>
 
@@ -61,19 +61,38 @@ export const Navigation = () => {
               <>
                 {isAdmin && <NotificationBell />}
                 <Link to="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
+                  <Button 
+                    variant="ghost"
+                    className="text-accent hover:text-accent-foreground hover:bg-accent/10"
+                  >
+                    Dashboard
+                  </Button>
                 </Link>
-                <Button onClick={handleSignOut} variant="ghost">
+                <Button 
+                  onClick={handleSignOut} 
+                  variant="ghost"
+                  className="text-accent hover:text-accent-foreground hover:bg-accent/10"
+                >
                   Sign Out
                 </Button>
               </>
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="ghost">Sign In</Button>
+                  <Button 
+                    variant="ghost"
+                    className="text-accent hover:text-accent-foreground hover:bg-accent/10"
+                  >
+                    Sign In
+                  </Button>
                 </Link>
                 <Link to="/become-driver">
-                  <Button>Become a Driver</Button>
+                  <Button 
+                    variant="secondary"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    Become a Driver
+                  </Button>
                 </Link>
               </>
             )}
