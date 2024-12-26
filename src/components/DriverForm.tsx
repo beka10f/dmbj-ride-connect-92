@@ -31,12 +31,15 @@ export const DriverForm = () => {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
 
-      const { error: applicationError } = await supabase.from("driver_applications").insert({
-        user_id: session.session.user.id,
-        years_experience: parseInt(formData.get("experience") as string),
-        license_number: formData.get("license"),
-        about_text: formData.get("about"),
-      });
+      // Insert as an array with a single object
+      const { error: applicationError } = await supabase
+        .from("driver_applications")
+        .insert([{
+          user_id: session.session.user.id,
+          years_experience: parseInt(formData.get("experience") as string),
+          license_number: formData.get("license") as string,
+          about_text: formData.get("about") as string,
+        }]);
 
       if (applicationError) {
         console.error("Application error:", applicationError);
