@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingsTable } from "@/components/dashboard/BookingsTable";
+import { ApplicationsTable } from "@/components/dashboard/ApplicationsTable";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { QuickBookingForm } from "@/components/dashboard/QuickBookingForm";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -52,7 +53,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-6 space-y-8 animate-fade-in">
+      <div className="container mx-auto px-4 py-6 space-y-8 animate-fadeIn">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 space-y-4">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Welcome, {profile?.first_name || "User"}
@@ -105,10 +106,7 @@ const Dashboard = () => {
 
             {profile?.role === "admin" && (
               <TabsContent value="applications" className="space-y-4 pt-2">
-                <BookingsTable 
-                  bookings={bookings}
-                  onBookingUpdated={refetchBookings}
-                />
+                <ApplicationsTable applications={driverApplications} />
               </TabsContent>
             )}
           </Tabs>
