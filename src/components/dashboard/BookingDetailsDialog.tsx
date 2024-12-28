@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Calendar, Info, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +12,8 @@ import { TripDetails } from "./TripDetails";
 import { LocationDetails } from "./LocationDetails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { DistanceCalculation } from "@/types/booking";
+import { BookingActions } from "./BookingActions";
+import { BookingInstructions } from "./BookingInstructions";
 
 interface BookingDetailsDialogProps {
   booking: {
@@ -199,53 +200,24 @@ export const BookingDetailsDialog = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="font-medium">Special Instructions</h3>
-            {isEditing ? (
-              <textarea
-                value={editedInstructions}
-                onChange={(e) => setEditedInstructions(e.target.value)}
-                className="w-full p-2 border rounded-md"
-                rows={3}
-              />
-            ) : (
-              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                {booking.special_instructions || "No special instructions"}
-              </p>
-            )}
-          </div>
+          <BookingInstructions
+            instructions={editedInstructions}
+            isEditing={isEditing}
+            onInstructionsChange={setEditedInstructions}
+          />
 
-          <div className="flex justify-end gap-3 pt-4">
-            {isAdmin && booking.status === "pending" && (
-              <Button onClick={handleAcceptBooking}>
-                Accept Booking
-              </Button>
-            )}
-            
-            {canEdit && (
-              <>
-                {isEditing ? (
-                  <>
-                    <Button variant="outline" onClick={() => setIsEditing(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSaveChanges}>
-                      Save Changes
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="outline" onClick={() => setIsEditing(true)}>
-                      Edit
-                    </Button>
-                    <Button variant="destructive" onClick={handleCancelBooking}>
-                      Cancel Booking
-                    </Button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
+          <BookingActions
+            booking={booking}
+            isClient={isClient}
+            isAdmin={isAdmin}
+            canEdit={canEdit}
+            isEditing={isEditing}
+            onEdit={() => setIsEditing(true)}
+            onCancelEdit={() => setIsEditing(false)}
+            onSaveChanges={handleSaveChanges}
+            onCancel={handleCancelBooking}
+            onAccept={handleAcceptBooking}
+          />
         </div>
       </DialogContent>
     </Dialog>
