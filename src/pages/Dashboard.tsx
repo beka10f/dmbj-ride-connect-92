@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BookingsTable } from "@/components/dashboard/BookingsTable";
 import { ApplicationsTable } from "@/components/dashboard/ApplicationsTable";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { QuickBookingForm } from "@/components/dashboard/QuickBookingForm";
+import { QuickBookingButton } from "@/components/dashboard/QuickBookingButton";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
 
@@ -55,12 +55,17 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-6 space-y-8 animate-fadeIn">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 space-y-4">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Welcome, {profile?.first_name || "User"}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {profile?.role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Welcome, {profile?.first_name || "User"}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400">
+                {profile?.role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
+              </p>
+            </div>
+            {profile?.role === "client" && <QuickBookingButton />}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -71,11 +76,6 @@ const Dashboard = () => {
               isAdmin={profile.role === "admin"}
             />
           </div>
-          {profile.role === "client" && (
-            <div className="lg:col-span-1">
-              <QuickBookingForm />
-            </div>
-          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4">
