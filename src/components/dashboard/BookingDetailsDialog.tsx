@@ -84,75 +84,105 @@ export const BookingDetailsDialog = ({
   const handleAcceptBooking = async () => {
     if (!booking) return;
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "accepted" })
-      .eq("id", booking.id);
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: "accepted", assigned_driver_id: profile?.id })
+        .eq("id", booking.id);
 
-    if (error) {
+      if (error) {
+        console.error("Error accepting booking:", error);
+        toast({
+          title: "Error",
+          description: "Failed to accept booking. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Booking accepted successfully",
+      });
+      onStatusUpdate();
+    } catch (error) {
+      console.error("Error in handleAcceptBooking:", error);
       toast({
         title: "Error",
-        description: "Failed to accept booking",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Success",
-      description: "Booking accepted successfully",
-    });
-    onStatusUpdate();
   };
 
   const handleCancelBooking = async () => {
     if (!booking) return;
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "cancelled" })
-      .eq("id", booking.id);
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: "cancelled" })
+        .eq("id", booking.id);
 
-    if (error) {
+      if (error) {
+        console.error("Error cancelling booking:", error);
+        toast({
+          title: "Error",
+          description: "Failed to cancel booking. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Booking cancelled successfully",
+      });
+      onStatusUpdate();
+      onClose();
+    } catch (error) {
+      console.error("Error in handleCancelBooking:", error);
       toast({
         title: "Error",
-        description: "Failed to cancel booking",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Success",
-      description: "Booking cancelled successfully",
-    });
-    onStatusUpdate();
-    onClose();
   };
 
   const handleSaveChanges = async () => {
     if (!booking) return;
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({ special_instructions: editedInstructions })
-      .eq("id", booking.id);
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ special_instructions: editedInstructions })
+        .eq("id", booking.id);
 
-    if (error) {
+      if (error) {
+        console.error("Error updating booking:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update booking. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Booking updated successfully",
+      });
+      setIsEditing(false);
+      onStatusUpdate();
+    } catch (error) {
+      console.error("Error in handleSaveChanges:", error);
       toast({
         title: "Error",
-        description: "Failed to update booking",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Success",
-      description: "Booking updated successfully",
-    });
-    setIsEditing(false);
-    onStatusUpdate();
   };
 
   if (!booking) return null;
