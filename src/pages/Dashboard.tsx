@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingsTable } from "@/components/dashboard/BookingsTable";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { QuickBookingForm } from "@/components/dashboard/QuickBookingForm";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
 
@@ -61,11 +62,20 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <DashboardStats
-          bookingsCount={bookings.length}
-          applicationsCount={driverApplications.length}
-          isAdmin={profile.role === "admin"}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <DashboardStats
+              bookingsCount={bookings.length}
+              applicationsCount={driverApplications.length}
+              isAdmin={profile.role === "admin"}
+            />
+          </div>
+          {profile.role === "client" && (
+            <div className="lg:col-span-1">
+              <QuickBookingForm />
+            </div>
+          )}
+        </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4">
           <Tabs defaultValue="bookings" className="space-y-6">
