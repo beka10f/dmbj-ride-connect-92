@@ -31,64 +31,27 @@ export const BookingActions = ({
 }: BookingActionsProps) => {
   const { toast } = useToast();
 
-  const handleAcceptBooking = async () => {
-    if (!booking) return;
-
+  const handleUpdateBookingStatus = async (newStatus: string) => {
     try {
-      console.log("Attempting to accept booking:", booking.id);
+      console.log("Attempting to update booking status:", booking.id, newStatus);
       const { error } = await supabase
         .from("bookings")
-        .update({ status: "accepted" })
+        .update({ status: newStatus })
         .eq("id", booking.id);
 
       if (error) {
-        console.error("Error accepting booking:", error);
+        console.error("Error updating booking status:", error);
         throw error;
       }
 
       toast({
         title: "Success",
-        description: "Booking accepted successfully",
-      });
-      onStatusUpdate();
-    } catch (error: any) {
-      console.error("Error accepting booking:", {
-        message: error.message,
-        details: error.stack,
-        hint: error.hint,
-        code: error.code
-      });
-      toast({
-        title: "Error",
-        description: "Failed to accept booking. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCancelBooking = async () => {
-    if (!booking) return;
-
-    try {
-      console.log("Attempting to cancel booking:", booking.id);
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: "cancelled" })
-        .eq("id", booking.id);
-
-      if (error) {
-        console.error("Error cancelling booking:", error);
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Booking cancelled successfully",
+        description: `Booking ${newStatus} successfully`,
       });
       onStatusUpdate();
       onClose();
     } catch (error: any) {
-      console.error("Error cancelling booking:", {
+      console.error("Error updating booking status:", {
         message: error.message,
         details: error.stack,
         hint: error.hint,
@@ -96,7 +59,7 @@ export const BookingActions = ({
       });
       toast({
         title: "Error",
-        description: "Failed to cancel booking. Please try again.",
+        description: "Failed to update booking status. Please try again.",
         variant: "destructive",
       });
     }
@@ -105,9 +68,20 @@ export const BookingActions = ({
   return (
     <div className="flex justify-end gap-3 pt-4">
       {isAdmin && booking.status === "pending" && (
-        <Button onClick={handleAcceptBooking}>
-          Accept Booking
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="destructive" 
+            onClick={() => handleUpdateBookingStatus("declined")}
+          >
+            Decline
+          </Button>
+          <Button 
+            variant="default"
+            onClick={() => handleUpdateBookingStatus("accepted")}
+          >
+            Accept
+          </Button>
+        </div>
       )}
       
       {canEdit && (
@@ -126,7 +100,10 @@ export const BookingActions = ({
               <Button variant="outline" onClick={() => setIsEditing(true)}>
                 Edit
               </Button>
-              <Button variant="destructive" onClick={handleCancelBooking}>
+              <Button 
+                variant="destructive" 
+                onClick={() => handleUpdateBookingStatus("cancelled")}
+              >
                 Cancel Booking
               </Button>
             </>

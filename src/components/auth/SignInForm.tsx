@@ -34,7 +34,6 @@ export const SignInForm = () => {
     setError(null);
 
     try {
-      // Trim whitespace from email to prevent common user errors
       const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
         password: formData.password,
@@ -43,10 +42,9 @@ export const SignInForm = () => {
       if (signInError) {
         console.error("Sign in error:", signInError);
         
-        // Provide more specific error messages based on the error type
         if (signInError.message === "Invalid login credentials") {
           setError(
-            "The email or password you entered is incorrect. Please check your credentials and try again. If you haven't signed up yet, please create an account first."
+            "The email or password you entered is incorrect. Please check your credentials and try again."
           );
         } else if (signInError.message.includes("Email not confirmed")) {
           setError(
@@ -59,9 +57,8 @@ export const SignInForm = () => {
       }
 
       if (session) {
-        console.log("Sign in successful");
         toast({
-          title: "Success!",
+          title: "Welcome back!",
           description: "Successfully signed in.",
         });
         navigate("/dashboard");
@@ -75,65 +72,73 @@ export const SignInForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Sign In</CardTitle>
-        <CardDescription>
-          Welcome back! Please sign in to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <InfoIcon className="h-4 w-4" />
-            <AlertTitle>Authentication Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              required
-              disabled={loading}
-            />
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md mx-auto shadow-lg">
+        <CardHeader className="space-y-2 text-center">
+          <CardTitle className="text-3xl font-bold text-gray-900">Welcome Back</CardTitle>
+          <CardDescription className="text-gray-600">
+            Sign in to your account to continue
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <InfoIcon className="h-4 w-4" />
+              <AlertTitle>Authentication Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-700">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="block w-full rounded-lg border-gray-300 shadow-sm"
+                required
+                disabled={loading}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              required
-              disabled={loading}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-gray-700">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="block w-full rounded-lg border-gray-300 shadow-sm"
+                required
+                disabled={loading}
+              />
+            </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
-          </Button>
-        </form>
-      </CardContent>
-      <CardFooter className="flex flex-col space-y-2">
-        <p className="text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-primary hover:underline">
-            Create one here
-          </Link>
-        </p>
-      </CardFooter>
-    </Card>
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-lg transition-colors"
+              disabled={loading}
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="text-center">
+          <p className="text-sm text-gray-600 w-full">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-primary hover:underline font-medium">
+              Create one here
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
