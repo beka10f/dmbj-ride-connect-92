@@ -49,9 +49,12 @@ export const BookingDetailsDialog = ({
         .from("profiles")
         .select("*")
         .eq("id", booking.user_id)
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        return null;
+      }
       return data;
     },
     enabled: !!booking?.user_id,
