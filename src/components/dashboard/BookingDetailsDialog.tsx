@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Calendar, Info, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +12,8 @@ import { TripDetails } from "./TripDetails";
 import { LocationDetails } from "./LocationDetails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { DistanceCalculation } from "@/types/booking";
+import { BookingActions } from "./BookingActions";
+import { BookingInstructions } from "./BookingInstructions";
 
 interface BookingDetailsDialogProps {
   booking: {
@@ -45,14 +46,28 @@ export const BookingDetailsDialog = ({
     queryKey: ["userProfile", booking?.user_id],
     queryFn: async () => {
       if (!booking?.user_id) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", booking.user_id)
-        .single();
-      
-      if (error) throw error;
-      return data;
+      try {
+        console.log("Fetching user profile for:", booking.user_id);
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", booking.user_id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Error fetching user profile:", error);
+          throw error;
+        }
+        return data;
+      } catch (error: any) {
+        console.error("Error in userProfile query:", {
+          message: error.message,
+          details: error.stack,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
     },
     enabled: !!booking?.user_id,
   });
@@ -77,78 +92,40 @@ export const BookingDetailsDialog = ({
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`, '_blank');
   };
 
-  const handleAcceptBooking = async () => {
-    if (!booking) return;
-
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "accepted" })
-      .eq("id", booking.id);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to accept booking",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Success",
-      description: "Booking accepted successfully",
-    });
-    onStatusUpdate();
-  };
-
-  const handleCancelBooking = async () => {
-    if (!booking) return;
-
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "cancelled" })
-      .eq("id", booking.id);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to cancel booking",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Success",
-      description: "Booking cancelled successfully",
-    });
-    onStatusUpdate();
-    onClose();
-  };
-
   const handleSaveChanges = async () => {
     if (!booking) return;
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({ special_instructions: editedInstructions })
-      .eq("id", booking.id);
+    try {
+      console.log("Attempting to update booking:", booking.id);
+      const { error } = await supabase
+        .from("bookings")
+        .update({ special_instructions: editedInstructions })
+        .eq("id", booking.id);
 
-    if (error) {
+      if (error) {
+        console.error("Error updating booking:", error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Booking updated successfully",
+      });
+      setIsEditing(false);
+      onStatusUpdate();
+    } catch (error: any) {
+      console.error("Error updating booking:", {
+        message: error.message,
+        details: error.stack,
+        hint: error.hint,
+        code: error.code
+      });
       toast({
         title: "Error",
-        description: "Failed to update booking",
+        description: "Failed to update booking. Please try again.",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Success",
-      description: "Booking updated successfully",
-    });
-    setIsEditing(false);
-    onStatusUpdate();
   };
 
   if (!booking) return null;
@@ -196,53 +173,24 @@ export const BookingDetailsDialog = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="font-medium">Special Instructions</h3>
-            {isEditing ? (
-              <textarea
-                value={editedInstructions}
-                onChange={(e) => setEditedInstructions(e.target.value)}
-                className="w-full p-2 border rounded-md"
-                rows={3}
-              />
-            ) : (
-              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                {booking.special_instructions || "No special instructions"}
-              </p>
-            )}
-          </div>
+          <BookingInstructions
+            isEditing={isEditing}
+            instructions={booking.special_instructions || ""}
+            editedInstructions={editedInstructions}
+            onInstructionsChange={setEditedInstructions}
+          />
 
-          <div className="flex justify-end gap-3 pt-4">
-            {isAdmin && booking.status === "pending" && (
-              <Button onClick={handleAcceptBooking}>
-                Accept Booking
-              </Button>
-            )}
-            
-            {canEdit && (
-              <>
-                {isEditing ? (
-                  <>
-                    <Button variant="outline" onClick={() => setIsEditing(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSaveChanges}>
-                      Save Changes
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="outline" onClick={() => setIsEditing(true)}>
-                      Edit
-                    </Button>
-                    <Button variant="destructive" onClick={handleCancelBooking}>
-                      Cancel Booking
-                    </Button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
+          <BookingActions
+            booking={booking}
+            isClient={isClient}
+            isAdmin={isAdmin}
+            canEdit={canEdit}
+            isEditing={isEditing}
+            onClose={onClose}
+            onStatusUpdate={onStatusUpdate}
+            setIsEditing={setIsEditing}
+            onSaveChanges={handleSaveChanges}
+          />
         </div>
       </DialogContent>
     </Dialog>
