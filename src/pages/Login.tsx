@@ -25,8 +25,7 @@ const Login = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <div className="absolute inset-0 bg-[url('/placeholder.svg')] opacity-5"></div>
+    <div className="flex-1 flex items-center justify-center p-4">
       <SignInForm />
     </div>
   );

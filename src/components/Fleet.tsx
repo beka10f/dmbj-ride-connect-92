@@ -3,19 +3,19 @@ import { motion } from "framer-motion";
 export const Fleet = () => {
   const cars = [
     {
-      name: "BMW 7 Series",
-      image: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=1974",
-      description: "Luxury and comfort for executive travel"
+      name: "BMW 5 Series",
+      image: "https://images.unsplash.com/photo-1523983388277-336a66bf9bcd?q=80&w=2070",
+      description: "Executive sedan combining luxury and performance"
     },
     {
-      name: "Mercedes S-Class",
-      image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?q=80&w=2071",
-      description: "Premium elegance and sophistication"
+      name: "Mercedes E-Class",
+      image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070",
+      description: "Sophisticated comfort with cutting-edge technology"
     },
     {
-      name: "Tesla Model S",
-      image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071",
-      description: "Sustainable luxury and cutting-edge technology"
+      name: "Tesla Model Y",
+      image: "https://images.unsplash.com/photo-1619872644704-c136f11b4a50?q=80&w=2070",
+      description: "Electric SUV with advanced autopilot features"
     }
   ];
 

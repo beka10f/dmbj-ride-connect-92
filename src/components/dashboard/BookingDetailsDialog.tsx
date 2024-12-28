@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Calendar, Info, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -12,8 +13,6 @@ import { TripDetails } from "./TripDetails";
 import { LocationDetails } from "./LocationDetails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { DistanceCalculation } from "@/types/booking";
-import { BookingActions } from "./BookingActions";
-import { BookingInstructions } from "./BookingInstructions";
 
 interface BookingDetailsDialogProps {
   booking: {
@@ -50,12 +49,9 @@ export const BookingDetailsDialog = ({
         .from("profiles")
         .select("*")
         .eq("id", booking.user_id)
-        .maybeSingle();
+        .single();
       
-      if (error) {
-        console.error("Error fetching user profile:", error);
-        return null;
-      }
+      if (error) throw error;
       return data;
     },
     enabled: !!booking?.user_id,
@@ -84,105 +80,75 @@ export const BookingDetailsDialog = ({
   const handleAcceptBooking = async () => {
     if (!booking) return;
 
-    try {
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: "accepted", assigned_driver_id: profile?.id })
-        .eq("id", booking.id);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "accepted" })
+      .eq("id", booking.id);
 
-      if (error) {
-        console.error("Error accepting booking:", error);
-        toast({
-          title: "Error",
-          description: "Failed to accept booking. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "Booking accepted successfully",
-      });
-      onStatusUpdate();
-    } catch (error) {
-      console.error("Error in handleAcceptBooking:", error);
+    if (error) {
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "Failed to accept booking",
         variant: "destructive",
       });
+      return;
     }
+
+    toast({
+      title: "Success",
+      description: "Booking accepted successfully",
+    });
+    onStatusUpdate();
   };
 
   const handleCancelBooking = async () => {
     if (!booking) return;
 
-    try {
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: "cancelled" })
-        .eq("id", booking.id);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "cancelled" })
+      .eq("id", booking.id);
 
-      if (error) {
-        console.error("Error cancelling booking:", error);
-        toast({
-          title: "Error",
-          description: "Failed to cancel booking. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "Booking cancelled successfully",
-      });
-      onStatusUpdate();
-      onClose();
-    } catch (error) {
-      console.error("Error in handleCancelBooking:", error);
+    if (error) {
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "Failed to cancel booking",
         variant: "destructive",
       });
+      return;
     }
+
+    toast({
+      title: "Success",
+      description: "Booking cancelled successfully",
+    });
+    onStatusUpdate();
+    onClose();
   };
 
   const handleSaveChanges = async () => {
     if (!booking) return;
 
-    try {
-      const { error } = await supabase
-        .from("bookings")
-        .update({ special_instructions: editedInstructions })
-        .eq("id", booking.id);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ special_instructions: editedInstructions })
+      .eq("id", booking.id);
 
-      if (error) {
-        console.error("Error updating booking:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update booking. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "Booking updated successfully",
-      });
-      setIsEditing(false);
-      onStatusUpdate();
-    } catch (error) {
-      console.error("Error in handleSaveChanges:", error);
+    if (error) {
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "Failed to update booking",
         variant: "destructive",
       });
+      return;
     }
+
+    toast({
+      title: "Success",
+      description: "Booking updated successfully",
+    });
+    setIsEditing(false);
+    onStatusUpdate();
   };
 
   if (!booking) return null;
@@ -230,24 +196,53 @@ export const BookingDetailsDialog = ({
             </div>
           </div>
 
-          <BookingInstructions
-            instructions={editedInstructions}
-            isEditing={isEditing}
-            onInstructionsChange={setEditedInstructions}
-          />
+          <div className="space-y-2">
+            <h3 className="font-medium">Special Instructions</h3>
+            {isEditing ? (
+              <textarea
+                value={editedInstructions}
+                onChange={(e) => setEditedInstructions(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                rows={3}
+              />
+            ) : (
+              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                {booking.special_instructions || "No special instructions"}
+              </p>
+            )}
+          </div>
 
-          <BookingActions
-            booking={booking}
-            isClient={isClient}
-            isAdmin={isAdmin}
-            canEdit={canEdit}
-            isEditing={isEditing}
-            onEdit={() => setIsEditing(true)}
-            onCancelEdit={() => setIsEditing(false)}
-            onSaveChanges={handleSaveChanges}
-            onCancel={handleCancelBooking}
-            onAccept={handleAcceptBooking}
-          />
+          <div className="flex justify-end gap-3 pt-4">
+            {isAdmin && booking.status === "pending" && (
+              <Button onClick={handleAcceptBooking}>
+                Accept Booking
+              </Button>
+            )}
+            
+            {canEdit && (
+              <>
+                {isEditing ? (
+                  <>
+                    <Button variant="outline" onClick={() => setIsEditing(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveChanges}>
+                      Save Changes
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                      Edit
+                    </Button>
+                    <Button variant="destructive" onClick={handleCancelBooking}>
+                      Cancel Booking
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
