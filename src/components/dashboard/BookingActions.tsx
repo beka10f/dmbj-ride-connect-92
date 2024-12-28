@@ -34,16 +34,19 @@ export const BookingActions = ({
   const handleUpdateBookingStatus = async (newStatus: string) => {
     try {
       console.log("Attempting to update booking status:", booking.id, newStatus);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("bookings")
         .update({ status: newStatus })
-        .eq("id", booking.id);
+        .eq("id", booking.id)
+        .select()
+        .single();
 
       if (error) {
         console.error("Error updating booking status:", error);
         throw error;
       }
 
+      console.log("Booking updated successfully:", data);
       toast({
         title: "Success",
         description: `Booking ${newStatus} successfully`,
