@@ -1,32 +1,34 @@
 export const calculateDistance = async (pickup: string, dropoff: string) => {
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${encodeURIComponent(
-        pickup
-      )}&destinations=${encodeURIComponent(
-        dropoff
-      )}&key=AIzaSyB46w_yxT1TE3wbnUntUVPh32SVyEecjN8`
+  return new Promise((resolve, reject) => {
+    const service = new google.maps.DistanceMatrixService();
+    
+    service.getDistanceMatrix(
+      {
+        origins: [pickup],
+        destinations: [dropoff],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.IMPERIAL,
+      },
+      (response, status) => {
+        if (status === 'OK' && response) {
+          const route = response.rows[0].elements[0];
+          
+          if (route.status === 'OK') {
+            const distanceText = route.distance.text;
+            const distanceValue = route.distance.value; // in meters
+            const distanceInMiles = distanceValue / 1609.34;
+            const rate = 5; // Rate per mile
+            const baseFee = 15; // Base fee for all rides
+            const totalCost = (distanceInMiles * rate + baseFee).toFixed(2);
+            
+            resolve({ distanceText, totalCost });
+          } else {
+            reject(new Error('Unable to calculate distance. Please check addresses.'));
+          }
+        } else {
+          reject(new Error('Error calculating distance'));
+        }
+      }
     );
-
-    if (!response.ok) {
-      throw new Error("Error calculating distance");
-    }
-
-    const data = await response.json();
-    if (data.rows[0].elements[0].status !== "OK") {
-      throw new Error("Unable to calculate distance. Please check addresses.");
-    }
-
-    const distanceText = data.rows[0].elements[0].distance.text;
-    const distanceValue = data.rows[0].elements[0].distance.value; // in meters
-    const distanceInMiles = distanceValue / 1609.34;
-    const rate = 5; // Rate per mile
-    const baseFee = 15; // Base fee for all rides
-    const totalCost = (distanceInMiles * rate + baseFee).toFixed(2);
-
-    return { distanceText, totalCost };
-  } catch (error) {
-    console.error("Error calculating distance:", error);
-    throw error;
-  }
+  });
 };
