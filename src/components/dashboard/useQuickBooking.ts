@@ -9,7 +9,6 @@ export interface QuickBookingFormData {
   dropoff: string;
   date: Date;
   time: string;
-  vehicle: string;
 }
 
 export const useQuickBooking = (onSuccess?: () => void) => {
@@ -23,13 +22,12 @@ export const useQuickBooking = (onSuccess?: () => void) => {
     dropoff: "",
     date: new Date(),
     time: "",
-    vehicle: "",
   });
 
   const handleSubmit = async () => {
     if (!profile) return;
     
-    if (!formData.pickup || !formData.dropoff || !formData.date || !formData.time || !formData.vehicle) {
+    if (!formData.pickup || !formData.dropoff || !formData.date || !formData.time) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -45,9 +43,9 @@ export const useQuickBooking = (onSuccess?: () => void) => {
       
       setBookingDetails({
         ...formData,
-        name: `${profile.first_name} ${profile.last_name}`,
-        email: profile.email,
-        phone: profile.phone,
+        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User',
+        email: profile.email || 'Not provided',
+        phone: 'Not provided',
         distance: details.distanceText,
         cost: `$${details.totalCost}`,
         dateTime: `${formData.date.toLocaleDateString()} ${formData.time}`,
@@ -74,7 +72,6 @@ export const useQuickBooking = (onSuccess?: () => void) => {
         pickup_date: new Date(
           `${formData.date.toISOString().split("T")[0]}T${formData.time}`
         ).toISOString(),
-        special_instructions: `Vehicle: ${formData.vehicle}`,
       });
 
       if (bookingError) throw bookingError;
