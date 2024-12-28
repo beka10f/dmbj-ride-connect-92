@@ -65,12 +65,12 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">Pickup</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">Dropoff</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Date</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Time</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[80px]">Price</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Status</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Pickup</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Dropoff</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Date</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Time</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Price</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -82,23 +82,23 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
                 >
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px]">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
                         {booking.pickup_location}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px]">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
                         {booking.dropoff_location}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
+                      <Calendar className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">
                         {format(new Date(booking.pickup_date), "MMM d")}
                       </span>
@@ -106,7 +106,7 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
                   </TableCell>
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400 shrink-0" />
+                      <Clock className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">
                         {format(new Date(booking.pickup_date), "h:mm a")}
                       </span>
@@ -114,7 +114,7 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
                   </TableCell>
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-gray-400 shrink-0" />
+                      <DollarSign className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">
                         ${bookingCosts[booking.id] || '...'}
                       </span>

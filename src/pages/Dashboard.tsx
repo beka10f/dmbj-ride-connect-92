@@ -1,9 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingsTable } from "@/components/dashboard/BookingsTable";
-import { ApplicationsTable } from "@/components/dashboard/ApplicationsTable";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { QuickBookingButton } from "@/components/dashboard/QuickBookingButton";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
 
@@ -53,30 +51,21 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-6 space-y-8 animate-fadeIn">
+      <div className="container mx-auto px-4 py-6 space-y-8 animate-fade-in">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Welcome, {profile?.first_name || "User"}
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                {profile?.role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
-              </p>
-            </div>
-            {profile?.role === "client" && <QuickBookingButton />}
-          </div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Welcome, {profile?.first_name || "User"}
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            {profile?.role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <DashboardStats
-              bookingsCount={bookings.length}
-              applicationsCount={driverApplications.length}
-              isAdmin={profile.role === "admin"}
-            />
-          </div>
-        </div>
+        <DashboardStats
+          bookingsCount={bookings.length}
+          applicationsCount={driverApplications.length}
+          isAdmin={profile.role === "admin"}
+        />
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4">
           <Tabs defaultValue="bookings" className="space-y-6">
@@ -106,7 +95,10 @@ const Dashboard = () => {
 
             {profile?.role === "admin" && (
               <TabsContent value="applications" className="space-y-4 pt-2">
-                <ApplicationsTable applications={driverApplications} />
+                <BookingsTable 
+                  bookings={bookings}
+                  onBookingUpdated={refetchBookings}
+                />
               </TabsContent>
             )}
           </Tabs>
