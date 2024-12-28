@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DistanceCalculation } from "@/types/booking";
 
 export const BookingForm = () => {
   const navigate = useNavigate();
@@ -55,18 +56,18 @@ export const BookingForm = () => {
     setLoading(true);
 
     try {
-      const { distanceText, totalCost } = await calculateDistance(
+      const details: DistanceCalculation = await calculateDistance(
         formData.pickup,
         formData.dropoff
       );
 
-      setDistance(distanceText);
-      setCost(`$${totalCost}`);
+      setDistance(details.distanceText);
+      setCost(`$${details.totalCost}`);
       
       setBookingDetails({
         ...formData,
-        distance: distanceText,
-        cost: `$${totalCost}`,
+        distance: details.distanceText,
+        cost: `$${details.totalCost}`,
         dateTime: `${formData.date?.toLocaleDateString()} ${formData.time}`,
       });
       

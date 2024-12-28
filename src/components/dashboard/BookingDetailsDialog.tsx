@@ -12,6 +12,7 @@ import { CustomerInfo } from "./CustomerInfo";
 import { TripDetails } from "./TripDetails";
 import { LocationDetails } from "./LocationDetails";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { DistanceCalculation } from "@/types/booking";
 
 interface BookingDetailsDialogProps {
   booking: {
@@ -36,7 +37,7 @@ export const BookingDetailsDialog = ({
 }: BookingDetailsDialogProps) => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
-  const [tripDetails, setTripDetails] = useState<{ distanceText: string; totalCost: string } | null>(null);
+  const [tripDetails, setTripDetails] = useState<DistanceCalculation | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedInstructions, setEditedInstructions] = useState(booking?.special_instructions || "");
 

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { BookingDetailsDialog } from "./BookingDetailsDialog";
 import { calculateDistance } from "../booking/DistanceCalculator";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { DistanceCalculation } from "@/types/booking";
 
 interface Booking {
   id: string;
@@ -33,7 +34,7 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
       const costs: Record<string, string> = {};
       for (const booking of bookings) {
         try {
-          const details = await calculateDistance(booking.pickup_location, booking.dropoff_location);
+          const details: DistanceCalculation = await calculateDistance(booking.pickup_location, booking.dropoff_location);
           costs[booking.id] = details.totalCost;
         } catch (error) {
           console.error("Error calculating cost for booking:", booking.id, error);

@@ -1,4 +1,6 @@
-export const calculateDistance = async (pickup: string, dropoff: string) => {
+import { DistanceCalculation } from "@/types/booking";
+
+export const calculateDistance = async (pickup: string, dropoff: string): Promise<DistanceCalculation> => {
   return new Promise((resolve, reject) => {
     const service = new google.maps.DistanceMatrixService();
     
