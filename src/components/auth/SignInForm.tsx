@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, User, Lock, LogIn } from "lucide-react";
 
 export const SignInForm = () => {
   const navigate = useNavigate();
@@ -34,7 +34,6 @@ export const SignInForm = () => {
     setError(null);
 
     try {
-      // Trim whitespace from email to prevent common user errors
       const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim(),
         password: formData.password,
@@ -43,10 +42,9 @@ export const SignInForm = () => {
       if (signInError) {
         console.error("Sign in error:", signInError);
         
-        // Provide more specific error messages based on the error type
         if (signInError.message === "Invalid login credentials") {
           setError(
-            "The email or password you entered is incorrect. Please check your credentials and try again. If you haven't signed up yet, please create an account first."
+            "The email or password you entered is incorrect. Please check your credentials and try again."
           );
         } else if (signInError.message.includes("Email not confirmed")) {
           setError(
@@ -61,8 +59,8 @@ export const SignInForm = () => {
       if (session) {
         console.log("Sign in successful");
         toast({
-          title: "Success!",
-          description: "Successfully signed in.",
+          title: "Welcome back!",
+          description: "Successfully signed in to your account.",
         });
         navigate("/dashboard");
       }
@@ -75,65 +73,82 @@ export const SignInForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Sign In</CardTitle>
-        <CardDescription>
-          Welcome back! Please sign in to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <InfoIcon className="h-4 w-4" />
-            <AlertTitle>Authentication Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              required
-              disabled={loading}
-            />
+    <div className="w-full max-w-md mx-auto">
+      <Card className="backdrop-blur-sm bg-white/90 shadow-xl border-0">
+        <CardHeader className="space-y-3">
+          <div className="mx-auto bg-primary/5 p-3 rounded-full">
+            <LogIn className="w-6 h-6 text-primary" />
           </div>
+          <CardTitle className="text-2xl font-semibold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">
+            Sign in to your account to continue
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <InfoIcon className="h-4 w-4" />
+              <AlertTitle>Authentication Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="pl-10"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              required
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="pl-10"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full bg-[#BFA181] hover:bg-[#BFA181]/90 text-white" 
               disabled={loading}
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
-          </Button>
-        </form>
-      </CardContent>
-      <CardFooter className="flex flex-col space-y-2">
-        <p className="text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-primary hover:underline">
-            Create one here
-          </Link>
-        </p>
-      </CardFooter>
-    </Card>
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <p className="text-sm text-muted-foreground text-center">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-[#BFA181] hover:underline font-medium">
+              Create one here
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
