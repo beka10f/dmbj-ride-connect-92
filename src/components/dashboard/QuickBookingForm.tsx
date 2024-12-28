@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
 import { useQuickBooking } from "./useQuickBooking";
 import { BookingConfirmationDialog } from "../booking/BookingConfirmationDialog";
 
+const vehicles = [
+  { id: "bmw", name: "BMW 5 Series", price: "Luxury Sedan" },
+  { id: "mercedes", name: "Mercedes E-Class", price: "Executive" },
+  { id: "tesla", name: "Tesla Model Y", price: "Electric SUV" },
+];
+
 const timeSlots = Array.from({ length: 48 }, (_, i) => {
   const hour = Math.floor(i / 2);
   const minute = i % 2 === 0 ? "00" : "30";
@@ -113,6 +119,32 @@ export const QuickBookingForm = ({ onSuccess }: QuickBookingFormProps) => {
                 {timeSlots.map((slot) => (
                   <SelectItem key={slot.value} value={slot.value}>
                     {slot.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2 sm:col-span-2">
+            <label className="text-sm font-medium">Vehicle</label>
+            <Select
+              value={formData.vehicle}
+              onValueChange={(value) =>
+                setFormData({ ...formData, vehicle: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select vehicle" />
+              </SelectTrigger>
+              <SelectContent>
+                {vehicles.map((vehicle) => (
+                  <SelectItem key={vehicle.id} value={vehicle.id}>
+                    <div className="flex justify-between items-center">
+                      <span>{vehicle.name}</span>
+                      <span className="text-sm text-gray-500">
+                        {vehicle.price}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
