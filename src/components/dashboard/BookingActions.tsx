@@ -50,53 +50,8 @@ export const BookingActions = ({
 
   const handleUpdateBookingStatus = async (newStatus: string) => {
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        throw new Error("Authentication failed");
-      }
-      
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        const { error: refreshError } = await supabase.auth.refreshSession();
-        if (refreshError) {
-          console.error("Session refresh error:", refreshError);
-          throw new Error("Session refresh failed");
-        }
-      }
-
-      console.log("Attempting to update booking status:", booking.id, newStatus);
-      
-      const { data, error } = await supabase
-        .from("bookings")
-        .update({ status: newStatus })
-        .eq('id', booking.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error updating booking status:", error);
-        if (error.message.includes('JWT')) {
-          throw new Error("Session expired");
-        }
-        throw error;
-      }
-
-      console.log("Booking updated successfully:", data);
-      toast({
-        title: "Success",
-        description: `Booking ${newStatus} successfully`,
-      });
-      onStatusUpdate();
-      onClose();
-    } catch (error: any) {
-      console.error("Failed to update booking status:", {
-        message: error.message,
-        details: error.stack,
-        hint: error.hint,
-        code: error.code
-      });
-
-      if (error.message.includes("Session") || error.message.includes("JWT")) {
         toast({
           title: "Session Expired",
           description: "Please sign in again to continue",
@@ -106,6 +61,26 @@ export const BookingActions = ({
         return;
       }
 
+      console.log("Attempting to update booking status:", booking.id, newStatus);
+      
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: newStatus })
+        .eq("id", booking.id);
+
+      if (error) {
+        console.error("Error updating booking status:", error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: `Booking ${newStatus} successfully`,
+      });
+      onStatusUpdate();
+      onClose();
+    } catch (error: any) {
+      console.error("Failed to update booking status:", error);
       toast({
         title: "Error",
         description: "Failed to update booking. Please try again.",
