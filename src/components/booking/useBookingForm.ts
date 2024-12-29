@@ -34,6 +34,18 @@ export const useBookingForm = () => {
   });
 
   const handleSubmit = async () => {
+    // Check if user is authenticated
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      toast({
+        title: "Error",
+        description: "Please sign in to create a booking",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (
       !formData.name ||
       !formData.email ||
