@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface BookingActionsProps {
   booking: {
     id: string;
     status: string;
-    user_id: string;
   };
   isClient: boolean;
   isAdmin: boolean;
@@ -30,9 +30,22 @@ export const BookingActions = ({
   onSaveChanges,
 }: BookingActionsProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleUpdateBookingStatus = async (newStatus: string) => {
     try {
+      // First check if we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication Error",
+          description: "Please sign in again to continue",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
       console.log("Attempting to update booking status:", booking.id, newStatus);
       const { data, error } = await supabase
         .from("bookings")
@@ -43,6 +56,15 @@ export const BookingActions = ({
 
       if (error) {
         console.error("Error updating booking status:", error);
+        if (error.message.includes('JWT')) {
+          toast({
+            title: "Session Expired",
+            description: "Please sign in again to continue",
+            variant: "destructive",
+          });
+          navigate('/login');
+          return;
+        }
         throw error;
       }
 
@@ -54,65 +76,55 @@ export const BookingActions = ({
       onStatusUpdate();
       onClose();
     } catch (error: any) {
-      console.error("Error updating booking status:", {
-        message: error.message,
-        details: error.stack,
-        hint: error.hint,
-        code: error.code
-      });
+      console.error("Failed to update booking status:", error);
       toast({
         title: "Error",
-        description: "Failed to update booking status. Please try again.",
+        description: "Failed to update booking. Please try again.",
         variant: "destructive",
       });
     }
   };
 
+  if (isEditing) {
+    return (
+      <div className="flex justify-end space-x-2 mt-4">
+        <Button variant="outline" onClick={() => setIsEditing(false)}>
+          Cancel
+        </Button>
+        <Button onClick={onSaveChanges}>
+          Save Changes
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex justify-end gap-3 pt-4">
-      {isAdmin && booking.status === "pending" && (
-        <div className="flex gap-2">
+    <div className="flex justify-end space-x-2 mt-4">
+      {canEdit && (
+        <Button variant="outline" onClick={() => setIsEditing(true)}>
+          Edit Instructions
+        </Button>
+      )}
+      {isAdmin && booking.status === 'pending' && (
+        <>
           <Button 
-            variant="destructive" 
-            onClick={() => handleUpdateBookingStatus("declined")}
+            variant="outline" 
+            onClick={() => handleUpdateBookingStatus('declined')}
+            className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
           >
             Decline
           </Button>
           <Button 
-            variant="default"
-            onClick={() => handleUpdateBookingStatus("accepted")}
+            onClick={() => handleUpdateBookingStatus('accepted')}
+            className="bg-green-600 hover:bg-green-700"
           >
             Accept
           </Button>
-        </div>
-      )}
-      
-      {canEdit && (
-        <>
-          {isEditing ? (
-            <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                Cancel
-              </Button>
-              <Button onClick={onSaveChanges}>
-                Save Changes
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                Edit
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={() => handleUpdateBookingStatus("cancelled")}
-              >
-                Cancel Booking
-              </Button>
-            </>
-          )}
         </>
       )}
+      <Button variant="outline" onClick={onClose}>
+        Close
+      </Button>
     </div>
   );
 };
