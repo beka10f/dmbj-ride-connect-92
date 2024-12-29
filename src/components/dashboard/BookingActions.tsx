@@ -33,7 +33,6 @@ export const BookingActions = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Check and refresh session on component mount
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -51,7 +50,6 @@ export const BookingActions = ({
 
   const handleUpdateBookingStatus = async (newStatus: string) => {
     try {
-      // Get fresh session and refresh if needed
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
         console.error("Session error:", sessionError);
@@ -68,19 +66,10 @@ export const BookingActions = ({
 
       console.log("Attempting to update booking status:", booking.id, newStatus);
       
-      // Using upsert instead of update to avoid CORS issues with PATCH
       const { data, error } = await supabase
         .from("bookings")
-        .upsert(
-          { 
-            id: booking.id,
-            status: newStatus 
-          },
-          { 
-            onConflict: 'id',
-            ignoreDuplicates: false
-          }
-        )
+        .update({ status: newStatus })
+        .eq('id', booking.id)
         .select()
         .single();
 
