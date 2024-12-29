@@ -3,11 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface BookingActionsProps {
   booking: {
     id: string;
     status: string;
+    user_id: string;
+    assigned_driver_id?: string;
   };
   isClient: boolean;
   isAdmin: boolean;
@@ -32,6 +35,7 @@ export const BookingActions = ({
 }: BookingActionsProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { profile } = useUserProfile();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -50,36 +54,33 @@ export const BookingActions = ({
 
   const handleUpdateBookingStatus = async (newStatus: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      if (!profile) {
         toast({
-          title: "Session Expired",
-          description: "Please sign in again to continue",
+          title: "Error",
+          description: "You must be logged in to perform this action",
           variant: "destructive",
         });
         navigate('/login');
         return;
       }
 
+      // Check permissions based on RLS policy conditions
+      const canUpdate = 
+        profile.role === 'admin' ||
+        (profile.role === 'driver' && booking.assigned_driver_id === profile.id) ||
+        (profile.role === 'client' && booking.user_id === profile.id && booking.status === 'pending');
+
+      if (!canUpdate) {
+        toast({
+          title: "Error",
+          description: "You don't have permission to update this booking",
+          variant: "destructive",
+        });
+        return;
+      }
+
       console.log("Attempting to update booking status:", booking.id, newStatus);
       
-      // First, fetch the existing booking data
-      const { data: existingBooking, error: fetchError } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("id", booking.id)
-        .single();
-
-      if (fetchError) {
-        console.error("Error fetching booking:", fetchError);
-        throw fetchError;
-      }
-
-      if (!existingBooking) {
-        throw new Error("Booking not found");
-      }
-
-      // Update only the status while keeping all other fields
       const { error: updateError } = await supabase
         .from("bookings")
         .update({ status: newStatus })
