@@ -63,10 +63,18 @@ export const BookingActions = ({
 
       console.log("Attempting to update booking status:", booking.id, newStatus);
       
+      // Using upsert with POST method instead of update with PATCH
       const { error } = await supabase
         .from("bookings")
-        .update({ status: newStatus })
-        .eq("id", booking.id);
+        .upsert([
+          {
+            id: booking.id,
+            status: newStatus
+          }
+        ], { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        });
 
       if (error) {
         console.error("Error updating booking status:", error);
