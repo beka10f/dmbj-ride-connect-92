@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "./DistanceCalculator";
 import { DistanceCalculation } from "@/types/booking";
+import { useNavigate } from "react-router-dom";
 
 export interface BookingFormData {
   name: string;
@@ -16,6 +17,7 @@ export interface BookingFormData {
 }
 
 export const useBookingForm = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<string>("");
@@ -39,10 +41,11 @@ export const useBookingForm = () => {
     
     if (sessionError || !session) {
       toast({
-        title: "Error",
+        title: "Authentication Required",
         description: "Please sign in to create a booking",
         variant: "destructive",
       });
+      navigate("/login");
       return;
     }
 
@@ -100,10 +103,11 @@ export const useBookingForm = () => {
       
       if (sessionError || !session) {
         toast({
-          title: "Error",
+          title: "Authentication Required",
           description: "Please sign in to create a booking",
           variant: "destructive",
         });
+        navigate("/login");
         return;
       }
 
