@@ -83,7 +83,20 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
+      // Get the current user's session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast({
+          title: "Error",
+          description: "Please sign in to create a booking",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error: bookingError } = await supabase.from("bookings").insert({
+        user_id: session.user.id,
         pickup_location: formData.pickup,
         dropoff_location: formData.dropoff,
         pickup_date: new Date(
