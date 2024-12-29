@@ -11,6 +11,9 @@ interface BookingActionsProps {
     status: string;
     user_id: string;
     assigned_driver_id?: string;
+    pickup_location: string;
+    dropoff_location: string;
+    pickup_date: string;
   };
   isClient: boolean;
   isAdmin: boolean;
@@ -63,12 +66,16 @@ export const BookingActions = ({
 
       console.log("Attempting to update booking status:", booking.id, newStatus);
 
-      // Use upsert instead of update to avoid CORS issues with PATCH
+      // Preserve all required fields while updating status
       const { error: updateError } = await supabase
         .from("bookings")
         .upsert({
           id: booking.id,
-          status: newStatus
+          status: newStatus,
+          user_id: booking.user_id,
+          pickup_location: booking.pickup_location,
+          dropoff_location: booking.dropoff_location,
+          pickup_date: booking.pickup_date
         }, {
           onConflict: 'id'
         });
