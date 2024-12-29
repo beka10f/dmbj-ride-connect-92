@@ -36,18 +36,6 @@ export const useBookingForm = () => {
   });
 
   const handleSubmit = async () => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to create a booking",
-        variant: "destructive",
-      });
-      navigate("/login");
-      return;
-    }
-
     if (
       !formData.name ||
       !formData.email ||
@@ -98,25 +86,13 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to create a booking",
-          variant: "destructive",
-        });
-        navigate("/login");
-        return;
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
 
-      console.log("Creating booking for user:", session.user.id);
-      
-      // Use insert instead of upsert for new bookings
       const { error: bookingError } = await supabase
         .from("bookings")
         .insert([{
-          user_id: session.user.id,
+          user_id: userId,
           pickup_location: formData.pickup,
           dropoff_location: formData.dropoff,
           pickup_date: new Date(
@@ -148,6 +124,11 @@ export const useBookingForm = () => {
         date: undefined,
         time: "",
       });
+
+      // If user is logged in, redirect to dashboard
+      if (userId) {
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       console.error("Error creating booking:", error);
       toast({

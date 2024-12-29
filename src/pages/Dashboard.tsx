@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingsTable } from "@/components/dashboard/BookingsTable";
@@ -6,9 +7,29 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { QuickBookingButton } from "@/components/dashboard/QuickBookingButton";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { profile } = useUserProfile();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to access the dashboard",
+          variant: "destructive",
+        });
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
 
   const { data: bookings = [], refetch: refetchBookings } = useQuery({
     queryKey: ["bookings", profile?.role],

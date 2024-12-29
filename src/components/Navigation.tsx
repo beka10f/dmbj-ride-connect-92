@@ -48,11 +48,6 @@ export const Navigation = () => {
         }
       } catch (error) {
         console.error("Auth check error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to check authentication status",
-          variant: "destructive",
-        });
       }
     };
 
@@ -79,7 +74,7 @@ export const Navigation = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
   const handleSignOut = async () => {
     try {

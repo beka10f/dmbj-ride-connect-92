@@ -19,7 +19,7 @@ export type Database = {
           pickup_location: string
           special_instructions: string | null
           status: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           assigned_driver_id?: string | null
@@ -30,7 +30,7 @@ export type Database = {
           pickup_location: string
           special_instructions?: string | null
           status?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           assigned_driver_id?: string | null
@@ -41,7 +41,7 @@ export type Database = {
           pickup_location?: string
           special_instructions?: string | null
           status?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
