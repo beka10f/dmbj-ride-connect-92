@@ -89,18 +89,27 @@ export const useBookingForm = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
 
+      const bookingData = {
+        user_id: userId,
+        pickup_location: formData.pickup,
+        dropoff_location: formData.dropoff,
+        pickup_date: new Date(
+          `${formData.date?.toISOString().split("T")[0]}T${formData.time}`
+        ).toISOString(),
+        special_instructions: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          passengers: formData.passengers,
+          distance: distance,
+          cost: cost
+        }),
+        status: 'pending'
+      };
+
       const { error: bookingError } = await supabase
         .from("bookings")
-        .insert([{
-          user_id: userId,
-          pickup_location: formData.pickup,
-          dropoff_location: formData.dropoff,
-          pickup_date: new Date(
-            `${formData.date?.toISOString().split("T")[0]}T${formData.time}`
-          ).toISOString(),
-          special_instructions: `Name: ${formData.name}, Email: ${formData.email}, Phone: ${formData.phone}, Passengers: ${formData.passengers}`,
-          status: 'pending'
-        }]);
+        .insert([bookingData]);
 
       if (bookingError) {
         console.error("Booking error:", bookingError);

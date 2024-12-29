@@ -70,8 +70,7 @@ export const BookingActions = ({
       const { error: updateError } = await supabase
         .from("bookings")
         .update({ status: newStatus })
-        .eq('id', booking.id)
-        .select();
+        .eq('id', booking.id);
 
       if (updateError) {
         console.error("Error updating booking status:", updateError);
