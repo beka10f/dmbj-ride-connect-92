@@ -54,8 +54,6 @@ export const Navigation = () => {
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
       if (event === 'SIGNED_IN' && session) {
         setIsLoggedIn(true);
         const { data: profile } = await supabase
@@ -81,6 +79,8 @@ export const Navigation = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
+      setIsLoggedIn(false);
+      setIsAdmin(false);
       navigate('/');
       setIsOpen(false);
       toast({

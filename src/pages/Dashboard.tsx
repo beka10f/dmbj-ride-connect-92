@@ -25,6 +25,7 @@ const Dashboard = () => {
           variant: "destructive",
         });
         navigate('/login');
+        return;
       }
     };
 
@@ -39,9 +40,9 @@ const Dashboard = () => {
       const query = supabase.from("bookings").select("*");
 
       if (profile.role === 'client') {
-        query.eq('user_id', await supabase.auth.getUser().then(res => res.data.user?.id));
+        query.eq('user_id', profile.id);
       } else if (profile.role === 'driver') {
-        query.eq('assigned_driver_id', await supabase.auth.getUser().then(res => res.data.user?.id));
+        query.eq('assigned_driver_id', profile.id);
       }
 
       const { data, error } = await query;
