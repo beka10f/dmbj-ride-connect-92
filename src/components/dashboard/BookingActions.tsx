@@ -63,22 +63,31 @@ export const BookingActions = ({
 
       console.log("Attempting to update booking status:", booking.id, newStatus);
       
-      // Using upsert with POST method instead of update with PATCH
-      const { error } = await supabase
+      // First, fetch the existing booking data
+      const { data: existingBooking, error: fetchError } = await supabase
         .from("bookings")
-        .upsert([
-          {
-            id: booking.id,
-            status: newStatus
-          }
-        ], { 
-          onConflict: 'id',
-          ignoreDuplicates: false 
-        });
+        .select("*")
+        .eq("id", booking.id)
+        .single();
 
-      if (error) {
-        console.error("Error updating booking status:", error);
-        throw error;
+      if (fetchError) {
+        console.error("Error fetching booking:", fetchError);
+        throw fetchError;
+      }
+
+      if (!existingBooking) {
+        throw new Error("Booking not found");
+      }
+
+      // Update only the status while keeping all other fields
+      const { error: updateError } = await supabase
+        .from("bookings")
+        .update({ status: newStatus })
+        .eq("id", booking.id);
+
+      if (updateError) {
+        console.error("Error updating booking status:", updateError);
+        throw updateError;
       }
 
       toast({
