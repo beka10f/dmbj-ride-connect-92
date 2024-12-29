@@ -63,10 +63,15 @@ export const BookingActions = ({
 
       console.log("Attempting to update booking status:", booking.id, newStatus);
 
+      // Use upsert instead of update to avoid CORS issues with PATCH
       const { error: updateError } = await supabase
         .from("bookings")
-        .update({ status: newStatus })
-        .eq("id", booking.id);
+        .upsert({
+          id: booking.id,
+          status: newStatus
+        }, {
+          onConflict: 'id'
+        });
 
       if (updateError) {
         console.error("Error updating booking status:", updateError);

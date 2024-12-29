@@ -36,7 +36,6 @@ export const useBookingForm = () => {
   });
 
   const handleSubmit = async () => {
-    // Check if user is authenticated
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError || !session) {
@@ -113,9 +112,10 @@ export const useBookingForm = () => {
 
       console.log("Creating booking for user:", session.user.id);
       
+      // Use insert instead of upsert for new bookings
       const { error: bookingError } = await supabase
         .from("bookings")
-        .insert({
+        .insert([{
           user_id: session.user.id,
           pickup_location: formData.pickup,
           dropoff_location: formData.dropoff,
@@ -124,7 +124,7 @@ export const useBookingForm = () => {
           ).toISOString(),
           special_instructions: `Name: ${formData.name}, Email: ${formData.email}, Phone: ${formData.phone}, Passengers: ${formData.passengers}`,
           status: 'pending'
-        });
+        }]);
 
       if (bookingError) {
         console.error("Booking error:", bookingError);
