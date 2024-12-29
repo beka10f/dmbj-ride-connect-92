@@ -40,13 +40,10 @@ export const BookingActions = ({
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
+      if (sessionError || !session) {
         console.error("Session error:", sessionError);
         navigate('/login');
         return;
-      }
-      if (!session) {
-        await supabase.auth.refreshSession();
       }
     };
     checkSession();
@@ -64,23 +61,8 @@ export const BookingActions = ({
         return;
       }
 
-      // Check permissions based on RLS policy conditions
-      const canUpdate = 
-        profile.role === 'admin' ||
-        (profile.role === 'driver' && booking.assigned_driver_id === profile.id) ||
-        (profile.role === 'client' && booking.user_id === profile.id && booking.status === 'pending');
-
-      if (!canUpdate) {
-        toast({
-          title: "Error",
-          description: "You don't have permission to update this booking",
-          variant: "destructive",
-        });
-        return;
-      }
-
       console.log("Attempting to update booking status:", booking.id, newStatus);
-      
+
       const { error: updateError } = await supabase
         .from("bookings")
         .update({ status: newStatus })

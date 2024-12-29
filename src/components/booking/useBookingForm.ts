@@ -86,6 +86,7 @@ export const useBookingForm = () => {
       
       setShowConfirmation(true);
     } catch (error) {
+      console.error("Error calculating distance:", error);
       toast({
         title: "Error",
         description: "Failed to calculate ride. Please try again.",
@@ -98,7 +99,6 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      // Get the current user's session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
@@ -111,30 +111,31 @@ export const useBookingForm = () => {
         return;
       }
 
-      const { error: bookingError } = await supabase.from("bookings").insert({
-        user_id: session.user.id,
-        pickup_location: formData.pickup,
-        dropoff_location: formData.dropoff,
-        pickup_date: new Date(
-          `${formData.date?.toISOString().split("T")[0]}T${formData.time}`
-        ).toISOString(),
-        special_instructions: `Name: ${formData.name}, Email: ${formData.email}, Phone: ${formData.phone}, Passengers: ${formData.passengers}`,
-      });
+      console.log("Creating booking for user:", session.user.id);
+      
+      const { error: bookingError } = await supabase
+        .from("bookings")
+        .insert({
+          user_id: session.user.id,
+          pickup_location: formData.pickup,
+          dropoff_location: formData.dropoff,
+          pickup_date: new Date(
+            `${formData.date?.toISOString().split("T")[0]}T${formData.time}`
+          ).toISOString(),
+          special_instructions: `Name: ${formData.name}, Email: ${formData.email}, Phone: ${formData.phone}, Passengers: ${formData.passengers}`,
+          status: 'pending'
+        });
 
       if (bookingError) {
         console.error("Booking error:", bookingError);
-        toast({
-          title: "Error",
-          description: "Failed to create booking. Please try again.",
-          variant: "destructive",
-        });
-        return;
+        throw bookingError;
       }
 
       toast({
         title: "Booking Confirmed!",
         description: "Your booking has been created successfully. We'll contact you shortly with the details.",
       });
+      
       setShowConfirmation(false);
       // Reset form
       setFormData({
@@ -147,7 +148,7 @@ export const useBookingForm = () => {
         date: undefined,
         time: "",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating booking:", error);
       toast({
         title: "Error",
