@@ -36,36 +36,38 @@ export const BookingActions = ({
   // Check and refresh session on component mount
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Session Expired",
-          description: "Please sign in again to continue",
-          variant: "destructive",
-        });
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error("Session error:", sessionError);
         navigate('/login');
+        return;
+      }
+      if (!session) {
+        await supabase.auth.refreshSession();
       }
     };
     checkSession();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const handleUpdateBookingStatus = async (newStatus: string) => {
     try {
-      // Get fresh session
-      const { data: { session } } = await supabase.auth.getSession();
+      // Get fresh session and refresh if needed
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        throw new Error("Authentication failed");
+      }
+      
       if (!session) {
-        toast({
-          title: "Session Expired",
-          description: "Please sign in again to continue",
-          variant: "destructive",
-        });
-        navigate('/login');
-        return;
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.error("Session refresh error:", refreshError);
+          throw new Error("Session refresh failed");
+        }
       }
 
       console.log("Attempting to update booking status:", booking.id, newStatus);
       
-      // Attempt update with fresh session
       const { data, error } = await supabase
         .from("bookings")
         .update({ status: newStatus })
@@ -76,13 +78,7 @@ export const BookingActions = ({
       if (error) {
         console.error("Error updating booking status:", error);
         if (error.message.includes('JWT')) {
-          toast({
-            title: "Session Expired",
-            description: "Please sign in again to continue",
-            variant: "destructive",
-          });
-          navigate('/login');
-          return;
+          throw new Error("Session expired");
         }
         throw error;
       }
@@ -101,6 +97,17 @@ export const BookingActions = ({
         hint: error.hint,
         code: error.code
       });
+
+      if (error.message.includes("Session") || error.message.includes("JWT")) {
+        toast({
+          title: "Session Expired",
+          description: "Please sign in again to continue",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
       toast({
         title: "Error",
         description: "Failed to update booking. Please try again.",
