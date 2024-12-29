@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 interface BookingActionsProps {
   booking: {
@@ -32,13 +33,29 @@ export const BookingActions = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleUpdateBookingStatus = async (newStatus: string) => {
-    try {
-      // First check if we have a valid session
+  // Check and refresh session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
-          title: "Authentication Error",
+          title: "Session Expired",
+          description: "Please sign in again to continue",
+          variant: "destructive",
+        });
+        navigate('/login');
+      }
+    };
+    checkSession();
+  }, [navigate, toast]);
+
+  const handleUpdateBookingStatus = async (newStatus: string) => {
+    try {
+      // Get fresh session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Session Expired",
           description: "Please sign in again to continue",
           variant: "destructive",
         });
@@ -47,6 +64,8 @@ export const BookingActions = ({
       }
 
       console.log("Attempting to update booking status:", booking.id, newStatus);
+      
+      // Attempt update with fresh session
       const { data, error } = await supabase
         .from("bookings")
         .update({ status: newStatus })
@@ -76,7 +95,12 @@ export const BookingActions = ({
       onStatusUpdate();
       onClose();
     } catch (error: any) {
-      console.error("Failed to update booking status:", error);
+      console.error("Failed to update booking status:", {
+        message: error.message,
+        details: error.stack,
+        hint: error.hint,
+        code: error.code
+      });
       toast({
         title: "Error",
         description: "Failed to update booking. Please try again.",
