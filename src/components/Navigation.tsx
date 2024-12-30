@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,73 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
+const NavigationItems = memo(({ isLoggedIn, isAdmin, handleSignOut, setIsOpen }: {
+  isLoggedIn: boolean;
+  isAdmin: boolean;
+  handleSignOut: () => void;
+  setIsOpen: (open: boolean) => void;
+}) => (
+  <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+    {isLoggedIn ? (
+      <>
+        {isAdmin && (
+          <div className="sm:mr-2">
+            <NotificationBell />
+          </div>
+        )}
+        <Link 
+          to="/dashboard" 
+          className="w-full sm:w-auto"
+          onClick={() => setIsOpen(false)}
+        >
+          <Button 
+            variant="ghost"
+            className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
+          >
+            Dashboard
+          </Button>
+        </Link>
+        <Button 
+          onClick={handleSignOut} 
+          variant="ghost"
+          className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
+        >
+          Sign Out
+        </Button>
+      </>
+    ) : (
+      <>
+        <Link 
+          to="/login" 
+          className="w-full sm:w-auto"
+          onClick={() => setIsOpen(false)}
+        >
+          <Button 
+            variant="ghost"
+            className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
+          >
+            Sign In
+          </Button>
+        </Link>
+        <Link 
+          to="/become-driver" 
+          className="w-full sm:w-auto"
+          onClick={() => setIsOpen(false)}
+        >
+          <Button 
+            variant="secondary"
+            className="w-full sm:w-auto bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90 px-6 py-2 text-lg font-medium"
+          >
+            Become a Driver
+          </Button>
+        </Link>
+      </>
+    )}
+  </div>
+));
+
+NavigationItems.displayName = 'NavigationItems';
+
 export const Navigation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -18,67 +85,7 @@ export const Navigation = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          return;
-        }
-
-        if (session) {
-          setIsLoggedIn(true);
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profileError) {
-            console.error("Profile error:", profileError);
-            return;
-          }
-          
-          setIsAdmin(profile?.role === 'admin');
-        } else {
-          setIsLoggedIn(false);
-          setIsAdmin(false);
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-      }
-    };
-
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
-      if (event === 'SIGNED_IN' && session) {
-        setIsLoggedIn(true);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        
-        setIsAdmin(profile?.role === 'admin');
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false);
-        setIsAdmin(false);
-        navigate('/login');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -107,67 +114,63 @@ export const Navigation = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [navigate, toast]);
 
-  const NavigationItems = () => (
-    <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
-      {isLoggedIn ? (
-        <>
-          {isAdmin && (
-            <div className="sm:mr-2">
-              <NotificationBell />
-            </div>
-          )}
-          <Link 
-            to="/dashboard" 
-            className="w-full sm:w-auto"
-            onClick={() => setIsOpen(false)}
-          >
-            <Button 
-              variant="ghost"
-              className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
-            >
-              Dashboard
-            </Button>
-          </Link>
-          <Button 
-            onClick={handleSignOut} 
-            variant="ghost"
-            className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
-          >
-            Sign Out
-          </Button>
-        </>
-      ) : (
-        <>
-          <Link 
-            to="/login" 
-            className="w-full sm:w-auto"
-            onClick={() => setIsOpen(false)}
-          >
-            <Button 
-              variant="ghost"
-              className="w-full sm:w-auto text-[#BFA181] hover:text-[#BFA181]/90 hover:bg-[#BFA181]/10 px-6 py-2 text-lg"
-            >
-              Sign In
-            </Button>
-          </Link>
-          <Link 
-            to="/become-driver" 
-            className="w-full sm:w-auto"
-            onClick={() => setIsOpen(false)}
-          >
-            <Button 
-              variant="secondary"
-              className="w-full sm:w-auto bg-[#BFA181] text-[#0F172A] hover:bg-[#BFA181]/90 px-6 py-2 text-lg font-medium"
-            >
-              Become a Driver
-            </Button>
-          </Link>
-        </>
-      )}
-    </div>
-  );
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          return;
+        }
+
+        if (session) {
+          setIsLoggedIn(true);
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError) {
+            console.error("Profile error:", profileError);
+            return;
+          }
+          
+          setIsAdmin(profile?.role === 'admin');
+        } else {
+          setIsLoggedIn(false);
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setIsLoggedIn(true);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        
+        setIsAdmin(profile?.role === 'admin');
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setIsAdmin(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <nav className="bg-[#0F172A] fixed top-0 left-0 right-0 w-full z-50">
@@ -185,13 +188,23 @@ export const Navigation = () => {
                 </Button>
               </DrawerTrigger>
               <DrawerContent className="bg-[#0F172A] p-6">
-                <NavigationItems />
+                <NavigationItems 
+                  isLoggedIn={isLoggedIn}
+                  isAdmin={isAdmin}
+                  handleSignOut={handleSignOut}
+                  setIsOpen={setIsOpen}
+                />
               </DrawerContent>
             </Drawer>
           </div>
 
           <div className="hidden sm:block">
-            <NavigationItems />
+            <NavigationItems 
+              isLoggedIn={isLoggedIn}
+              isAdmin={isAdmin}
+              handleSignOut={handleSignOut}
+              setIsOpen={setIsOpen}
+            />
           </div>
         </div>
       </div>
