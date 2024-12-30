@@ -17,30 +17,24 @@ export const useUserProfile = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const clearProfile = () => {
-    setProfile(null);
-    localStorage.removeItem('supabase.auth.token');
-  };
-
   useEffect(() => {
+    let mounted = true;
+
     const fetchProfile = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error("Session error in useUserProfile:", sessionError);
-          if (sessionError.message?.includes('refresh_token')) {
-            clearProfile();
-            navigate('/login');
-            return;
-          }
+          console.error("Session error:", sessionError);
           throw sessionError;
         }
-        
+
         if (!session) {
-          console.log("No active session in useUserProfile");
-          clearProfile();
-          setIsLoading(false);
+          console.log("No active session");
+          if (mounted) {
+            setProfile(null);
+            setIsLoading(false);
+          }
           return;
         }
 
@@ -48,33 +42,33 @@ export const useUserProfile = () => {
           .from("profiles")
           .select("id, first_name, last_name, email, role")
           .eq("id", session.user.id)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error("Profile fetch error:", profileError);
           throw profileError;
         }
-        
-        console.log("Profile data fetched:", profileData);
-        setProfile(profileData);
+
+        if (mounted) {
+          setProfile(profileData);
+          setIsLoading(false);
+        }
       } catch (error: any) {
         console.error("Profile fetch error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load user profile",
-          variant: "destructive",
-        });
-        clearProfile();
-        navigate('/login');
-      } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setProfile(null);
+          setIsLoading(false);
+          if (error.message?.includes('JWT')) {
+            navigate('/login');
+          }
+        }
       }
     };
 
     fetchProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed in useUserProfile:", event, session);
+      console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session) {
         try {
@@ -82,28 +76,29 @@ export const useUserProfile = () => {
             .from("profiles")
             .select("id, first_name, last_name, email, role")
             .eq("id", session.user.id)
-            .single();
+            .maybeSingle();
 
           if (profileError) throw profileError;
           
-          setProfile(profileData);
-        } catch (error: any) {
+          if (mounted) {
+            setProfile(profileData);
+          }
+        } catch (error) {
           console.error("Profile fetch error after auth change:", error);
-          toast({
-            title: "Error",
-            description: "Failed to load user profile",
-            variant: "destructive",
-          });
-          clearProfile();
+          if (mounted) {
+            setProfile(null);
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        if (mounted) {
+          setProfile(null);
           navigate('/login');
         }
-      } else if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
-        clearProfile();
-        navigate('/login');
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate, toast]);

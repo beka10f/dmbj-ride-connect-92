@@ -15,7 +15,7 @@ const Dashboard = () => {
   const { profile, isLoading: profileLoading } = useUserProfile();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const checkAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -42,7 +42,7 @@ const Dashboard = () => {
       }
     };
 
-    checkSession();
+    checkAuth();
   }, [navigate, toast]);
 
   const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading } = useQuery({
