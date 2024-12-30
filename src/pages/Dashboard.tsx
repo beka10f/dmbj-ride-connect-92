@@ -16,8 +16,20 @@ const Dashboard = () => {
   const { profile } = useUserProfile();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Session error:", error);
+        toast({
+          title: "Authentication Error",
+          description: "Please sign in again",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
       if (!session) {
         toast({
           title: "Authentication Required",
@@ -25,10 +37,21 @@ const Dashboard = () => {
           variant: "destructive",
         });
         navigate('/login');
+        return;
       }
     };
 
-    checkAuth();
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || (!session && event === 'TOKEN_REFRESHED')) {
+        navigate('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   const { data: bookings = [], refetch: refetchBookings } = useQuery({

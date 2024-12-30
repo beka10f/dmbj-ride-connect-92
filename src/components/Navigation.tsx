@@ -45,6 +45,7 @@ export const Navigation = () => {
         } else {
           setIsLoggedIn(false);
           setIsAdmin(false);
+          navigate('/login');
         }
       } catch (error) {
         console.error("Auth check error:", error);
@@ -54,6 +55,8 @@ export const Navigation = () => {
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
       if (event === 'SIGNED_IN' && session) {
         setIsLoggedIn(true);
         const { data: profile } = await supabase
@@ -63,12 +66,10 @@ export const Navigation = () => {
           .single();
         
         setIsAdmin(profile?.role === 'admin');
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (!session) {
-          setIsLoggedIn(false);
-          setIsAdmin(false);
-          navigate('/login');
-        }
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setIsAdmin(false);
+        navigate('/login');
       }
     });
 
@@ -79,7 +80,17 @@ export const Navigation = () => {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Sign out error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to sign out",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setIsLoggedIn(false);
       setIsAdmin(false);
       setIsOpen(false);
