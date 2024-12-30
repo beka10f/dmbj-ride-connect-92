@@ -25,7 +25,6 @@ const Dashboard = () => {
           variant: "destructive",
         });
         navigate('/login');
-        return;
       }
     };
 

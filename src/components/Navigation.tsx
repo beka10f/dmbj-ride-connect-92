@@ -66,13 +66,14 @@ export const Navigation = () => {
       } else if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
         setIsAdmin(false);
+        navigate('/');
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -81,13 +82,13 @@ export const Navigation = () => {
       
       setIsLoggedIn(false);
       setIsAdmin(false);
-      navigate('/');
       setIsOpen(false);
+      navigate('/');
       toast({
         title: "Success",
         description: "Successfully signed out",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign out error:", error);
       toast({
         title: "Error",
@@ -165,7 +166,6 @@ export const Navigation = () => {
             <span className="text-2xl font-semibold text-[#BFA181]">DMBJ Transportation</span>
           </Link>
 
-          {/* Mobile Menu Button */}
           <div className="sm:hidden">
             <Drawer open={isOpen} onOpenChange={setIsOpen}>
               <DrawerTrigger asChild>
@@ -179,7 +179,6 @@ export const Navigation = () => {
             </Drawer>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden sm:block">
             <NavigationItems />
           </div>
