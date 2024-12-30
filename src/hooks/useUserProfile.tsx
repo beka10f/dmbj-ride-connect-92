@@ -17,6 +17,11 @@ export const useUserProfile = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const clearProfile = () => {
+    setProfile(null);
+    localStorage.removeItem('supabase.auth.token');
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -25,8 +30,7 @@ export const useUserProfile = () => {
         if (sessionError) {
           console.error("Session error in useUserProfile:", sessionError);
           if (sessionError.message?.includes('refresh_token')) {
-            localStorage.removeItem('supabase.auth.token');
-            setProfile(null);
+            clearProfile();
             navigate('/login');
             return;
           }
@@ -83,9 +87,12 @@ export const useUserProfile = () => {
             description: error.message || "Failed to load user profile",
             variant: "destructive",
           });
+        } finally {
+          setIsLoading(false);
         }
       } else if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
-        setProfile(null);
+        clearProfile();
+        setIsLoading(false);
       }
     });
 
