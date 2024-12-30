@@ -13,7 +13,6 @@ export const useAuthState = () => {
   const clearSession = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
-    localStorage.removeItem('supabase.auth.token');
   };
 
   const handleSignOut = async () => {
@@ -29,57 +28,65 @@ export const useAuthState = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
+      // If there's a token error, force clear the session
       if (error.message?.includes('refresh_token')) {
         clearSession();
         navigate('/login');
       }
-      toast({
-        title: "Error",
-        description: error.message || "Failed to sign out",
-        variant: "destructive",
-      });
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error("Session error:", sessionError);
-          if (sessionError.message?.includes('refresh_token')) {
-            clearSession();
-            navigate('/login');
-            return;
-          }
           throw sessionError;
         }
 
         if (session) {
           console.log("Active session found:", session.user.id);
-          setIsLoggedIn(true);
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profileError) throw profileError;
-          setIsAdmin(profile?.role === 'admin');
+          if (mounted) {
+            setIsLoggedIn(true);
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (profileError) throw profileError;
+            
+            if (mounted) {
+              setIsAdmin(profile?.role === 'admin');
+            }
+          }
         } else {
           console.log("No active session");
-          clearSession();
+          if (mounted) {
+            clearSession();
+          }
         }
       } catch (error: any) {
         console.error("Auth check error:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Authentication check failed",
-          variant: "destructive",
-        });
+        if (mounted) {
+          clearSession();
+          if (error.message?.includes('refresh_token')) {
+            navigate('/login');
+          }
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -87,23 +94,34 @@ export const useAuthState = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
+      
       if (event === 'SIGNED_IN' && session) {
-        setIsLoggedIn(true);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        
-        setIsAdmin(profile?.role === 'admin');
+        if (mounted) {
+          setIsLoggedIn(true);
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (mounted) {
+              setIsAdmin(profile?.role === 'admin');
+            }
+          } catch (error) {
+            console.error("Error fetching profile:", error);
+          }
+        }
       } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (!session) {
+        if (!session && mounted) {
           clearSession();
+          navigate('/login');
         }
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
