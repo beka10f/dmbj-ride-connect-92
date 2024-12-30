@@ -23,6 +23,7 @@ const Login = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed in Login:", event);
       if (event === "SIGNED_IN" && session) {
+        localStorage.setItem('supabase.auth.session', JSON.stringify(session));
         toast({
           title: "Success",
           description: "Successfully signed in!",

@@ -1,169 +1,88 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
 
 export const SignInForm = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
 
-  const validateForm = () => {
-    if (!formData.email.trim()) {
-      setError("Email is required");
-      return false;
-    }
-    if (!formData.password) {
-      setError("Password is required");
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (loading) return;
-    
-    setError(null);
-    if (!validateForm()) return;
-
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (signInError) {
-        console.error("Sign in error:", signInError);
-        
-        if (signInError.message.includes("Invalid login credentials")) {
-          setError(
-            "The email or password you entered is incorrect. Please check your credentials and try again."
-          );
-        } else if (signInError.message.includes("Email not confirmed")) {
-          setError(
-            "Please verify your email address before signing in. Check your inbox for a confirmation email."
-          );
-        } else {
-          setError(signInError.message);
-        }
-        return;
+      if (error) {
+        throw error;
       }
 
       if (data.session) {
-        // Store the session in localStorage
-        localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
+        localStorage.setItem('supabase.auth.session', JSON.stringify(data.session));
         
         toast({
           title: "Welcome back!",
           description: "Successfully signed in.",
         });
+
         navigate("/dashboard");
       }
     } catch (error: any) {
-      console.error("Unexpected error during sign in:", error);
-      setError("An unexpected error occurred. Please try again later.");
+      console.error("Sign in error:", error);
+      toast({
+        title: "Error signing in",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(null);
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md mx-auto shadow-lg">
-        <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-3xl font-bold text-gray-900">Welcome Back</CardTitle>
-          <CardDescription className="text-gray-600">
-            Sign in to your account to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <InfoIcon className="h-4 w-4" />
-              <AlertTitle>Authentication Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="block w-full rounded-lg border-gray-300 shadow-sm"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="block w-full rounded-lg border-gray-300 shadow-sm"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-lg transition-colors"
-              disabled={loading}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="text-center">
-          <p className="text-sm text-gray-600 w-full">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-primary hover:underline font-medium">
-              Create one here
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+    <form onSubmit={handleSubmit} className="w-full max-w-sm">
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+          Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
+      <div className="mb-6">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+          Password
+        </label>
+        <input
+          type="password"
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {isLoading ? 'Signing In...' : 'Sign In'}
+        </button>
+      </div>
+    </form>
   );
 };

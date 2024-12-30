@@ -13,7 +13,7 @@ export const useAuthState = () => {
   const clearSession = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
-    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('supabase.auth.session');
   };
 
   const handleSignOut = async () => {
@@ -34,10 +34,9 @@ export const useAuthState = () => {
         description: "Failed to sign out",
         variant: "destructive",
       });
-      if (error.message?.includes('refresh_token')) {
-        clearSession();
-        navigate('/login');
-      }
+      // If there's a token error, force clear the session
+      clearSession();
+      navigate('/login');
     }
   };
 
@@ -46,10 +45,7 @@ export const useAuthState = () => {
 
     const checkAuth = async () => {
       try {
-        // First try to get the session from localStorage
-        const storedSession = localStorage.getItem('supabase.auth.token');
-        
-        // Then verify it with Supabase
+        // Get the current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -61,6 +57,8 @@ export const useAuthState = () => {
           console.log("Active session found:", session.user.id);
           if (mounted) {
             setIsLoggedIn(true);
+            localStorage.setItem('supabase.auth.session', JSON.stringify(session));
+            
             // Fetch user profile to check role
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
@@ -105,6 +103,8 @@ export const useAuthState = () => {
       if (event === 'SIGNED_IN' && session) {
         if (mounted) {
           setIsLoggedIn(true);
+          localStorage.setItem('supabase.auth.session', JSON.stringify(session));
+          
           try {
             const { data: profile } = await supabase
               .from('profiles')
