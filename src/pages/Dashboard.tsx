@@ -19,18 +19,8 @@ const Dashboard = () => {
     const checkSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       
-      if (error) {
-        console.error("Session error:", error);
-        toast({
-          title: "Authentication Error",
-          description: "Please sign in again",
-          variant: "destructive",
-        });
-        navigate('/login');
-        return;
-      }
-
-      if (!session) {
+      if (error || !session) {
+        console.log("Session check failed:", error || "No session");
         toast({
           title: "Authentication Required",
           description: "Please sign in to access the dashboard",
@@ -44,6 +34,7 @@ const Dashboard = () => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
       if (event === 'SIGNED_OUT' || (!session && event === 'TOKEN_REFRESHED')) {
         navigate('/login');
       }
@@ -87,13 +78,19 @@ const Dashboard = () => {
         .from("driver_applications")
         .select("*");
 
-      if (applicationsError) throw applicationsError;
+      if (applicationsError) {
+        console.error("Error fetching applications:", applicationsError);
+        throw applicationsError;
+      }
       return applicationsData || [];
     },
     enabled: profile?.role === "admin",
   });
 
-  if (!profile) return null;
+  if (!profile) {
+    console.log("No profile data available");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
