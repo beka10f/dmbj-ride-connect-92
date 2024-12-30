@@ -75,6 +75,9 @@ export const SignInForm = () => {
       }
 
       if (data.session) {
+        // Store the session in localStorage
+        localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
+        
         toast({
           title: "Welcome back!",
           description: "Successfully signed in.",

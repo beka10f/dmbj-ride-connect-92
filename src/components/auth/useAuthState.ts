@@ -13,6 +13,7 @@ export const useAuthState = () => {
   const clearSession = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
+    localStorage.removeItem('supabase.auth.token');
   };
 
   const handleSignOut = async () => {
@@ -33,7 +34,6 @@ export const useAuthState = () => {
         description: "Failed to sign out",
         variant: "destructive",
       });
-      // If there's a token error, force clear the session
       if (error.message?.includes('refresh_token')) {
         clearSession();
         navigate('/login');
@@ -46,6 +46,10 @@ export const useAuthState = () => {
 
     const checkAuth = async () => {
       try {
+        // First try to get the session from localStorage
+        const storedSession = localStorage.getItem('supabase.auth.token');
+        
+        // Then verify it with Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -57,6 +61,7 @@ export const useAuthState = () => {
           console.log("Active session found:", session.user.id);
           if (mounted) {
             setIsLoggedIn(true);
+            // Fetch user profile to check role
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
               .select('role')
@@ -90,8 +95,10 @@ export const useAuthState = () => {
       }
     };
 
+    // Initial auth check
     checkAuth();
 
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
@@ -112,8 +119,8 @@ export const useAuthState = () => {
             console.error("Error fetching profile:", error);
           }
         }
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (!session && mounted) {
+      } else if (event === 'SIGNED_OUT') {
+        if (mounted) {
           clearSession();
           navigate('/login');
         }
