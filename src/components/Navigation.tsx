@@ -14,7 +14,7 @@ import {
 const NavigationItems = memo(({ isLoggedIn, isAdmin, handleSignOut, setIsOpen }: {
   isLoggedIn: boolean;
   isAdmin: boolean;
-  handleSignOut: () => void;
+  handleSignOut: () => Promise<void>;
   setIsOpen: (open: boolean) => void;
 }) => (
   <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -88,20 +88,12 @@ export const Navigation = () => {
   const handleSignOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Sign out error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to sign out",
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw error;
       
       setIsLoggedIn(false);
       setIsAdmin(false);
       setIsOpen(false);
-      navigate('/login');
+      navigate('/');
       toast({
         title: "Success",
         description: "Successfully signed out",
@@ -110,7 +102,7 @@ export const Navigation = () => {
       console.error("Sign out error:", error);
       toast({
         title: "Error",
-        description: "Failed to sign out",
+        description: error.message || "Failed to sign out",
         variant: "destructive",
       });
     }
@@ -121,10 +113,7 @@ export const Navigation = () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          return;
-        }
+        if (sessionError) throw sessionError;
 
         if (session) {
           setIsLoggedIn(true);
@@ -134,24 +123,26 @@ export const Navigation = () => {
             .eq('id', session.user.id)
             .single();
           
-          if (profileError) {
-            console.error("Profile error:", profileError);
-            return;
-          }
-          
+          if (profileError) throw profileError;
           setIsAdmin(profile?.role === 'admin');
         } else {
           setIsLoggedIn(false);
           setIsAdmin(false);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Auth check error:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Authentication check failed",
+          variant: "destructive",
+        });
       }
     };
 
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
       if (event === 'SIGNED_IN' && session) {
         setIsLoggedIn(true);
         const { data: profile } = await supabase
@@ -170,7 +161,7 @@ export const Navigation = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   return (
     <nav className="bg-[#0F172A] fixed top-0 left-0 right-0 w-full z-50">

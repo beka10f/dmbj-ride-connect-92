@@ -17,24 +17,31 @@ const Dashboard = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session) {
-        console.log("Session check failed:", error || "No session");
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        if (!session) {
+          console.log("No active session found");
+          navigate('/login');
+          return;
+        }
+      } catch (error: any) {
+        console.error("Session check failed:", error);
         toast({
           title: "Authentication Required",
-          description: "Please sign in to access the dashboard",
+          description: error.message || "Please sign in to access the dashboard",
           variant: "destructive",
         });
         navigate('/login');
-        return;
       }
     };
 
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session);
+      console.log("Auth state changed in Dashboard:", event, session);
       if (event === 'SIGNED_OUT' || (!session && event === 'TOKEN_REFRESHED')) {
         navigate('/login');
       }
@@ -48,23 +55,33 @@ const Dashboard = () => {
   const { data: bookings = [], refetch: refetchBookings } = useQuery({
     queryKey: ["bookings", profile?.role],
     queryFn: async () => {
-      if (!profile) return [];
-
-      const query = supabase.from("bookings").select("*");
-
-      if (profile.role === 'client') {
-        query.eq('user_id', profile.id);
-      } else if (profile.role === 'driver') {
-        query.eq('assigned_driver_id', profile.id);
+      if (!profile) {
+        console.log("No profile data available for bookings query");
+        return [];
       }
 
-      const { data, error } = await query;
+      try {
+        const query = supabase.from("bookings").select("*");
 
-      if (error) {
+        if (profile.role === 'client') {
+          query.eq('user_id', profile.id);
+        } else if (profile.role === 'driver') {
+          query.eq('assigned_driver_id', profile.id);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+        return data || [];
+      } catch (error: any) {
         console.error("Error fetching bookings:", error);
-        throw error;
+        toast({
+          title: "Error",
+          description: error.message || "Failed to fetch bookings",
+          variant: "destructive",
+        });
+        return [];
       }
-      return data || [];
     },
     enabled: !!profile,
   });
@@ -72,23 +89,33 @@ const Dashboard = () => {
   const { data: driverApplications = [] } = useQuery({
     queryKey: ["driverApplications"],
     queryFn: async () => {
-      if (profile?.role !== "admin") return [];
-      
-      const { data: applicationsData, error: applicationsError } = await supabase
-        .from("driver_applications")
-        .select("*");
-
-      if (applicationsError) {
-        console.error("Error fetching applications:", applicationsError);
-        throw applicationsError;
+      if (profile?.role !== "admin") {
+        console.log("User is not admin, skipping applications fetch");
+        return [];
       }
-      return applicationsData || [];
+      
+      try {
+        const { data, error } = await supabase
+          .from("driver_applications")
+          .select("*");
+
+        if (error) throw error;
+        return data || [];
+      } catch (error: any) {
+        console.error("Error fetching applications:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to fetch driver applications",
+          variant: "destructive",
+        });
+        return [];
+      }
     },
     enabled: profile?.role === "admin",
   });
 
   if (!profile) {
-    console.log("No profile data available");
+    console.log("No profile data available for dashboard render");
     return null;
   }
 

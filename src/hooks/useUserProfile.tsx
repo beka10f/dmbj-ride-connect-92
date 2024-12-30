@@ -18,13 +18,17 @@ export const useUserProfile = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-        return;
-      }
-
       try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) throw sessionError;
+        
+        if (!session) {
+          console.log("No active session in useUserProfile");
+          navigate("/login");
+          return;
+        }
+
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, email, role")
@@ -32,17 +36,55 @@ export const useUserProfile = () => {
           .single();
 
         if (profileError) throw profileError;
+        
         setProfile(profileData);
       } catch (error: any) {
+        console.error("Profile fetch error:", error);
         toast({
           title: "Error",
-          description: error.message,
+          description: error.message || "Failed to load user profile",
           variant: "destructive",
         });
+        
+        if (error.message?.includes('auth')) {
+          navigate("/login");
+        }
       }
     };
 
     checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed in useUserProfile:", event, session);
+      
+      if (event === 'SIGNED_IN' && session) {
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("id, first_name, last_name, email, role")
+            .eq("id", session.user.id)
+            .single();
+
+          if (profileError) throw profileError;
+          
+          setProfile(profileData);
+        } catch (error: any) {
+          console.error("Profile fetch error after auth change:", error);
+          toast({
+            title: "Error",
+            description: error.message || "Failed to load user profile",
+            variant: "destructive",
+          });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setProfile(null);
+        navigate("/login");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   return { profile };
