@@ -39,6 +39,7 @@ export const useUserProfile = () => {
         
         if (!session) {
           console.log("No active session in useUserProfile");
+          clearProfile();
           setIsLoading(false);
           return;
         }
@@ -49,16 +50,22 @@ export const useUserProfile = () => {
           .eq("id", session.user.id)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          throw profileError;
+        }
         
+        console.log("Profile data fetched:", profileData);
         setProfile(profileData);
       } catch (error: any) {
         console.error("Profile fetch error:", error);
         toast({
           title: "Error",
-          description: error.message || "Failed to load user profile",
+          description: "Failed to load user profile",
           variant: "destructive",
         });
+        clearProfile();
+        navigate('/login');
       } finally {
         setIsLoading(false);
       }
@@ -84,15 +91,15 @@ export const useUserProfile = () => {
           console.error("Profile fetch error after auth change:", error);
           toast({
             title: "Error",
-            description: error.message || "Failed to load user profile",
+            description: "Failed to load user profile",
             variant: "destructive",
           });
-        } finally {
-          setIsLoading(false);
+          clearProfile();
+          navigate('/login');
         }
       } else if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
         clearProfile();
-        setIsLoading(false);
+        navigate('/login');
       }
     });
 

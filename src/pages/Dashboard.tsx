@@ -35,7 +35,7 @@ const Dashboard = () => {
         console.error("Session check failed:", error);
         toast({
           title: "Authentication Required",
-          description: error.message || "Please sign in to access the dashboard",
+          description: "Please sign in to access the dashboard",
           variant: "destructive",
         });
         navigate('/login');
@@ -43,17 +43,6 @@ const Dashboard = () => {
     };
 
     checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed in Dashboard:", event, session);
-      if (event === 'SIGNED_OUT' || (!session && event === 'TOKEN_REFRESHED')) {
-        navigate('/login');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [navigate, toast]);
 
   const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading } = useQuery({
@@ -81,7 +70,7 @@ const Dashboard = () => {
         console.error("Error fetching bookings:", error);
         toast({
           title: "Error",
-          description: error.message || "Failed to fetch bookings",
+          description: "Failed to fetch bookings",
           variant: "destructive",
         });
         return [];
@@ -109,7 +98,7 @@ const Dashboard = () => {
         console.error("Error fetching applications:", error);
         toast({
           title: "Error",
-          description: error.message || "Failed to fetch driver applications",
+          description: "Failed to fetch driver applications",
           variant: "destructive",
         });
         return [];
@@ -120,10 +109,12 @@ const Dashboard = () => {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4 py-6 space-y-8">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-64 w-full" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-8">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
         </div>
       </div>
     );
@@ -134,9 +125,11 @@ const Dashboard = () => {
     return null;
   }
 
+  const isLoading = bookingsLoading || applicationsLoading;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-6 space-y-8 animate-fadeIn">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8 animate-fadeIn">
         <DashboardHeader 
           firstName={profile.first_name}
           role={profile.role}
@@ -148,7 +141,7 @@ const Dashboard = () => {
               bookingsCount={bookings.length}
               applicationsCount={driverApplications.length}
               isAdmin={profile.role === "admin"}
-              isLoading={bookingsLoading || applicationsLoading}
+              isLoading={isLoading}
             />
           </div>
         </div>
