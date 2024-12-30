@@ -63,10 +63,12 @@ export const Navigation = () => {
           .single();
         
         setIsAdmin(profile?.role === 'admin');
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false);
-        setIsAdmin(false);
-        navigate('/');
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        if (!session) {
+          setIsLoggedIn(false);
+          setIsAdmin(false);
+          navigate('/login');
+        }
       }
     });
 
@@ -77,13 +79,11 @@ export const Navigation = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      await supabase.auth.signOut();
       setIsLoggedIn(false);
       setIsAdmin(false);
       setIsOpen(false);
-      navigate('/');
+      navigate('/login');
       toast({
         title: "Success",
         description: "Successfully signed out",
