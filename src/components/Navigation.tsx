@@ -90,6 +90,9 @@ export const Navigation = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
+      // Clear local storage to ensure no stale tokens remain
+      localStorage.removeItem('supabase.auth.token');
+      
       setIsLoggedIn(false);
       setIsAdmin(false);
       setIsOpen(false);
@@ -100,6 +103,13 @@ export const Navigation = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
+      // If there's a refresh token error, clear the session manually
+      if (error.message?.includes('refresh_token')) {
+        localStorage.removeItem('supabase.auth.token');
+        setIsLoggedIn(false);
+        setIsAdmin(false);
+        navigate('/login');
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to sign out",
@@ -113,9 +123,20 @@ export const Navigation = () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) throw sessionError;
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          if (sessionError.message?.includes('refresh_token')) {
+            localStorage.removeItem('supabase.auth.token');
+            setIsLoggedIn(false);
+            setIsAdmin(false);
+            navigate('/login');
+            return;
+          }
+          throw sessionError;
+        }
 
         if (session) {
+          console.log("Active session found:", session.user.id);
           setIsLoggedIn(true);
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
@@ -126,6 +147,7 @@ export const Navigation = () => {
           if (profileError) throw profileError;
           setIsAdmin(profile?.role === 'admin');
         } else {
+          console.log("No active session");
           setIsLoggedIn(false);
           setIsAdmin(false);
         }
@@ -152,16 +174,18 @@ export const Navigation = () => {
           .single();
         
         setIsAdmin(profile?.role === 'admin');
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false);
-        setIsAdmin(false);
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        if (!session) {
+          setIsLoggedIn(false);
+          setIsAdmin(false);
+        }
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [navigate, toast]);
 
   return (
     <nav className="bg-[#0F172A] fixed top-0 left-0 right-0 w-full z-50">

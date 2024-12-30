@@ -22,7 +22,16 @@ export const useUserProfile = () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) throw sessionError;
+        if (sessionError) {
+          console.error("Session error in useUserProfile:", sessionError);
+          if (sessionError.message?.includes('refresh_token')) {
+            localStorage.removeItem('supabase.auth.token');
+            setProfile(null);
+            navigate('/login');
+            return;
+          }
+          throw sessionError;
+        }
         
         if (!session) {
           console.log("No active session in useUserProfile");
@@ -74,12 +83,9 @@ export const useUserProfile = () => {
             description: error.message || "Failed to load user profile",
             variant: "destructive",
           });
-        } finally {
-          setIsLoading(false);
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
         setProfile(null);
-        setIsLoading(false);
       }
     });
 
