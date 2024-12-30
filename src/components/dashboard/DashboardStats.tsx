@@ -1,13 +1,24 @@
 import { Card } from "@/components/ui/card";
 import { Calendar, Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardStatsProps {
   bookingsCount: number;
   applicationsCount: number;
   isAdmin: boolean;
+  isLoading: boolean;
 }
 
-export const DashboardStats = ({ bookingsCount, applicationsCount, isAdmin }: DashboardStatsProps) => {
+export const DashboardStats = ({ bookingsCount, applicationsCount, isAdmin, isLoading }: DashboardStatsProps) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Skeleton className="h-[120px] w-full" />
+        {isAdmin && <Skeleton className="h-[120px] w-full" />}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Card className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
