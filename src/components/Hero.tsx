@@ -12,7 +12,6 @@ export const Hero = () => {
             "url('https://images.unsplash.com/photo-1523983388277-336a66bf9bcd?auto=format&fit=crop&w=1920&q=80')",
           willChange: "opacity",
         }}
-        loading="eager"
       />
       <div className="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6">
         <Suspense fallback={null}>
