@@ -15,9 +15,10 @@ export const useUserProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchProfile = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -25,7 +26,7 @@ export const useUserProfile = () => {
         
         if (!session) {
           console.log("No active session in useUserProfile");
-          navigate("/login");
+          setIsLoading(false);
           return;
         }
 
@@ -45,14 +46,12 @@ export const useUserProfile = () => {
           description: error.message || "Failed to load user profile",
           variant: "destructive",
         });
-        
-        if (error.message?.includes('auth')) {
-          navigate("/login");
-        }
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    checkAuth();
+    fetchProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed in useUserProfile:", event, session);
@@ -75,10 +74,12 @@ export const useUserProfile = () => {
             description: error.message || "Failed to load user profile",
             variant: "destructive",
           });
+        } finally {
+          setIsLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
         setProfile(null);
-        navigate("/login");
+        setIsLoading(false);
       }
     });
 
@@ -87,5 +88,5 @@ export const useUserProfile = () => {
     };
   }, [navigate, toast]);
 
-  return { profile };
+  return { profile, isLoading };
 };

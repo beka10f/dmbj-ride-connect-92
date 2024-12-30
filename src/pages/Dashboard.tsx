@@ -9,24 +9,30 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile } = useUserProfile();
+  const { profile, isLoading: profileLoading } = useUserProfile();
 
   useEffect(() => {
     const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Session check failed:", error);
+          throw error;
+        }
         
         if (!session) {
-          console.log("No active session found");
+          console.log("No active session found, redirecting to login");
           navigate('/login');
           return;
         }
+
+        console.log("Active session found:", session.user.id);
       } catch (error: any) {
         console.error("Session check failed:", error);
         toast({
@@ -52,7 +58,7 @@ const Dashboard = () => {
     };
   }, [navigate, toast]);
 
-  const { data: bookings = [], refetch: refetchBookings } = useQuery({
+  const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading } = useQuery({
     queryKey: ["bookings", profile?.role],
     queryFn: async () => {
       if (!profile) {
@@ -86,7 +92,7 @@ const Dashboard = () => {
     enabled: !!profile,
   });
 
-  const { data: driverApplications = [] } = useQuery({
+  const { data: driverApplications = [], isLoading: applicationsLoading } = useQuery({
     queryKey: ["driverApplications"],
     queryFn: async () => {
       if (profile?.role !== "admin") {
@@ -113,6 +119,17 @@ const Dashboard = () => {
     },
     enabled: profile?.role === "admin",
   });
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4 py-6 space-y-8">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   if (!profile) {
     console.log("No profile data available for dashboard render");
@@ -142,6 +159,7 @@ const Dashboard = () => {
               bookingsCount={bookings.length}
               applicationsCount={driverApplications.length}
               isAdmin={profile.role === "admin"}
+              isLoading={bookingsLoading || applicationsLoading}
             />
           </div>
         </div>
