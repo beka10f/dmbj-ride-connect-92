@@ -1,139 +1,94 @@
 import { useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { BookingsTable } from "@/components/dashboard/BookingsTable";
+import { ApplicationsTable } from "@/components/dashboard/ApplicationsTable";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { QuickBookingButton } from "@/components/dashboard/QuickBookingButton";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile, isLoading: profileLoading } = useUserProfile();
+  const { profile } = useUserProfile();
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Session check failed:", error);
-          throw error;
-        }
-        
-        if (!session) {
-          console.log("No active session found, redirecting to login");
-          navigate('/login');
-          return;
-        }
-
-        console.log("Active session found:", session.user.id);
-      } catch (error: any) {
-        console.error("Session check failed:", error);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to access the dashboard",
           variant: "destructive",
         });
         navigate('/login');
+        return;
       }
     };
 
     checkAuth();
   }, [navigate, toast]);
 
-  const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading } = useQuery({
+  const { data: bookings = [], refetch: refetchBookings } = useQuery({
     queryKey: ["bookings", profile?.role],
     queryFn: async () => {
-      if (!profile) {
-        console.log("No profile data available for bookings query");
-        return [];
+      if (!profile) return [];
+
+      const query = supabase.from("bookings").select("*");
+
+      if (profile.role === 'client') {
+        query.eq('user_id', profile.id);
+      } else if (profile.role === 'driver') {
+        query.eq('assigned_driver_id', profile.id);
       }
 
-      try {
-        const query = supabase.from("bookings").select("*");
+      const { data, error } = await query;
 
-        if (profile.role === 'client') {
-          query.eq('user_id', profile.id);
-        } else if (profile.role === 'driver') {
-          query.eq('assigned_driver_id', profile.id);
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-        return data || [];
-      } catch (error: any) {
+      if (error) {
         console.error("Error fetching bookings:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch bookings",
-          variant: "destructive",
-        });
-        return [];
+        throw error;
       }
+      return data || [];
     },
     enabled: !!profile,
   });
 
-  const { data: driverApplications = [], isLoading: applicationsLoading } = useQuery({
+  const { data: driverApplications = [] } = useQuery({
     queryKey: ["driverApplications"],
     queryFn: async () => {
-      if (profile?.role !== "admin") {
-        console.log("User is not admin, skipping applications fetch");
-        return [];
-      }
+      if (profile?.role !== "admin") return [];
       
-      try {
-        const { data, error } = await supabase
-          .from("driver_applications")
-          .select("*");
+      const { data: applicationsData, error: applicationsError } = await supabase
+        .from("driver_applications")
+        .select("*");
 
-        if (error) throw error;
-        return data || [];
-      } catch (error: any) {
-        console.error("Error fetching applications:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch driver applications",
-          variant: "destructive",
-        });
-        return [];
-      }
+      if (applicationsError) throw applicationsError;
+      return applicationsData || [];
     },
     enabled: profile?.role === "admin",
   });
 
-  if (profileLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="space-y-8">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!profile) {
-    console.log("No profile data available for dashboard render");
-    return null;
-  }
-
-  const isLoading = bookingsLoading || applicationsLoading;
+  if (!profile) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8 animate-fadeIn">
-        <DashboardHeader 
-          firstName={profile.first_name}
-          role={profile.role}
-        />
+      <div className="container mx-auto px-4 py-6 space-y-8 animate-fadeIn">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Welcome, {profile?.first_name || "User"}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400">
+                {profile?.role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
+              </p>
+            </div>
+            {profile?.role === "client" && <QuickBookingButton />}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
@@ -141,17 +96,43 @@ const Dashboard = () => {
               bookingsCount={bookings.length}
               applicationsCount={driverApplications.length}
               isAdmin={profile.role === "admin"}
-              isLoading={isLoading}
             />
           </div>
         </div>
 
-        <DashboardTabs
-          isAdmin={profile.role === "admin"}
-          bookings={bookings}
-          driverApplications={driverApplications}
-          onBookingUpdated={refetchBookings}
-        />
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4">
+          <Tabs defaultValue="bookings" className="space-y-6">
+            <TabsList className="w-full flex space-x-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
+              <TabsTrigger 
+                value="bookings"
+                className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-sm"
+              >
+                Bookings
+              </TabsTrigger>
+              {profile?.role === "admin" && (
+                <TabsTrigger 
+                  value="applications"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-sm"
+                >
+                  Applications
+                </TabsTrigger>
+              )}
+            </TabsList>
+
+            <TabsContent value="bookings" className="space-y-4 pt-2">
+              <BookingsTable 
+                bookings={bookings} 
+                onBookingUpdated={refetchBookings}
+              />
+            </TabsContent>
+
+            {profile?.role === "admin" && (
+              <TabsContent value="applications" className="space-y-4 pt-2">
+                <ApplicationsTable applications={driverApplications} />
+              </TabsContent>
+            )}
+          </Tabs>
+        </div>
       </div>
     </div>
   );

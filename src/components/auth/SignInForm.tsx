@@ -52,7 +52,7 @@ export const SignInForm = () => {
     setLoading(true);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
       });
@@ -74,10 +74,7 @@ export const SignInForm = () => {
         return;
       }
 
-      if (data.session) {
-        // Store the session in localStorage
-        localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
-        
+      if (session) {
         toast({
           title: "Welcome back!",
           description: "Successfully signed in.",
@@ -95,7 +92,7 @@ export const SignInForm = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(null);
+    setError(null); // Clear error when user starts typing
   };
 
   return (

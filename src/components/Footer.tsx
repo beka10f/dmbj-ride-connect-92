@@ -35,8 +35,8 @@ export const Footer = () => {
         </div>
         <div className="text-center sm:text-left">
           <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary">Contact Us</h3>
-          <p className="text-sm sm:text-base text-gray-300 mb-2">Email: dmbjtransporation@gmail.com</p>
-          <p className="text-sm sm:text-base text-gray-300">Phone: (202) 909-0826</p>
+          <p className="text-sm sm:text-base text-gray-300 mb-2">Email: info@dmbjtransportation.com</p>
+          <p className="text-sm sm:text-base text-gray-300">Phone: (555) 123-4567</p>
         </div>
       </div>
       <div className="max-w-7xl mx-auto mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-700">

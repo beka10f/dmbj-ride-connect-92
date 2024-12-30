@@ -15,93 +15,35 @@ export const useUserProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/login");
+        return;
+      }
 
-    const fetchProfile = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          throw sessionError;
-        }
-
-        if (!session) {
-          console.log("No active session");
-          if (mounted) {
-            setProfile(null);
-            setIsLoading(false);
-          }
-          return;
-        }
-
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, email, role")
           .eq("id", session.user.id)
-          .maybeSingle();
+          .single();
 
-        if (profileError) {
-          console.error("Profile fetch error:", profileError);
-          throw profileError;
-        }
-
-        if (mounted) {
-          setProfile(profileData);
-          setIsLoading(false);
-        }
+        if (profileError) throw profileError;
+        setProfile(profileData);
       } catch (error: any) {
-        console.error("Profile fetch error:", error);
-        if (mounted) {
-          setProfile(null);
-          setIsLoading(false);
-          if (error.message?.includes('JWT')) {
-            navigate('/login');
-          }
-        }
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     };
 
-    fetchProfile();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
-      if (event === 'SIGNED_IN' && session) {
-        try {
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("id, first_name, last_name, email, role")
-            .eq("id", session.user.id)
-            .maybeSingle();
-
-          if (profileError) throw profileError;
-          
-          if (mounted) {
-            setProfile(profileData);
-          }
-        } catch (error) {
-          console.error("Profile fetch error after auth change:", error);
-          if (mounted) {
-            setProfile(null);
-          }
-        }
-      } else if (event === 'SIGNED_OUT') {
-        if (mounted) {
-          setProfile(null);
-          navigate('/login');
-        }
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    checkAuth();
   }, [navigate, toast]);
 
-  return { profile, isLoading };
+  return { profile };
 };

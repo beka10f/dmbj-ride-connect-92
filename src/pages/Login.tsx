@@ -9,19 +9,7 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session on mount
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log("Existing session found, redirecting to dashboard");
-        navigate("/dashboard");
-      }
-    };
-    
-    checkSession();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed in Login:", event);
       if (event === "SIGNED_IN" && session) {
         toast({
           title: "Success",

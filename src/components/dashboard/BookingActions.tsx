@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface BookingActionsProps {
@@ -40,30 +40,20 @@ export const BookingActions = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { profile } = useUserProfile();
-  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
         console.error("Session error:", sessionError);
-        toast({
-          title: "Authentication Error",
-          description: "Please sign in again to continue.",
-          variant: "destructive",
-        });
         navigate('/login');
         return;
       }
-      console.log("Session active:", session.user.id);
     };
     checkSession();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const handleUpdateBookingStatus = async (newStatus: string) => {
-    if (isUpdating) return;
-    
-    setIsUpdating(true);
     try {
       if (!profile) {
         toast({
@@ -75,25 +65,17 @@ export const BookingActions = ({
         return;
       }
 
-      console.log("Attempting to update booking status:", {
-        bookingId: booking.id,
-        newStatus,
-        userId: profile.id
-      });
+      console.log("Attempting to update booking status:", booking.id, newStatus);
 
-      const { data, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from("bookings")
         .update({ status: newStatus })
-        .eq('id', booking.id)
-        .select()
-        .single();
+        .eq('id', booking.id);
 
       if (updateError) {
         console.error("Error updating booking status:", updateError);
         throw updateError;
       }
-
-      console.log("Booking updated successfully:", data);
 
       toast({
         title: "Success",
@@ -105,11 +87,9 @@ export const BookingActions = ({
       console.error("Failed to update booking status:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update booking. Please try again.",
+        description: "Failed to update booking. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -139,14 +119,12 @@ export const BookingActions = ({
             variant="outline" 
             onClick={() => handleUpdateBookingStatus('declined')}
             className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-            disabled={isUpdating}
           >
             Decline
           </Button>
           <Button 
             onClick={() => handleUpdateBookingStatus('accepted')}
             className="bg-green-600 hover:bg-green-700"
-            disabled={isUpdating}
           >
             Accept
           </Button>
