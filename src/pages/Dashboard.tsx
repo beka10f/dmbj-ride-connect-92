@@ -50,7 +50,6 @@ const Dashboard = () => {
 
     checkSession();
 
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed in Dashboard:", event);
       if (event === 'SIGNED_OUT') {
@@ -68,7 +67,7 @@ const Dashboard = () => {
     };
   }, [navigate, toast, queryClient]);
 
-  const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading } = useQuery({
+  const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading, error: bookingsError } = useQuery({
     queryKey: ["bookings", profile?.id, profile?.role],
     queryFn: async () => {
       if (!profile?.id) {
@@ -109,7 +108,7 @@ const Dashboard = () => {
     retry: 3,
   });
 
-  const { data: driverApplications = [], isLoading: applicationsLoading } = useQuery({
+  const { data: driverApplications = [], isLoading: applicationsLoading, error: applicationsError } = useQuery({
     queryKey: ["driverApplications", profile?.id, profile?.role],
     queryFn: async () => {
       if (profile?.role !== "admin") {
@@ -158,6 +157,14 @@ const Dashboard = () => {
   }
 
   if (!profile) return null;
+
+  // Log any errors that occurred during data fetching
+  if (bookingsError) {
+    console.error("Bookings error:", bookingsError);
+  }
+  if (applicationsError) {
+    console.error("Applications error:", applicationsError);
+  }
 
   const isLoading = bookingsLoading || applicationsLoading;
 
