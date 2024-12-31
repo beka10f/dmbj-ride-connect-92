@@ -86,11 +86,23 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
+      // First check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
+      
+      if (!session?.user?.id) {
+        toast({
+          title: "Error",
+          description: "Please sign in to create a booking",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
+      console.log("Creating booking for user:", session.user.id);
 
       const bookingData = {
-        user_id: userId,
+        user_id: session.user.id, // Explicitly set the user_id
         pickup_location: formData.pickup,
         dropoff_location: formData.dropoff,
         pickup_date: new Date(
@@ -106,6 +118,8 @@ export const useBookingForm = () => {
         }),
         status: 'pending'
       };
+
+      console.log("Inserting booking data:", bookingData);
 
       const { error: bookingError } = await supabase
         .from("bookings")
@@ -134,10 +148,7 @@ export const useBookingForm = () => {
         time: "",
       });
 
-      // If user is logged in, redirect to dashboard
-      if (userId) {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (error: any) {
       console.error("Error creating booking:", error);
       toast({
