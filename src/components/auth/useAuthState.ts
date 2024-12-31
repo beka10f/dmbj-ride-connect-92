@@ -44,11 +44,7 @@ export const useAuthState = () => {
 
     const checkAuth = async () => {
       try {
-        // Get the session from localStorage
-        const storedSession = localStorage.getItem('sb-session');
-        const parsedSession = storedSession ? JSON.parse(storedSession) : null;
-        
-        // Get the current session from Supabase
+        console.log("Checking authentication status...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -61,6 +57,8 @@ export const useAuthState = () => {
           console.log("Active session found:", session.user.id);
           if (mounted) {
             setIsLoggedIn(true);
+            localStorage.setItem('sb-session', JSON.stringify(session));
+            
             // Fetch user profile to check role
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
@@ -68,35 +66,14 @@ export const useAuthState = () => {
               .eq('id', session.user.id)
               .single();
             
-            if (profileError) throw profileError;
+            if (profileError) {
+              console.error("Profile fetch error:", profileError);
+              throw profileError;
+            }
             
             if (mounted) {
               setIsAdmin(profile?.role === 'admin');
-            }
-          }
-        } else if (parsedSession) {
-          // If we have a stored session but no current session, try to refresh
-          const { data: refreshedSession, error: refreshError } = await supabase.auth.setSession({
-            access_token: parsedSession.access_token,
-            refresh_token: parsedSession.refresh_token,
-          });
-
-          if (refreshError) {
-            console.error("Session refresh error:", refreshError);
-            clearSession();
-          } else if (refreshedSession.session) {
-            localStorage.setItem('sb-session', JSON.stringify(refreshedSession.session));
-            if (mounted) {
-              setIsLoggedIn(true);
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', refreshedSession.session.user.id)
-                .single();
-              
-              if (mounted) {
-                setIsAdmin(profile?.role === 'admin');
-              }
+              console.log("User role set:", profile?.role);
             }
           }
         } else {
@@ -109,9 +86,6 @@ export const useAuthState = () => {
         console.error("Auth check error:", error);
         if (mounted) {
           clearSession();
-          if (error.message?.includes('refresh_token')) {
-            navigate('/login');
-          }
         }
       } finally {
         if (mounted) {
@@ -140,17 +114,15 @@ export const useAuthState = () => {
             
             if (mounted) {
               setIsAdmin(profile?.role === 'admin');
+              console.log("User role updated:", profile?.role);
             }
           } catch (error) {
             console.error("Error fetching profile:", error);
           }
         }
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (!session) {
-          if (mounted) {
-            clearSession();
-            navigate('/login');
-          }
+      } else if (event === 'SIGNED_OUT') {
+        if (mounted) {
+          clearSession();
         }
       }
     });
