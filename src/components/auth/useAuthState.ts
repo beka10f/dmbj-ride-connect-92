@@ -18,16 +18,15 @@ export const useAuthState = () => {
   };
 
   const handleSignOut = async () => {
-    if (isSigningOut) return; // Prevent multiple sign-out attempts
+    if (isSigningOut) return;
     
+    setIsSigningOut(true);
     try {
-      setIsSigningOut(true);
       console.log("Attempting to sign out");
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
       clearSession();
-      console.log("Successfully signed out, redirecting to home");
       navigate('/');
       toast({
         title: "Success",
@@ -40,8 +39,6 @@ export const useAuthState = () => {
         description: "Failed to sign out",
         variant: "destructive",
       });
-      clearSession();
-      navigate('/');
     } finally {
       setIsSigningOut(false);
     }
@@ -50,56 +47,37 @@ export const useAuthState = () => {
   useEffect(() => {
     let mounted = true;
 
-    const checkAuth = async () => {
+    const initializeAuth = async () => {
       try {
-        console.log("Checking authentication status...");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        setIsLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          throw sessionError;
-        }
-
-        if (session) {
-          console.log("Active session found:", session.user.id);
+        if (session && mounted) {
+          console.log("Session found:", session.user.id);
+          setIsLoggedIn(true);
+          
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
           if (mounted) {
-            setIsLoggedIn(true);
-            
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profileError) {
-              console.error("Profile fetch error:", profileError);
-              throw profileError;
-            }
-            
-            if (mounted) {
-              setIsAdmin(profile?.role === 'admin');
-              console.log("User role set:", profile?.role);
-            }
+            setIsAdmin(profile?.role === 'admin');
           }
         } else {
           console.log("No active session");
-          if (mounted) {
-            clearSession();
-          }
+          if (mounted) clearSession();
         }
-      } catch (error: any) {
-        console.error("Auth check error:", error);
-        if (mounted) {
-          clearSession();
-        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        if (mounted) clearSession();
       } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+        if (mounted) setIsLoading(false);
       }
     };
 
-    checkAuth();
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.id);
@@ -107,25 +85,17 @@ export const useAuthState = () => {
       if (event === 'SIGNED_IN' && session) {
         if (mounted) {
           setIsLoggedIn(true);
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profileError) throw profileError;
-            
-            if (mounted) {
-              setIsAdmin(profile?.role === 'admin');
-              console.log("User role updated:", profile?.role);
-            }
-          } catch (error) {
-            console.error("Error fetching profile:", error);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (mounted) {
+            setIsAdmin(profile?.role === 'admin');
           }
         }
-      } else if (event === 'SIGNED_OUT') {
-        console.log("Sign out event received");
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         if (mounted) {
           clearSession();
           navigate('/');
@@ -137,7 +107,7 @@ export const useAuthState = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate]);
 
   return {
     isLoggedIn,
