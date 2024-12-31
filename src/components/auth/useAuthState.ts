@@ -9,6 +9,7 @@ export const useAuthState = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const clearSession = () => {
     console.log("Clearing session state");
@@ -17,7 +18,10 @@ export const useAuthState = () => {
   };
 
   const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent multiple sign-out attempts
+    
     try {
+      setIsSigningOut(true);
       console.log("Attempting to sign out");
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -36,8 +40,10 @@ export const useAuthState = () => {
         description: "Failed to sign out",
         variant: "destructive",
       });
-      clearSession(); // Still clear the session even if there's an error
+      clearSession();
       navigate('/');
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
