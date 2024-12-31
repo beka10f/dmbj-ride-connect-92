@@ -46,14 +46,15 @@ const Dashboard = () => {
   }, [navigate, toast]);
 
   const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading } = useQuery({
-    queryKey: ["bookings", profile?.role],
+    queryKey: ["bookings", profile?.id, profile?.role],
     queryFn: async () => {
-      if (!profile) {
+      if (!profile?.id) {
         console.log("No profile data available for bookings query");
         return [];
       }
 
       try {
+        console.log("Fetching bookings for profile:", profile.id, "with role:", profile.role);
         const query = supabase.from("bookings").select("*");
 
         if (profile.role === 'client') {
@@ -64,7 +65,11 @@ const Dashboard = () => {
 
         const { data, error } = await query;
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching bookings:", error);
+          throw error;
+        }
+        console.log("Fetched bookings:", data);
         return data || [];
       } catch (error: any) {
         console.error("Error fetching bookings:", error);
@@ -76,11 +81,11 @@ const Dashboard = () => {
         return [];
       }
     },
-    enabled: !!profile,
+    enabled: !!profile?.id,
   });
 
   const { data: driverApplications = [], isLoading: applicationsLoading } = useQuery({
-    queryKey: ["driverApplications"],
+    queryKey: ["driverApplications", profile?.id, profile?.role],
     queryFn: async () => {
       if (profile?.role !== "admin") {
         console.log("User is not admin, skipping applications fetch");
@@ -88,11 +93,16 @@ const Dashboard = () => {
       }
       
       try {
+        console.log("Fetching driver applications");
         const { data, error } = await supabase
           .from("driver_applications")
           .select("*");
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching applications:", error);
+          throw error;
+        }
+        console.log("Fetched applications:", data);
         return data || [];
       } catch (error: any) {
         console.error("Error fetching applications:", error);
