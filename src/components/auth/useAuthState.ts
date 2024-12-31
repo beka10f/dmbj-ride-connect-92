@@ -13,7 +13,7 @@ export const useAuthState = () => {
   const clearSession = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
-    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('sb-session');
   };
 
   const handleSignOut = async () => {
@@ -34,10 +34,8 @@ export const useAuthState = () => {
         description: "Failed to sign out",
         variant: "destructive",
       });
-      if (error.message?.includes('refresh_token')) {
-        clearSession();
-        navigate('/login');
-      }
+      clearSession();
+      navigate('/login');
     }
   };
 
@@ -46,10 +44,11 @@ export const useAuthState = () => {
 
     const checkAuth = async () => {
       try {
-        // First try to get the session from localStorage
-        const storedSession = localStorage.getItem('supabase.auth.token');
+        // Get the session from localStorage
+        const storedSession = localStorage.getItem('sb-session');
+        const parsedSession = storedSession ? JSON.parse(storedSession) : null;
         
-        // Then verify it with Supabase
+        // Get the current session from Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -57,6 +56,7 @@ export const useAuthState = () => {
           throw sessionError;
         }
 
+        // If we have a valid session
         if (session) {
           console.log("Active session found:", session.user.id);
           if (mounted) {
@@ -72,6 +72,31 @@ export const useAuthState = () => {
             
             if (mounted) {
               setIsAdmin(profile?.role === 'admin');
+            }
+          }
+        } else if (parsedSession) {
+          // If we have a stored session but no current session, try to refresh
+          const { data: refreshedSession, error: refreshError } = await supabase.auth.setSession({
+            access_token: parsedSession.access_token,
+            refresh_token: parsedSession.refresh_token,
+          });
+
+          if (refreshError) {
+            console.error("Session refresh error:", refreshError);
+            clearSession();
+          } else if (refreshedSession.session) {
+            localStorage.setItem('sb-session', JSON.stringify(refreshedSession.session));
+            if (mounted) {
+              setIsLoggedIn(true);
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', refreshedSession.session.user.id)
+                .single();
+              
+              if (mounted) {
+                setIsAdmin(profile?.role === 'admin');
+              }
             }
           }
         } else {
@@ -103,6 +128,7 @@ export const useAuthState = () => {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session) {
+        localStorage.setItem('sb-session', JSON.stringify(session));
         if (mounted) {
           setIsLoggedIn(true);
           try {
@@ -119,10 +145,12 @@ export const useAuthState = () => {
             console.error("Error fetching profile:", error);
           }
         }
-      } else if (event === 'SIGNED_OUT') {
-        if (mounted) {
-          clearSession();
-          navigate('/login');
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        if (!session) {
+          if (mounted) {
+            clearSession();
+            navigate('/login');
+          }
         }
       }
     });
