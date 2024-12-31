@@ -14,7 +14,6 @@ export const useAuthState = () => {
     console.log("Clearing session state");
     setIsLoggedIn(false);
     setIsAdmin(false);
-    localStorage.removeItem('sb-session');
   };
 
   const handleSignOut = async () => {
@@ -37,8 +36,8 @@ export const useAuthState = () => {
         description: "Failed to sign out",
         variant: "destructive",
       });
-      clearSession();
-      navigate('/login');
+      clearSession(); // Still clear the session even if there's an error
+      navigate('/');
     }
   };
 
