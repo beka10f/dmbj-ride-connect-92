@@ -102,7 +102,7 @@ const Dashboard = () => {
     },
     enabled: !!profile?.id,
     staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    cacheTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
+    gcTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
@@ -137,7 +137,7 @@ const Dashboard = () => {
     },
     enabled: profile?.role === "admin",
     staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    cacheTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
+    gcTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
