@@ -1,19 +1,13 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Info, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "../booking/DistanceCalculator";
 import { useState, useEffect } from "react";
-import { CustomerInfo } from "./CustomerInfo";
-import { TripDetails } from "./TripDetails";
-import { LocationDetails } from "./LocationDetails";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { DistanceCalculation } from "@/types/booking";
-import { BookingActions } from "./BookingActions";
-import { BookingInstructions } from "./BookingInstructions";
+import { BookingHeader } from "./booking-details/BookingHeader";
+import { BookingDetailsContent } from "./booking-details/BookingDetailsContent";
 
 interface BookingDetailsDialogProps {
   booking: {
@@ -24,6 +18,7 @@ interface BookingDetailsDialogProps {
     status: string;
     user_id: string;
     special_instructions?: string;
+    assigned_driver_id?: string;
   } | null;
   isOpen: boolean;
   onClose: () => void;
@@ -46,19 +41,14 @@ export const BookingDetailsDialog = ({
     queryKey: ["userProfile", booking?.user_id],
     queryFn: async () => {
       if (!booking?.user_id) return null;
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", booking.user_id)
-          .maybeSingle();
-        
-        if (error) throw error;
-        return data;
-      } catch (error: any) {
-        console.error("Error in userProfile query:", error);
-        throw error;
-      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", booking.user_id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
     },
     enabled: !!booking?.user_id,
   });
@@ -119,68 +109,23 @@ export const BookingDetailsDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            Booking Details
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6 py-4">
-          {!isClient && <CustomerInfo profile={userProfile} />}
-          
-          <div className="grid gap-4 sm:grid-cols-2">
-            <TripDetails tripDetails={tripDetails} />
-            <LocationDetails
-              pickup={booking.pickup_location}
-              dropoff={booking.dropoff_location}
-              onLocationClick={handleLocationClick}
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">
-                  {format(new Date(booking.pickup_date), "MMMM d, yyyy")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">
-                  {format(new Date(booking.pickup_date), "h:mm a")}
-                </span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Info className="h-4 w-4 text-gray-500" />
-                <Badge variant="outline" className="text-xs">
-                  {booking.status}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          <BookingInstructions
-            isEditing={isEditing}
-            instructions={booking.special_instructions || ""}
-            editedInstructions={editedInstructions}
-            onInstructionsChange={setEditedInstructions}
-          />
-
-          <BookingActions
-            booking={booking}
-            isClient={isClient}
-            isAdmin={isAdmin}
-            canEdit={canEdit}
-            isEditing={isEditing}
-            onClose={onClose}
-            onStatusUpdate={onStatusUpdate}
-            setIsEditing={setIsEditing}
-            onSaveChanges={handleSaveChanges}
-          />
-        </div>
+        <BookingHeader />
+        <BookingDetailsContent
+          booking={booking}
+          userProfile={userProfile}
+          tripDetails={tripDetails}
+          isClient={isClient}
+          isAdmin={isAdmin}
+          canEdit={canEdit}
+          isEditing={isEditing}
+          editedInstructions={editedInstructions}
+          onLocationClick={handleLocationClick}
+          onClose={onClose}
+          onStatusUpdate={onStatusUpdate}
+          setIsEditing={setIsEditing}
+          onSaveChanges={handleSaveChanges}
+          setEditedInstructions={setEditedInstructions}
+        />
       </DialogContent>
     </Dialog>
   );
