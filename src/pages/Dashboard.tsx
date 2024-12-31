@@ -22,6 +22,11 @@ const Dashboard = () => {
         
         if (error) {
           console.error("Session check error:", error);
+          toast({
+            title: "Session Error",
+            description: "There was an error checking your session. Please try logging in again.",
+            variant: "destructive",
+          });
           throw error;
         }
         
@@ -52,6 +57,9 @@ const Dashboard = () => {
         console.log("User signed out, clearing queries and redirecting");
         queryClient.clear();
         navigate('/login');
+      } else if (event === 'SIGNED_IN' && session) {
+        console.log("User signed in, refreshing queries");
+        queryClient.invalidateQueries();
       }
     });
 
@@ -69,18 +77,23 @@ const Dashboard = () => {
       }
 
       console.log("Fetching bookings for profile:", profile.id, "with role:", profile.role);
-      const query = supabase.from("bookings").select("*");
+      let query = supabase.from("bookings").select("*");
 
       if (profile.role === 'client') {
-        query.eq('user_id', profile.id);
+        query = query.eq('user_id', profile.id);
       } else if (profile.role === 'driver') {
-        query.eq('assigned_driver_id', profile.id);
+        query = query.eq('assigned_driver_id', profile.id);
       }
 
       const { data, error } = await query;
 
       if (error) {
         console.error("Bookings fetch error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load bookings. Please try again.",
+          variant: "destructive",
+        });
         throw error;
       }
       
@@ -88,10 +101,12 @@ const Dashboard = () => {
       return data || [];
     },
     enabled: !!profile?.id,
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    staleTime: 1000 * 60, // Consider data fresh for 1 minute
+    cacheTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
+    retry: 3,
   });
 
   const { data: driverApplications = [], isLoading: applicationsLoading } = useQuery({
@@ -109,6 +124,11 @@ const Dashboard = () => {
 
       if (error) {
         console.error("Applications fetch error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load driver applications. Please try again.",
+          variant: "destructive",
+        });
         throw error;
       }
       
@@ -116,10 +136,12 @@ const Dashboard = () => {
       return data || [];
     },
     enabled: profile?.role === "admin",
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    staleTime: 1000 * 60, // Consider data fresh for 1 minute
+    cacheTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
+    retry: 3,
   });
 
   if (profileLoading) {
