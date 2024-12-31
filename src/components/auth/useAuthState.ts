@@ -23,9 +23,7 @@ export const useAuthState = () => {
     setIsSigningOut(true);
     try {
       console.log("Attempting to sign out");
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      await supabase.auth.signOut();
       clearSession();
       navigate('/');
       toast({
@@ -95,7 +93,7 @@ export const useAuthState = () => {
             setIsAdmin(profile?.role === 'admin');
           }
         }
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT') {
         if (mounted) {
           clearSession();
           navigate('/');
@@ -107,7 +105,7 @@ export const useAuthState = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return {
     isLoggedIn,
