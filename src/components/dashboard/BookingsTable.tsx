@@ -34,10 +34,29 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
       const costs: Record<string, string> = {};
       for (const booking of bookings) {
         try {
-          const details: DistanceCalculation = await calculateDistance(booking.pickup_location, booking.dropoff_location);
+          // Check if special_instructions contains cost information
+          if (booking.special_instructions) {
+            try {
+              const instructionsData = JSON.parse(booking.special_instructions);
+              if (instructionsData.cost) {
+                costs[booking.id] = instructionsData.cost.replace('$', '');
+                continue;
+              }
+            } catch (e) {
+              // If parsing fails, proceed with distance calculation
+              console.log("Could not parse special instructions for cost:", e);
+            }
+          }
+
+          // Fallback to calculating distance if no cost in special instructions
+          const details: DistanceCalculation = await calculateDistance(
+            booking.pickup_location, 
+            booking.dropoff_location
+          );
           costs[booking.id] = details.totalCost;
         } catch (error) {
           console.error("Error calculating cost for booking:", booking.id, error);
+          costs[booking.id] = "N/A";
         }
       }
       setBookingCosts(costs);
