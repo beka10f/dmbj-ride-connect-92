@@ -34,7 +34,6 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
       const costs: Record<string, string> = {};
       for (const booking of bookings) {
         try {
-          // Check if special_instructions contains cost information
           if (booking.special_instructions) {
             try {
               const instructionsData = JSON.parse(booking.special_instructions);
@@ -43,12 +42,10 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
                 continue;
               }
             } catch (e) {
-              // If parsing fails, proceed with distance calculation
               console.log("Could not parse special instructions for cost:", e);
             }
           }
 
-          // Fallback to calculating distance if no cost in special instructions
           const details: DistanceCalculation = await calculateDistance(
             booking.pickup_location, 
             booking.dropoff_location
@@ -84,8 +81,8 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">Pickup</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">Dropoff</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px] lg:min-w-[150px]">Pickup</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px] lg:min-w-[150px]">Dropoff</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Date</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Time</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[80px]">Price</TableHead>
@@ -102,7 +99,7 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px]">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px] lg:max-w-[300px]">
                         {booking.pickup_location}
                       </span>
                     </div>
@@ -110,7 +107,7 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px]">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px] lg:max-w-[300px]">
                         {booking.dropoff_location}
                       </span>
                     </div>

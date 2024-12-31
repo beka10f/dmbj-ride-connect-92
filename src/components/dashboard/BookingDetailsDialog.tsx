@@ -47,25 +47,16 @@ export const BookingDetailsDialog = ({
     queryFn: async () => {
       if (!booking?.user_id) return null;
       try {
-        console.log("Fetching user profile for:", booking.user_id);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", booking.user_id)
           .maybeSingle();
         
-        if (error) {
-          console.error("Error fetching user profile:", error);
-          throw error;
-        }
+        if (error) throw error;
         return data;
       } catch (error: any) {
-        console.error("Error in userProfile query:", {
-          message: error.message,
-          details: error.stack,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error("Error in userProfile query:", error);
         throw error;
       }
     },
@@ -96,16 +87,12 @@ export const BookingDetailsDialog = ({
     if (!booking) return;
 
     try {
-      console.log("Attempting to update booking:", booking.id);
       const { error } = await supabase
         .from("bookings")
         .update({ special_instructions: editedInstructions })
         .eq("id", booking.id);
 
-      if (error) {
-        console.error("Error updating booking:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -114,12 +101,7 @@ export const BookingDetailsDialog = ({
       setIsEditing(false);
       onStatusUpdate();
     } catch (error: any) {
-      console.error("Error updating booking:", {
-        message: error.message,
-        details: error.stack,
-        hint: error.hint,
-        code: error.code
-      });
+      console.error("Error updating booking:", error);
       toast({
         title: "Error",
         description: "Failed to update booking. Please try again.",
@@ -136,7 +118,7 @@ export const BookingDetailsDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             Booking Details
@@ -145,31 +127,38 @@ export const BookingDetailsDialog = ({
 
         <div className="space-y-6 py-4">
           {!isClient && <CustomerInfo profile={userProfile} />}
-          <TripDetails tripDetails={tripDetails} />
-          <LocationDetails
-            pickup={booking.pickup_location}
-            dropoff={booking.dropoff_location}
-            onLocationClick={handleLocationClick}
-          />
+          
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TripDetails tripDetails={tripDetails} />
+            <LocationDetails
+              pickup={booking.pickup_location}
+              dropoff={booking.dropoff_location}
+              onLocationClick={handleLocationClick}
+            />
+          </div>
 
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">
-                {format(new Date(booking.pickup_date), "MMMM d, yyyy")}
-              </span>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                <span className="text-sm">
+                  {format(new Date(booking.pickup_date), "MMMM d, yyyy")}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span className="text-sm">
+                  {format(new Date(booking.pickup_date), "h:mm a")}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">
-                {format(new Date(booking.pickup_date), "h:mm a")}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Info className="h-4 w-4 text-gray-500" />
-              <Badge variant="outline" className="text-xs">
-                {booking.status}
-              </Badge>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Info className="h-4 w-4 text-gray-500" />
+                <Badge variant="outline" className="text-xs">
+                  {booking.status}
+                </Badge>
+              </div>
             </div>
           </div>
 
