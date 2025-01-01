@@ -12,6 +12,7 @@ export interface BookingFormData {
   dropoff: string;
   date: Date;
   time: string;
+  passengers: string;
 }
 
 export const useBookingForm = () => {
@@ -28,6 +29,7 @@ export const useBookingForm = () => {
     dropoff: "",
     date: new Date(),
     time: "",
+    passengers: "1",
   });
 
   const [bookingDetails, setBookingDetails] = useState<any>(null);
@@ -46,7 +48,7 @@ export const useBookingForm = () => {
         formData.dropoff
       );
 
-      setDistance(details.distance);
+      setDistance(details.distanceText || ""); // Updated to use distanceText
       setCost(details.totalCost);
 
       const dateTime = new Date(formData.date);
@@ -57,11 +59,12 @@ export const useBookingForm = () => {
         pickup: formData.pickup,
         dropoff: formData.dropoff,
         dateTime,
-        distance: details.distance,
+        distance: details.distanceText || "", // Updated to use distanceText
         cost: details.totalCost,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
+        passengers: formData.passengers,
       });
 
       setShowConfirmation(true);
@@ -78,7 +81,6 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      // Create Stripe checkout session
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
         'create-checkout',
         {
@@ -99,7 +101,6 @@ export const useBookingForm = () => {
 
       if (checkoutError) throw checkoutError;
 
-      // Redirect to Stripe Checkout
       window.location.href = checkoutData.url;
     } catch (error: any) {
       console.error('Error creating checkout session:', error);

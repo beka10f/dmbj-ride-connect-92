@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { MapPin, Calendar, Clock, DollarSign } from "lucide-react";
+import { MapPin, Calendar, Clock, DollarSign, Users } from "lucide-react";
 import { format } from "date-fns";
 
 interface BookingConfirmationDialogProps {
@@ -25,7 +25,8 @@ interface BookingConfirmationDialogProps {
     name: string;
     email: string;
     phone: string;
-  };
+    passengers: string;
+  } | null;
   onConfirm: () => void;
 }
 
@@ -35,6 +36,8 @@ export const BookingConfirmationDialog = ({
   bookingDetails,
   onConfirm,
 }: BookingConfirmationDialogProps) => {
+  if (!bookingDetails) return null;
+
   return (
     <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
       <AlertDialogContent className="max-w-[500px] w-[95vw]">
@@ -60,6 +63,14 @@ export const BookingConfirmationDialog = ({
               <div className="space-y-1">
                 <Label className="text-sm font-medium">Drop-off Location</Label>
                 <p className="text-sm text-gray-500">{bookingDetails.dropoff}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Users className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Passengers</Label>
+                <p className="text-sm text-gray-500">{bookingDetails.passengers}</p>
               </div>
             </div>
 
