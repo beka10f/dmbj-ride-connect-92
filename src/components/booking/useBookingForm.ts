@@ -86,62 +86,42 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      // Check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       
-      console.log("Creating booking with session:", session?.user?.id || "anonymous");
-
-      const bookingData = {
-        user_id: session?.user?.id || null, // Will be null for anonymous bookings
-        pickup_location: formData.pickup,
-        dropoff_location: formData.dropoff,
-        pickup_date: new Date(
-          `${formData.date?.toISOString().split("T")[0]}T${formData.time}`
-        ).toISOString(),
-        special_instructions: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          passengers: formData.passengers,
-          distance: distance,
-          cost: cost
-        }),
-        status: 'pending'
-      };
-
-      console.log("Inserting booking data:", bookingData);
-
-      const { error: bookingError } = await supabase
-        .from("bookings")
-        .insert([bookingData]);
-
-      if (bookingError) {
-        console.error("Booking error:", bookingError);
-        throw bookingError;
+      if (!session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to complete your booking",
+        });
+        navigate('/login');
+        return;
       }
 
-      toast({
-        title: "Booking Confirmed!",
-        description: "Your booking has been created successfully. We'll contact you shortly with the details.",
-      });
-      
-      setShowConfirmation(false);
-      // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        pickup: "",
-        dropoff: "",
-        passengers: "1",
-        date: undefined,
-        time: "",
-      });
+      // Create Stripe checkout session
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
+        'create-checkout',
+        {
+          body: {
+            amount: cost.replace('$', ''),
+            bookingDetails: {
+              ...bookingDetails,
+              user_id: session.user.id,
+            },
+          },
+        }
+      );
 
-      // Only navigate to dashboard if user is authenticated
-      if (session?.user) {
-        navigate('/dashboard');
+      if (checkoutError) {
+        throw checkoutError;
       }
+
+      // Redirect to Stripe checkout
+      if (checkoutData.url) {
+        window.location.href = checkoutData.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+
     } catch (error: any) {
       console.error("Error creating booking:", error);
       toast({
