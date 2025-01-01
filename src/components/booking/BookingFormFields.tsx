@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AddressAutocomplete } from "./AddressAutocomplete";
@@ -33,26 +34,26 @@ interface BookingFormFieldsProps {
   cost: string;
 }
 
-export const BookingFormFields = ({
+const timeSlots = Array.from({ length: 48 }, (_, i) => {
+  const hour = Math.floor(i / 2);
+  const minute = i % 2 === 0 ? "00" : "30";
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return {
+    value: `${hour.toString().padStart(2, "0")}:${minute}`,
+    label: `${displayHour}:${minute} ${ampm}`,
+  };
+});
+
+const BookingFormFields = ({
   formData,
   setFormData,
   onSubmit,
   loading,
 }: BookingFormFieldsProps) => {
-  const timeSlots = Array.from({ length: 48 }, (_, i) => {
-    const hour = Math.floor(i / 2);
-    const minute = i % 2 === 0 ? "00" : "30";
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return {
-      value: `${hour.toString().padStart(2, "0")}:${minute}`,
-      label: `${displayHour}:${minute} ${ampm}`,
-    };
-  });
-
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div className="space-y-2">
           <Label htmlFor="name">Full Name</Label>
           <Input
@@ -90,7 +91,7 @@ export const BookingFormFields = ({
               setFormData({ ...formData, passengers: value })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger id="passengers" className="bg-white">
               <SelectValue placeholder="Select passengers" />
             </SelectTrigger>
             <SelectContent>
@@ -125,7 +126,7 @@ export const BookingFormFields = ({
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal bg-white",
                   !formData.date && "text-muted-foreground"
                 )}
               >
@@ -155,7 +156,7 @@ export const BookingFormFields = ({
             value={formData.time}
             onValueChange={(value) => setFormData({ ...formData, time: value })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select pickup time">
                 {formData.time ? (
                   <div className="flex items-center">
@@ -192,3 +193,6 @@ export const BookingFormFields = ({
     </div>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(BookingFormFields);

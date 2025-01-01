@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MapPin, Calendar, Clock, DollarSign, Users } from "lucide-react";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BookingConfirmationDialogProps {
   showConfirmation: boolean;
@@ -36,13 +37,17 @@ export const BookingConfirmationDialog = ({
   bookingDetails,
   onConfirm,
 }: BookingConfirmationDialogProps) => {
+  const isMobile = useIsMobile();
+  
   if (!bookingDetails) return null;
 
   return (
     <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-      <AlertDialogContent className="max-w-[500px] w-[95vw]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Confirm Your Booking</AlertDialogTitle>
+      <AlertDialogContent className={`max-w-[500px] w-[95vw] ${isMobile ? 'h-[90vh]' : 'max-h-[90vh]'} overflow-y-auto`}>
+        <AlertDialogHeader className="space-y-2">
+          <AlertDialogTitle className="text-xl font-bold">
+            Confirm Your Booking
+          </AlertDialogTitle>
           <AlertDialogDescription>
             Please review your booking details before proceeding to payment.
           </AlertDialogDescription>
@@ -52,17 +57,17 @@ export const BookingConfirmationDialog = ({
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1">
                 <Label className="text-sm font-medium">Pickup Location</Label>
-                <p className="text-sm text-gray-500">{bookingDetails.pickup}</p>
+                <p className="text-sm text-gray-500 break-words">{bookingDetails.pickup}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
               <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1">
                 <Label className="text-sm font-medium">Drop-off Location</Label>
-                <p className="text-sm text-gray-500">{bookingDetails.dropoff}</p>
+                <p className="text-sm text-gray-500 break-words">{bookingDetails.dropoff}</p>
               </div>
             </div>
 
@@ -74,23 +79,25 @@ export const BookingConfirmationDialog = ({
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Date</Label>
-                <p className="text-sm text-gray-500">
-                  {format(bookingDetails.dateTime, "MMMM d, yyyy")}
-                </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Date</Label>
+                  <p className="text-sm text-gray-500">
+                    {format(bookingDetails.dateTime, "MMMM d, yyyy")}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Time</Label>
-                <p className="text-sm text-gray-500">
-                  {format(bookingDetails.dateTime, "h:mm a")}
-                </p>
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Time</Label>
+                  <p className="text-sm text-gray-500">
+                    {format(bookingDetails.dateTime, "h:mm a")}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -136,8 +143,8 @@ export const BookingConfirmationDialog = ({
           </div>
         </div>
 
-        <AlertDialogFooter className="gap-3 sm:gap-0">
-          <AlertDialogCancel className="sm:w-auto w-full">
+        <AlertDialogFooter className={`gap-3 sm:gap-0 ${isMobile ? 'flex-col' : ''}`}>
+          <AlertDialogCancel className="sm:w-auto w-full mt-2 sm:mt-0">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction

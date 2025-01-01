@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
@@ -10,7 +11,7 @@ interface AddressAutocompleteProps {
   placeholder: string;
 }
 
-export const AddressAutocomplete = ({
+const AddressAutocomplete = ({
   id,
   label,
   value,
@@ -26,6 +27,7 @@ export const AddressAutocomplete = ({
     const newAutocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ["address"],
       componentRestrictions: { country: "us" },
+      fields: ["formatted_address"], // Only request the formatted_address field
     });
 
     newAutocomplete.addListener("place_changed", () => {
@@ -54,7 +56,11 @@ export const AddressAutocomplete = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="bg-white"
+        autoComplete="off"
       />
     </div>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(AddressAutocomplete);
