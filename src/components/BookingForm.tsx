@@ -2,12 +2,20 @@ import { Suspense, lazy } from "react";
 import { useBookingForm } from "./booking/useBookingForm";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Lazy load the form fields and confirmation dialog
-const BookingFormFields = lazy(() => import("./booking/BookingFormFields"));
-const BookingConfirmationDialog = lazy(() => import("./booking/BookingConfirmationDialog").then(module => ({ default: module.BookingConfirmationDialog })));
+const BookingFormFields = lazy(() => 
+  import("./booking/BookingFormFields").then(module => ({ default: module.default }))
+);
+
+const BookingConfirmationDialog = lazy(() => 
+  import("./booking/BookingConfirmationDialog").then(module => ({ 
+    default: module.BookingConfirmationDialog 
+  }))
+);
 
 const LoadingSkeleton = () => (
   <div className="space-y-4">
+    <Skeleton className="h-10 w-full" />
+    <Skeleton className="h-10 w-full" />
     <Skeleton className="h-10 w-full" />
     <Skeleton className="h-10 w-full" />
     <Skeleton className="h-10 w-full" />
@@ -29,10 +37,6 @@ export const BookingForm = () => {
     handleConfirmBooking,
   } = useBookingForm();
 
-  const onSubmit = () => {
-    handleSubmit();
-  };
-
   return (
     <div id="booking" className="bg-white py-8 sm:py-16 px-4">
       <div className="max-w-3xl mx-auto">
@@ -44,7 +48,7 @@ export const BookingForm = () => {
           <BookingFormFields
             formData={formData}
             setFormData={setFormData}
-            onSubmit={onSubmit}
+            onSubmit={handleSubmit}
             loading={loading}
             distance={distance}
             cost={cost}
@@ -52,12 +56,14 @@ export const BookingForm = () => {
         </Suspense>
 
         <Suspense fallback={null}>
-          <BookingConfirmationDialog
-            showConfirmation={showConfirmation}
-            setShowConfirmation={setShowConfirmation}
-            bookingDetails={bookingDetails}
-            onConfirm={handleConfirmBooking}
-          />
+          {showConfirmation && (
+            <BookingConfirmationDialog
+              showConfirmation={showConfirmation}
+              setShowConfirmation={setShowConfirmation}
+              bookingDetails={bookingDetails}
+              onConfirm={handleConfirmBooking}
+            />
+          )}
         </Suspense>
       </div>
     </div>

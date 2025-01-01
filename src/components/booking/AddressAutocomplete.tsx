@@ -1,7 +1,6 @@
-import { memo } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useRef, useState } from "react";
 
 interface AddressAutocompleteProps {
   id: string;
@@ -20,9 +19,15 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const autocompleteListener = useRef<google.maps.MapsEventListener | null>(null);
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
+
+    // Cleanup previous instance
+    if (autocomplete) {
+      google.maps.event.clearInstanceListeners(autocomplete);
+    }
 
     const newAutocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ["address"],
@@ -30,7 +35,7 @@ const AddressAutocomplete = ({
       fields: ["formatted_address"],
     });
 
-    newAutocomplete.addListener("place_changed", () => {
+    autocompleteListener.current = newAutocomplete.addListener("place_changed", () => {
       const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
         onChange(place.formatted_address);
@@ -40,6 +45,9 @@ const AddressAutocomplete = ({
     setAutocomplete(newAutocomplete);
 
     return () => {
+      if (autocompleteListener.current) {
+        google.maps.event.removeListener(autocompleteListener.current);
+      }
       if (autocomplete) {
         google.maps.event.clearInstanceListeners(autocomplete);
       }

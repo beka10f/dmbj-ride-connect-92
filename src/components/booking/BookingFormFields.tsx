@@ -16,6 +16,18 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
+// Move timeSlots outside component to prevent recreation on each render
+const timeSlots = Array.from({ length: 48 }, (_, i) => {
+  const hour = Math.floor(i / 2);
+  const minute = i % 2 === 0 ? "00" : "30";
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return {
+    value: `${hour.toString().padStart(2, "0")}:${minute}`,
+    label: `${displayHour}:${minute} ${ampm}`,
+  };
+});
+
 interface BookingFormFieldsProps {
   formData: {
     name: string;
@@ -33,17 +45,6 @@ interface BookingFormFieldsProps {
   distance: string;
   cost: string;
 }
-
-const timeSlots = Array.from({ length: 48 }, (_, i) => {
-  const hour = Math.floor(i / 2);
-  const minute = i % 2 === 0 ? "00" : "30";
-  const ampm = hour >= 12 ? "PM" : "AM";
-  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  return {
-    value: `${hour.toString().padStart(2, "0")}:${minute}`,
-    label: `${displayHour}:${minute} ${ampm}`,
-  };
-});
 
 const BookingFormFields = ({
   formData,
