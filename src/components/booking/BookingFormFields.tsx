@@ -45,7 +45,7 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
   };
 });
 
-export const BookingFormFields = ({
+const BookingFormFields = ({
   formData,
   setFormData,
   onSubmit,

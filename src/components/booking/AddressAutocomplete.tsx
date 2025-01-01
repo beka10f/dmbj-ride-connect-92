@@ -11,7 +11,7 @@ interface AddressAutocompleteProps {
   placeholder: string;
 }
 
-export const AddressAutocomplete = ({
+const AddressAutocomplete = ({
   id,
   label,
   value,
@@ -27,7 +27,7 @@ export const AddressAutocomplete = ({
     const newAutocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ["address"],
       componentRestrictions: { country: "us" },
-      fields: ["formatted_address"], // Only request the formatted_address field
+      fields: ["formatted_address"],
     });
 
     newAutocomplete.addListener("place_changed", () => {
