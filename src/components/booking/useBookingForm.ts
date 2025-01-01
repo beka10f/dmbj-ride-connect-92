@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "./DistanceCalculator";
 import { DistanceCalculation } from "@/types/booking";
-import { useNavigate } from "react-router-dom";
 
 export interface BookingFormData {
   name: string;
@@ -17,7 +16,6 @@ export interface BookingFormData {
 }
 
 export const useBookingForm = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<string>("");
@@ -86,26 +84,20 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to complete your booking",
-        });
-        navigate('/login');
-        return;
-      }
-
       // Create Stripe checkout session
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
         'create-checkout',
         {
           body: {
             amount: cost.replace('$', ''),
+            customerDetails: {
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
+            },
             bookingDetails: {
               ...bookingDetails,
-              user_id: session.user.id,
+              status: 'pending_payment',
             },
           },
         }

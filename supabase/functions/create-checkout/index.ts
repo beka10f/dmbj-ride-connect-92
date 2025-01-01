@@ -13,29 +13,53 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, bookingDetails } = await req.json();
+    const { amount, customerDetails, bookingDetails } = await req.json();
+
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    });
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Get the user from the authorization header
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabaseClient.auth.getUser(token);
-
-    if (!user) {
-      throw new Error('User not authenticated');
+    // Get user session if available
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+    
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user } } = await supabaseClient.auth.getUser(token);
+      if (user) {
+        userId = user.id;
+      }
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    });
+    // Create booking in database
+    const { data: booking, error: bookingError } = await supabaseClient
+      .from('bookings')
+      .insert([
+        {
+          user_id: userId,
+          pickup_location: bookingDetails.pickup,
+          dropoff_location: bookingDetails.dropoff,
+          pickup_date: new Date(bookingDetails.dateTime).toISOString(),
+          status: 'pending_payment',
+          special_instructions: `Guest Booking - Name: ${customerDetails.name}, Phone: ${customerDetails.phone}`,
+        },
+      ])
+      .select()
+      .single();
+
+    if (bookingError) {
+      throw bookingError;
+    }
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
+      customer_email: customerDetails.email,
       line_items: [
         {
           price_data: {
@@ -50,11 +74,13 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/?success=true`,
+      success_url: `${req.headers.get('origin')}/?success=true&booking_id=${booking.id}`,
       cancel_url: `${req.headers.get('origin')}/?canceled=true`,
       metadata: {
-        user_id: user.id,
-        booking_details: JSON.stringify(bookingDetails),
+        booking_id: booking.id,
+        customer_name: customerDetails.name,
+        customer_email: customerDetails.email,
+        customer_phone: customerDetails.phone,
       },
     });
 

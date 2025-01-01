@@ -108,7 +108,7 @@ export const BookingConfirmationDialog = ({
             onClick={onConfirm}
             className="sm:w-auto w-full bg-secondary text-primary hover:bg-secondary/90"
           >
-            Confirm Booking
+            Confirm and Pay
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
