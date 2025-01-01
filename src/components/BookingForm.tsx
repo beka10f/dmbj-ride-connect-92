@@ -1,7 +1,6 @@
 import { useBookingForm } from "./booking/useBookingForm";
 import { BookingFormFields } from "./booking/BookingFormFields";
 import { BookingConfirmationDialog } from "./booking/BookingConfirmationDialog";
-import { useToast } from "@/hooks/use-toast";
 
 export const BookingForm = () => {
   const {
@@ -17,6 +16,11 @@ export const BookingForm = () => {
     handleConfirmBooking,
   } = useBookingForm();
 
+  // Wrapper function to handle the form submission without event parameter
+  const onSubmit = () => {
+    handleSubmit();
+  };
+
   return (
     <div id="booking" className="bg-white py-16 px-4">
       <div className="max-w-3xl mx-auto">
@@ -26,7 +30,7 @@ export const BookingForm = () => {
         <BookingFormFields
           formData={formData}
           setFormData={setFormData}
-          onSubmit={handleSubmit}
+          onSubmit={onSubmit}
           loading={loading}
           distance={distance}
           cost={cost}

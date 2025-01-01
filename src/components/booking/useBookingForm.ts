@@ -34,8 +34,7 @@ export const useBookingForm = () => {
 
   const [bookingDetails, setBookingDetails] = useState<any>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
 
     try {
@@ -48,7 +47,7 @@ export const useBookingForm = () => {
         formData.dropoff
       );
 
-      setDistance(details.distanceText || ""); // Updated to use distanceText
+      setDistance(details.distanceText || "");
       setCost(details.totalCost);
 
       const dateTime = new Date(formData.date);
@@ -59,7 +58,7 @@ export const useBookingForm = () => {
         pickup: formData.pickup,
         dropoff: formData.dropoff,
         dateTime,
-        distance: details.distanceText || "", // Updated to use distanceText
+        distance: details.distanceText || "",
         cost: details.totalCost,
         name: formData.name,
         email: formData.email,
