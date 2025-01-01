@@ -11,7 +11,7 @@ interface AddressAutocompleteProps {
   placeholder: string;
 }
 
-const AddressAutocomplete = ({
+export const AddressAutocomplete = ({
   id,
   label,
   value,
@@ -62,5 +62,4 @@ const AddressAutocomplete = ({
   );
 };
 
-// Memoize the component to prevent unnecessary re-renders
 export default memo(AddressAutocomplete);

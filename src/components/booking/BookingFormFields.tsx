@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AddressAutocomplete } from "./AddressAutocomplete";
+import AddressAutocomplete from "./AddressAutocomplete";
 import {
   Select,
   SelectContent,
@@ -45,7 +45,7 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
   };
 });
 
-const BookingFormFields = ({
+export const BookingFormFields = ({
   formData,
   setFormData,
   onSubmit,
@@ -194,5 +194,4 @@ const BookingFormFields = ({
   );
 };
 
-// Memoize the component to prevent unnecessary re-renders
 export default memo(BookingFormFields);

@@ -3,7 +3,7 @@ import { useBookingForm } from "./booking/useBookingForm";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load the form fields and confirmation dialog
-const BookingFormFields = lazy(() => import("./booking/BookingFormFields").then(module => ({ default: module.BookingFormFields })));
+const BookingFormFields = lazy(() => import("./booking/BookingFormFields"));
 const BookingConfirmationDialog = lazy(() => import("./booking/BookingConfirmationDialog").then(module => ({ default: module.BookingConfirmationDialog })));
 
 const LoadingSkeleton = () => (
