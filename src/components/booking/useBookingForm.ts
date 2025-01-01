@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "./DistanceCalculator";
 import { DistanceCalculation } from "@/types/booking";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface BookingFormData {
   name: string;
@@ -10,8 +10,7 @@ export interface BookingFormData {
   phone: string;
   pickup: string;
   dropoff: string;
-  passengers: string;
-  date: Date | undefined;
+  date: Date;
   time: string;
 }
 
@@ -21,60 +20,55 @@ export const useBookingForm = () => {
   const [distance, setDistance] = useState<string>("");
   const [cost, setCost] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [bookingDetails, setBookingDetails] = useState<any>(null);
   const [formData, setFormData] = useState<BookingFormData>({
     name: "",
     email: "",
     phone: "",
     pickup: "",
     dropoff: "",
-    passengers: "1",
-    date: undefined,
+    date: new Date(),
     time: "",
   });
 
-  const handleSubmit = async () => {
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.phone ||
-      !formData.pickup ||
-      !formData.dropoff ||
-      !formData.date ||
-      !formData.time
-    ) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
 
     try {
+      if (!formData.pickup || !formData.dropoff) {
+        throw new Error("Please fill in all required fields");
+      }
+
       const details: DistanceCalculation = await calculateDistance(
         formData.pickup,
         formData.dropoff
       );
 
-      setDistance(details.distanceText);
-      setCost(`$${details.totalCost}`);
-      
+      setDistance(details.distance);
+      setCost(details.totalCost);
+
+      const dateTime = new Date(formData.date);
+      const [hours, minutes] = formData.time.split(":");
+      dateTime.setHours(parseInt(hours), parseInt(minutes));
+
       setBookingDetails({
-        ...formData,
-        distance: details.distanceText,
-        cost: `$${details.totalCost}`,
-        dateTime: `${formData.date?.toLocaleDateString()} ${formData.time}`,
+        pickup: formData.pickup,
+        dropoff: formData.dropoff,
+        dateTime,
+        distance: details.distance,
+        cost: details.totalCost,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
       });
-      
+
       setShowConfirmation(true);
-    } catch (error) {
-      console.error("Error calculating distance:", error);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to calculate ride. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -103,22 +97,15 @@ export const useBookingForm = () => {
         }
       );
 
-      if (checkoutError) {
-        throw checkoutError;
-      }
+      if (checkoutError) throw checkoutError;
 
-      // Redirect to Stripe checkout
-      if (checkoutData.url) {
-        window.location.href = checkoutData.url;
-      } else {
-        throw new Error('No checkout URL received');
-      }
-
+      // Redirect to Stripe Checkout
+      window.location.href = checkoutData.url;
     } catch (error: any) {
-      console.error("Error creating booking:", error);
+      console.error('Error creating checkout session:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "Failed to process payment. Please try again.",
         variant: "destructive",
       });
     }
