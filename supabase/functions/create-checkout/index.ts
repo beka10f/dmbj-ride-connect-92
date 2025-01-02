@@ -47,6 +47,8 @@ serve(async (req) => {
           pickup_date: new Date(bookingDetails.dateTime).toISOString(),
           status: 'pending_payment',
           special_instructions: `Guest Booking - Name: ${customerDetails.name}, Phone: ${customerDetails.phone}`,
+          payment_status: 'pending',
+          payment_amount: parseFloat(amount)
         },
       ])
       .select()

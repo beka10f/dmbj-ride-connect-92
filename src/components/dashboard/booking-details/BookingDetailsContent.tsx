@@ -6,7 +6,8 @@ import { BookingInstructions } from "../BookingInstructions";
 import { BookingActions } from "../BookingActions";
 import { DistanceCalculation } from "@/types/booking";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, CheckCircle, Clock, XCircle } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, XCircle, MapPin, Calendar } from "lucide-react";
+import { format } from "date-fns";
 
 interface BookingDetailsContentProps {
   booking: {
@@ -79,68 +80,116 @@ export const BookingDetailsContent = ({
   };
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-6">
       {!isClient && <CustomerInfo profile={userProfile} />}
       
-      <div className="grid gap-4 sm:grid-cols-2">
-        <TripDetails tripDetails={tripDetails} />
-        <LocationDetails
-          pickup={booking.pickup_location}
-          dropoff={booking.dropoff_location}
-          onLocationClick={onLocationClick}
-        />
-      </div>
-
-      <BookingMetadata
-        pickupDate={booking.pickup_date}
-        status={booking.status}
-      />
-
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Payment Details</h3>
-        <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
-            <div className="flex items-center gap-2">
-              {getPaymentStatusIcon(booking.payment_status)}
-              <Badge 
-                variant="outline" 
-                className={`${getPaymentStatusColor(booking.payment_status)} px-3 py-1 rounded-full font-medium text-xs capitalize`}
-              >
-                {booking.payment_status || 'pending'}
-              </Badge>
+      <div className="space-y-4">
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Trip Details
+            </h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Distance</span>
+                <span className="text-sm font-medium">{tripDetails?.distanceText}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Estimated Cost</span>
+                <div className="flex items-center gap-1">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">{tripDetails?.totalCost}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Amount</span>
-            <div className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium">
-                {booking.payment_amount?.toFixed(2) || '0.00'}
-              </span>
+
+          <LocationDetails
+            pickup={booking.pickup_location}
+            dropoff={booking.dropoff_location}
+            onLocationClick={onLocationClick}
+          />
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Schedule
+            </h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="grid gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Date</span>
+                  <span className="text-sm font-medium">
+                    {format(new Date(booking.pickup_date), "MMMM d, yyyy")}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Time</span>
+                  <span className="text-sm font-medium">
+                    {format(new Date(booking.pickup_date), "h:mm a")}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+                  <Badge variant="outline" className="capitalize">
+                    {booking.status}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Payment Details
+            </h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+                <div className="flex items-center gap-2">
+                  {getPaymentStatusIcon(booking.payment_status)}
+                  <Badge 
+                    variant="outline" 
+                    className={`${getPaymentStatusColor(booking.payment_status)} px-3 py-1 rounded-full font-medium text-xs capitalize`}
+                  >
+                    {booking.payment_status || 'pending'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Amount</span>
+                <div className="flex items-center gap-1">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">
+                    {booking.payment_amount?.toFixed(2) || '0.00'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <BookingInstructions
+          isEditing={isEditing}
+          instructions={booking.special_instructions || ""}
+          editedInstructions={editedInstructions}
+          onInstructionsChange={setEditedInstructions}
+        />
+
+        <BookingActions
+          booking={booking}
+          isClient={isClient}
+          isAdmin={isAdmin}
+          canEdit={canEdit}
+          isEditing={isEditing}
+          onClose={onClose}
+          onStatusUpdate={onStatusUpdate}
+          setIsEditing={setIsEditing}
+          onSaveChanges={onSaveChanges}
+        />
       </div>
-
-      <BookingInstructions
-        isEditing={isEditing}
-        instructions={booking.special_instructions || ""}
-        editedInstructions={editedInstructions}
-        onInstructionsChange={setEditedInstructions}
-      />
-
-      <BookingActions
-        booking={booking}
-        isClient={isClient}
-        isAdmin={isAdmin}
-        canEdit={canEdit}
-        isEditing={isEditing}
-        onClose={onClose}
-        onStatusUpdate={onStatusUpdate}
-        setIsEditing={setIsEditing}
-        onSaveChanges={onSaveChanges}
-      />
     </div>
   );
 };
