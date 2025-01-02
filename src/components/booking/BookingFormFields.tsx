@@ -16,7 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-// Define time slots outside component to avoid recreating them on every render
+// Define time slots outside component to avoid re-creating them on each render
 const timeSlots = Array.from({ length: 48 }, (_, i) => {
   const hour = Math.floor(i / 2);
   const minute = i % 2 === 0 ? "00" : "30";
@@ -39,7 +39,7 @@ interface BookingFormFieldsProps {
     date: Date | undefined;
     time: string;
   };
-  setFormData: (data: any) => void;
+  setFormData: (data: any) => void; // Could be improved with stricter types
   onSubmit: () => void;
   loading: boolean;
   distance: string;
@@ -51,6 +51,8 @@ const BookingFormFields = ({
   setFormData,
   onSubmit,
   loading,
+  distance,
+  cost,
 }: BookingFormFieldsProps) => {
   const {
     name,
@@ -63,18 +65,19 @@ const BookingFormFields = ({
     time,
   } = formData;
 
-  // A reusable handler to set form data fields.
+  // A helper for basic text inputs (name, email, phone)
   const handleChange =
     (field: keyof BookingFormFieldsProps["formData"]) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData({ ...formData, [field]: e.target.value });
+      setFormData((prev: any) => ({
+        ...prev,
+        [field]: e.target.value,
+      }));
     };
 
   return (
     <div className="space-y-6">
-      {/* Grid Layout for Name, Email, Phone, and Passengers */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-
         {/* Full Name */}
         <div className="space-y-2">
           <Label htmlFor="name">Full Name</Label>
@@ -116,7 +119,10 @@ const BookingFormFields = ({
           <Select
             value={passengers}
             onValueChange={(value) =>
-              setFormData({ ...formData, passengers: value })
+              setFormData((prev: any) => ({
+                ...prev,
+                passengers: value,
+              }))
             }
           >
             <SelectTrigger id="passengers" className="bg-white">
@@ -136,7 +142,12 @@ const BookingFormFields = ({
           id="pickup"
           label="Pickup Location"
           value={pickup}
-          onChange={(val) => setFormData({ ...formData, pickup: val })}
+          onChange={(val) =>
+            setFormData((prev: any) => ({
+              ...prev,
+              pickup: val,
+            }))
+          }
           placeholder="Enter pickup address"
         />
 
@@ -145,7 +156,12 @@ const BookingFormFields = ({
           id="dropoff"
           label="Drop-off Location"
           value={dropoff}
-          onChange={(val) => setFormData({ ...formData, dropoff: val })}
+          onChange={(val) =>
+            setFormData((prev: any) => ({
+              ...prev,
+              dropoff: val,
+            }))
+          }
           placeholder="Enter destination address"
         />
 
@@ -169,9 +185,13 @@ const BookingFormFields = ({
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={(newDate) => setFormData({ ...formData, date: newDate })}
+                onSelect={(newDate) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    date: newDate,
+                  }))
+                }
                 initialFocus
-                // Prevent selecting dates in the past
                 disabled={(d) => d < new Date()}
               />
             </PopoverContent>
@@ -183,7 +203,12 @@ const BookingFormFields = ({
           <Label>Pickup Time</Label>
           <Select
             value={time}
-            onValueChange={(value) => setFormData({ ...formData, time: value })}
+            onValueChange={(value) =>
+              setFormData((prev: any) => ({
+                ...prev,
+                time: value,
+              }))
+            }
           >
             <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select pickup time">
@@ -211,9 +236,17 @@ const BookingFormFields = ({
         </div>
       </div>
 
+      {/* Distance/Cost Display (if desired) */}
+      {(distance || cost) && (
+        <div className="flex justify-between text-sm">
+          <span>Distance: {distance}</span>
+          <span>Estimated Cost: {cost}</span>
+        </div>
+      )}
+
       {/* Submit Button */}
       <Button
-        type="submit"
+        type="button"
         className="w-full bg-secondary text-primary hover:bg-secondary/90"
         disabled={loading}
         onClick={onSubmit}
