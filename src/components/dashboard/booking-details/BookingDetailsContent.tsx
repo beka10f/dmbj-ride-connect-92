@@ -50,7 +50,6 @@ export const BookingDetailsContent = ({
   onSaveChanges,
   setEditedInstructions,
 }: BookingDetailsContentProps) => {
-  // Parse payment status from special instructions if available
   const paymentInfo = booking.special_instructions ? (() => {
     try {
       const parsed = JSON.parse(booking.special_instructions);
@@ -82,7 +81,6 @@ export const BookingDetailsContent = ({
         status={booking.status}
       />
 
-      {/* Payment Information Section */}
       {(isAdmin || paymentInfo) && (
         <div className="space-y-2 border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -93,7 +91,7 @@ export const BookingDetailsContent = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Status</span>
-                <Badge variant={paymentInfo.status === 'completed' ? 'success' : 'secondary'}>
+                <Badge variant={paymentInfo.status === 'completed' ? 'secondary' : 'default'}>
                   {paymentInfo.status}
                 </Badge>
               </div>
