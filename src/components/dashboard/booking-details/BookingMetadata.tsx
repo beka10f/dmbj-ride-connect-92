@@ -8,19 +8,22 @@ interface BookingMetadataProps {
 }
 
 export const BookingMetadata = ({ pickupDate, status }: BookingMetadataProps) => {
+  // Create a single Date object to avoid parsing multiple times
+  const parsedPickupDate = new Date(pickupDate);
+
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-500" />
           <span className="text-sm">
-            {format(new Date(pickupDate), "MMMM d, yyyy")}
+            {format(parsedPickupDate, "MMMM d, yyyy")}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-gray-500" />
           <span className="text-sm">
-            {format(new Date(pickupDate), "h:mm a")}
+            {format(parsedPickupDate, "h:mm a")}
           </span>
         </div>
       </div>
