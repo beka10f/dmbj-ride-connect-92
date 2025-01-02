@@ -1,3 +1,8 @@
+export interface DistanceCalculation {
+  distanceText: string;
+  totalCost: string;
+}
+
 export interface BookingFormData {
   name: string;
   email: string;
@@ -15,5 +20,5 @@ export interface ProfileData {
   last_name: string | null;
   email: string | null;
   role: string;
-  phone: string | null;  // Added this line
+  phone: string | null;
 }
