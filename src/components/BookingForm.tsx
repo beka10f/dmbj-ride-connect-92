@@ -1,71 +1,63 @@
-import { Suspense, lazy } from "react";
-import { useBookingForm } from "./booking/useBookingForm";
-import { Skeleton } from "@/components/ui/skeleton";
+import React from "react";
+import BookingFormFields from "./BookingFormFields";
+import { useBookingForm } from "./useBookingForm";
 
-const BookingFormFields = lazy(() => 
-  import("./booking/BookingFormFields").then(module => ({ default: module.default }))
-);
-
-const BookingConfirmationDialog = lazy(() => 
-  import("./booking/BookingConfirmationDialog").then(module => ({ 
-    default: module.BookingConfirmationDialog 
-  }))
-);
-
-const LoadingSkeleton = () => (
-  <div className="space-y-4">
-    <Skeleton className="h-10 w-full" />
-    <Skeleton className="h-10 w-full" />
-    <Skeleton className="h-10 w-full" />
-    <Skeleton className="h-10 w-full" />
-    <Skeleton className="h-10 w-full" />
-    <Skeleton className="h-10 w-full" />
-  </div>
-);
-
-export const BookingForm = () => {
+const BookingForm = () => {
   const {
     formData,
     setFormData,
+    handleSubmit,
+    handleConfirmBooking,
     loading,
     distance,
     cost,
     showConfirmation,
     setShowConfirmation,
     bookingDetails,
-    handleSubmit,
-    handleConfirmBooking,
   } = useBookingForm();
 
   return (
-    <div id="booking" className="bg-white py-8 sm:py-16 px-4">
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-6 sm:mb-8 text-center">
-          Book Your Ride
-        </h2>
-        
-        <Suspense fallback={<LoadingSkeleton />}>
-          <BookingFormFields
-            formData={formData}
-            setFormData={setFormData}
-            onSubmit={handleSubmit}
-            loading={loading}
-            distance={distance}
-            cost={cost}
-          />
-        </Suspense>
+    <div className="max-w-lg mx-auto p-4">
+      <h1 className="text-xl font-bold mb-4">Book a Ride</h1>
 
-        <Suspense fallback={null}>
-          {showConfirmation && (
-            <BookingConfirmationDialog
-              showConfirmation={showConfirmation}
-              setShowConfirmation={setShowConfirmation}
-              bookingDetails={bookingDetails}
-              onConfirm={handleConfirmBooking}
-            />
-          )}
-        </Suspense>
-      </div>
+      {/* The core fields */}
+      <BookingFormFields
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        loading={loading}
+        distance={distance}
+        cost={cost}
+      />
+
+      {/* Confirmation dialog or section (if needed) */}
+      {showConfirmation && (
+        <div className="bg-gray-100 p-4 mt-4 rounded">
+          <h2 className="text-lg font-semibold mb-2">Confirm Your Booking</h2>
+          <p>Pickup: {bookingDetails?.pickup}</p>
+          <p>Dropoff: {bookingDetails?.dropoff}</p>
+          <p>Date/Time: {bookingDetails?.dateTime?.toString()}</p>
+          <p>Distance: {bookingDetails?.distance}</p>
+          <p>Estimated Cost: {bookingDetails?.cost}</p>
+
+          <div className="flex gap-2 mt-2">
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={handleConfirmBooking}
+            >
+              Confirm & Pay
+            </button>
+            <button
+              className="px-4 py-2 bg-gray-300 text-black rounded"
+              onClick={() => setShowConfirmation(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+export default BookingForm;
