@@ -11,7 +11,7 @@ const cars = [
   {
     name: "Mercedes E-Class",
     image:
-      "https://imgd-ct.aeplcdn.com/1056x660/n/24df6sa_1475314.jpg?q=80",
+      "https://static.foxdealer.com/928/2023/01/2022-E-SEDAN-clr-2.png?w=1200",
     description: "Sophisticated comfort with cutting-edge technology",
   },
   {
