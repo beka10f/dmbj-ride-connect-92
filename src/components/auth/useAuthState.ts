@@ -15,6 +15,8 @@ export const useAuthState = () => {
     console.log("Clearing session state");
     setIsLoggedIn(false);
     setIsAdmin(false);
+    // Clear local storage to prevent token issues
+    localStorage.clear();
   };
 
   const handleSignOut = async () => {
@@ -32,9 +34,11 @@ export const useAuthState = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
+      // Force clear session on error
+      clearSession();
       toast({
         title: "Error",
-        description: "Failed to sign out",
+        description: "Failed to sign out properly. Please refresh the page.",
         variant: "destructive",
       });
     } finally {
@@ -48,17 +52,37 @@ export const useAuthState = () => {
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session error:", error);
+          if (error.message.includes("refresh_token_not_found")) {
+            clearSession();
+            toast({
+              title: "Session Expired",
+              description: "Please sign in again",
+              variant: "destructive",
+            });
+            navigate('/login');
+            return;
+          }
+        }
         
         if (session && mounted) {
           console.log("Session found:", session.user.id);
           setIsLoggedIn(true);
           
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
             .single();
+          
+          if (profileError) {
+            console.error("Profile fetch error:", profileError);
+            clearSession();
+            return;
+          }
           
           if (mounted) {
             setIsAdmin(profile?.role === 'admin');
@@ -93,7 +117,7 @@ export const useAuthState = () => {
             setIsAdmin(profile?.role === 'admin');
           }
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
         if (mounted) {
           clearSession();
           navigate('/');
