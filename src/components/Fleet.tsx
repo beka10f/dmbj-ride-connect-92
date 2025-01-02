@@ -9,7 +9,7 @@ const cars = [
   },
   {
     name: "Mercedes E-Class",
-    image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80",
+    image: "https://65e81151f52e248c552b-fe74cd567ea2f1228f846834bd67571e.ssl.cf1.rackcdn.com/ldm-images/2022-Mercedes-Benz-E-Class-color-Black.png",
     description: "Sophisticated comfort with cutting-edge technology"
   },
   {
