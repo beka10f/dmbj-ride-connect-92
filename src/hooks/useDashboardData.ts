@@ -9,26 +9,30 @@ export const useDashboardData = (profileId: string | undefined, role: string | u
   useEffect(() => {
     if (!profileId) return;
 
+    console.log("Setting up real-time subscriptions for profile:", profileId);
+    
     const channel = supabase
       .channel('dashboard_changes')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'bookings'
-      }, () => {
-        // Invalidate and refetch queries when data changes
+      }, (payload) => {
+        console.log("Bookings change detected:", payload);
         queryClient.invalidateQueries({ queryKey: ['bookings', profileId, role] });
       })
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'driver_applications'
-      }, () => {
+      }, (payload) => {
+        console.log("Applications change detected:", payload);
         queryClient.invalidateQueries({ queryKey: ['driverApplications', profileId, role] });
       })
       .subscribe();
 
     return () => {
+      console.log("Cleaning up real-time subscriptions");
       supabase.removeChannel(channel);
     };
   }, [profileId, role, queryClient]);
@@ -62,9 +66,7 @@ export const useDashboardData = (profileId: string | undefined, role: string | u
     },
     enabled: !!profileId,
     staleTime: 1000 * 30, // Consider data fresh for 30 seconds
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
+    retry: 2, // Retry failed requests twice
   });
 
   const applicationsQuery = useQuery({
@@ -90,17 +92,21 @@ export const useDashboardData = (profileId: string | undefined, role: string | u
     },
     enabled: role === "admin",
     staleTime: 1000 * 30, // Consider data fresh for 30 seconds
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
+    retry: 2, // Retry failed requests twice
   });
 
   return {
-    bookings: bookingsQuery.data || [],
-    applications: applicationsQuery.data || [],
+    bookings: bookingsQuery.data,
+    applications: applicationsQuery.data,
     isLoading: bookingsQuery.isLoading || applicationsQuery.isLoading,
     bookingsError: bookingsQuery.error,
     applicationsError: applicationsQuery.error,
-    refetchBookings: bookingsQuery.refetch,
+    refetchBookings: () => {
+      console.log("Manually refetching bookings and applications");
+      bookingsQuery.refetch();
+      if (role === 'admin') {
+        applicationsQuery.refetch();
+      }
+    },
   };
 };
