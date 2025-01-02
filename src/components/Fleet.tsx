@@ -11,7 +11,7 @@ const cars = [
   {
     name: "Mercedes E-Class",
     image:
-      "https://static.foxdealer.com/928/2023/01/2022-E-SEDAN-clr-2.png?w=1200",
+      "https://cdn-ds.com/stock/2024-Mercedes-Benz-C-Class-C-300-Morristown-NJ/seo/7444-W1KAF4HB4RR177343/sz_20550/ab43a4e6a0e960243eab31ffcbd53e3d.jpg",
     description: "Sophisticated comfort with cutting-edge technology",
   },
   {
