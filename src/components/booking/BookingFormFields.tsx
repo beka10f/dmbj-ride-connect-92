@@ -16,7 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-// Define time slots outside component to avoid recreation on every render
+// Define time slots outside component to avoid recreating them on every render
 const timeSlots = Array.from({ length: 48 }, (_, i) => {
   const hour = Math.floor(i / 2);
   const minute = i % 2 === 0 ? "00" : "30";
@@ -63,7 +63,7 @@ const BookingFormFields = ({
     time,
   } = formData;
 
-  // Handle generic input changes by merging new field values into formData
+  // A reusable handler to set form data fields.
   const handleChange =
     (field: keyof BookingFormFieldsProps["formData"]) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +74,7 @@ const BookingFormFields = ({
     <div className="space-y-6">
       {/* Grid Layout for Name, Email, Phone, and Passengers */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+
         {/* Full Name */}
         <div className="space-y-2">
           <Label htmlFor="name">Full Name</Label>
@@ -109,7 +110,7 @@ const BookingFormFields = ({
           />
         </div>
 
-        {/* Number of Passengers (Select) */}
+        {/* Number of Passengers */}
         <div className="space-y-2">
           <Label htmlFor="passengers">Number of Passengers</Label>
           <Select
@@ -130,7 +131,7 @@ const BookingFormFields = ({
           </Select>
         </div>
 
-        {/* Pickup Location (using AddressAutocomplete) */}
+        {/* Pickup Location (AddressAutocomplete) */}
         <AddressAutocomplete
           id="pickup"
           label="Pickup Location"
@@ -139,7 +140,7 @@ const BookingFormFields = ({
           placeholder="Enter pickup address"
         />
 
-        {/* Drop-off Location (using AddressAutocomplete) */}
+        {/* Drop-off Location (AddressAutocomplete) */}
         <AddressAutocomplete
           id="dropoff"
           label="Drop-off Location"
@@ -148,7 +149,7 @@ const BookingFormFields = ({
           placeholder="Enter destination address"
         />
 
-        {/* Date Selection (Popover + Calendar) */}
+        {/* Date Selection */}
         <div className="space-y-2">
           <Label>Date</Label>
           <Popover>
@@ -177,7 +178,7 @@ const BookingFormFields = ({
           </Popover>
         </div>
 
-        {/* Time Selection (Select) */}
+        {/* Time Selection */}
         <div className="space-y-2">
           <Label>Pickup Time</Label>
           <Select
