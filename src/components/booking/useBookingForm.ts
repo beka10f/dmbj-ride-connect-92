@@ -19,14 +19,18 @@ export interface BookingFormData {
 export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
+
+  // Local component state
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<string>("");
   const [cost, setCost] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Initialize form data with any existing profile information
   const [formData, setFormData] = useState<BookingFormData>({
-    name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '',
-    email: profile?.email || '',
-    phone: profile?.phone || '',
+    name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "",
+    email: profile?.email || "",
+    phone: profile?.phone || "",
     pickup: "",
     dropoff: "",
     date: new Date(),
@@ -34,38 +38,41 @@ export const useBookingForm = () => {
     passengers: "1",
   });
 
+  // This holds all final booking details once the user calculates distance
   const [bookingDetails, setBookingDetails] = useState<any>(null);
 
+  // Submit handler: calculates distance & cost, then shows a confirmation
   const handleSubmit = async () => {
     setLoading(true);
 
     try {
-      if (!formData.pickup || !formData.dropoff) {
+      const { pickup, dropoff, name, email, phone, passengers, date, time } = formData;
+
+      if (!pickup || !dropoff) {
         throw new Error("Please fill in all required fields");
       }
 
-      const details: DistanceCalculation = await calculateDistance(
-        formData.pickup,
-        formData.dropoff
-      );
-
+      // Fetch distance details
+      const details: DistanceCalculation = await calculateDistance(pickup, dropoff);
       setDistance(details.distanceText || "");
       setCost(details.totalCost);
 
-      const dateTime = new Date(formData.date);
-      const [hours, minutes] = formData.time.split(":");
+      // Combine date + time into one Date object
+      const dateTime = new Date(date);
+      const [hours, minutes] = time.split(":");
       dateTime.setHours(parseInt(hours), parseInt(minutes));
 
+      // Prepare final booking info for confirmation
       setBookingDetails({
-        pickup: formData.pickup,
-        dropoff: formData.dropoff,
+        pickup,
+        dropoff,
         dateTime,
         distance: details.distanceText || "",
         cost: details.totalCost,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        passengers: formData.passengers,
+        name,
+        email,
+        phone,
+        passengers,
       });
 
       setShowConfirmation(true);
@@ -80,13 +87,18 @@ export const useBookingForm = () => {
     }
   };
 
+  // Confirmation handler: invokes the Supabase function to create a checkout session
   const handleConfirmBooking = async () => {
     try {
+      // Strip the "$" sign if present, so we only pass the numeric value
+      const amount = cost.replace("$", "");
+
+      // Send booking + customer details to the serverless function
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
-        'create-checkout',
+        "create-checkout",
         {
           body: {
-            amount: cost.replace('$', ''),
+            amount,
             customerDetails: {
               name: formData.name,
               email: formData.email,
@@ -94,7 +106,7 @@ export const useBookingForm = () => {
             },
             bookingDetails: {
               ...bookingDetails,
-              status: 'pending_payment',
+              status: "pending_payment",
               user_id: profile?.id,
             },
           },
@@ -102,10 +114,10 @@ export const useBookingForm = () => {
       );
 
       if (checkoutError) throw checkoutError;
-
+      // Redirect the user to the checkout URL
       window.location.href = checkoutData.url;
     } catch (error: any) {
-      console.error('Error creating checkout session:', error);
+      console.error("Error creating checkout session:", error);
       toast({
         title: "Error",
         description: "Failed to process payment. Please try again.",
