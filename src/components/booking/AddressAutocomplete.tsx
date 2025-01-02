@@ -35,10 +35,21 @@ const AddressAutocomplete = ({
       fields: ["formatted_address"],
     });
 
+    // Prevent form submission on enter
+    inputRef.current.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+      }
+    });
+
     autocompleteListener.current = newAutocomplete.addListener("place_changed", () => {
       const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
         onChange(place.formatted_address);
+        // Force update input value
+        if (inputRef.current) {
+          inputRef.current.value = place.formatted_address;
+        }
       }
     });
 
@@ -54,13 +65,20 @@ const AddressAutocomplete = ({
     };
   }, [onChange]);
 
+  // Ensure input value stays in sync with parent state
+  useEffect(() => {
+    if (inputRef.current && value !== inputRef.current.value) {
+      inputRef.current.value = value;
+    }
+  }, [value]);
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <Input
         ref={inputRef}
         id={id}
-        value={value}
+        defaultValue={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="bg-white"
