@@ -30,12 +30,12 @@ const CarCard = memo(({ car, index }: { car: typeof cars[0]; index: number }) =>
     transition={{ duration: 0.5, delay: index * 0.2 }}
     className="bg-white rounded-3xl shadow-sm overflow-hidden ios-btn-active"
   >
-    {/* Aspect Ratio Container */}
-    <div className="aspect-w-16 aspect-h-9 overflow-hidden">
+    {/* Fixed-height container to keep images consistent */}
+    <div className="flex items-center justify-center h-40 sm:h-48 md:h-56 overflow-hidden">
       <img
         src={car.image}
         alt={car.name}
-        className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+        className="object-contain h-full transform hover:scale-105 transition-transform duration-300"
         loading={index === 0 ? "eager" : "lazy"}
       />
     </div>
