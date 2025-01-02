@@ -9,6 +9,7 @@ export interface ProfileData {
   last_name: string | null;
   email: string | null;
   role: string;
+  phone: string | null;  // Added this line to fix the TypeScript error
 }
 
 export const useUserProfile = () => {
