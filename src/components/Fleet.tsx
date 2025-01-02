@@ -14,7 +14,7 @@ const cars = [
   },
   {
     name: "Tesla Model Y",
-    image: "https://images.unsplash.com/photo-1619872644704-c136f11b4a50?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.ctfassets.net/3xid768u5joa/4Swo3f7cYnwVLbKmZpsf3b/3f34d8f581b9bf9b0c0083ea4f165ec1/02._Solid_Black.jpg",
     description: "Electric SUV with advanced autopilot features"
   }
 ];
