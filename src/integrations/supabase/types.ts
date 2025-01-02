@@ -15,6 +15,8 @@ export type Database = {
           created_at: string
           dropoff_location: string
           id: string
+          payment_amount: number | null
+          payment_status: string | null
           pickup_date: string
           pickup_location: string
           special_instructions: string | null
@@ -26,6 +28,8 @@ export type Database = {
           created_at?: string
           dropoff_location: string
           id?: string
+          payment_amount?: number | null
+          payment_status?: string | null
           pickup_date: string
           pickup_location: string
           special_instructions?: string | null
@@ -37,6 +41,8 @@ export type Database = {
           created_at?: string
           dropoff_location?: string
           id?: string
+          payment_amount?: number | null
+          payment_status?: string | null
           pickup_date?: string
           pickup_location?: string
           special_instructions?: string | null

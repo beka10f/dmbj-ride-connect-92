@@ -35,10 +35,17 @@ const AddressAutocomplete = ({
       fields: ["formatted_address"],
     });
 
+    // Add place_changed listener
     autocompleteListener.current = newAutocomplete.addListener("place_changed", () => {
       const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
+        // Directly call onChange with the formatted address
         onChange(place.formatted_address);
+        
+        // Update the input value to match the selected address
+        if (inputRef.current) {
+          inputRef.current.value = place.formatted_address;
+        }
       }
     });
 
@@ -54,6 +61,11 @@ const AddressAutocomplete = ({
     };
   }, [onChange]);
 
+  // Handle manual input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -61,7 +73,7 @@ const AddressAutocomplete = ({
         ref={inputRef}
         id={id}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleInputChange}
         placeholder={placeholder}
         className="bg-white"
         autoComplete="off"
