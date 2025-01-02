@@ -6,7 +6,7 @@ import { BookingInstructions } from "../BookingInstructions";
 import { BookingActions } from "../BookingActions";
 import { DistanceCalculation } from "@/types/booking";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, XCircle } from "lucide-react";
 
 interface BookingDetailsContentProps {
   booking: {
@@ -52,6 +52,19 @@ export const BookingDetailsContent = ({
   onSaveChanges,
   setEditedInstructions,
 }: BookingDetailsContentProps) => {
+  const getPaymentStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
   const getPaymentStatusColor = (status?: string) => {
     switch (status) {
       case 'completed':
@@ -84,19 +97,22 @@ export const BookingDetailsContent = ({
       />
 
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-700">Payment Details</h3>
-        <div className="flex flex-col gap-2 p-4 bg-gray-50 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Payment Details</h3>
+        <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Status</span>
-            <Badge 
-              variant="outline" 
-              className={`${getPaymentStatusColor(booking.payment_status)} px-3 py-1 rounded-full font-medium text-xs capitalize`}
-            >
-              {booking.payment_status || 'pending'}
-            </Badge>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+            <div className="flex items-center gap-2">
+              {getPaymentStatusIcon(booking.payment_status)}
+              <Badge 
+                variant="outline" 
+                className={`${getPaymentStatusColor(booking.payment_status)} px-3 py-1 rounded-full font-medium text-xs capitalize`}
+              >
+                {booking.payment_status || 'pending'}
+              </Badge>
+            </div>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Amount</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Amount</span>
             <div className="flex items-center gap-1">
               <DollarSign className="h-4 w-4 text-gray-500" />
               <span className="text-sm font-medium">
