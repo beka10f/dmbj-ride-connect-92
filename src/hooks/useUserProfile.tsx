@@ -9,7 +9,6 @@ export interface ProfileData {
   last_name: string | null;
   email: string | null;
   role: string;
-  phone: string | null;
 }
 
 export const useUserProfile = () => {
@@ -40,7 +39,7 @@ export const useUserProfile = () => {
         console.log("Fetching profile for user:", session.user.id);
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("id, first_name, last_name, email, role, phone")
+          .select("id, first_name, last_name, email, role")
           .eq("id", session.user.id)
           .single();
 
@@ -76,7 +75,7 @@ export const useUserProfile = () => {
         try {
           const { data: profileData, error: profileError } = await supabase
             .from("profiles")
-            .select("id, first_name, last_name, email, role, phone")
+            .select("id, first_name, last_name, email, role")
             .eq("id", session.user.id)
             .single();
 

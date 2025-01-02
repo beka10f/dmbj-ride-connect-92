@@ -5,8 +5,6 @@ import { BookingMetadata } from "./BookingMetadata";
 import { BookingInstructions } from "../BookingInstructions";
 import { BookingActions } from "../BookingActions";
 import { DistanceCalculation } from "@/types/booking";
-import { Badge } from "@/components/ui/badge";
-import { CreditCard } from "lucide-react";
 
 interface BookingDetailsContentProps {
   booking: {
@@ -50,19 +48,6 @@ export const BookingDetailsContent = ({
   onSaveChanges,
   setEditedInstructions,
 }: BookingDetailsContentProps) => {
-  const paymentInfo = booking.special_instructions ? (() => {
-    try {
-      const parsed = JSON.parse(booking.special_instructions);
-      return parsed.payment_status ? {
-        status: parsed.payment_status,
-        amount: parsed.amount,
-        date: parsed.payment_date
-      } : null;
-    } catch {
-      return null;
-    }
-  })() : null;
-
   return (
     <div className="space-y-6 py-4">
       {!isClient && <CustomerInfo profile={userProfile} />}
@@ -80,39 +65,6 @@ export const BookingDetailsContent = ({
         pickupDate={booking.pickup_date}
         status={booking.status}
       />
-
-      {(isAdmin || paymentInfo) && (
-        <div className="space-y-2 border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <CreditCard className="h-5 w-5 text-gray-500" />
-            <h3 className="font-medium">Payment Information</h3>
-          </div>
-          {paymentInfo ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Status</span>
-                <Badge variant={paymentInfo.status === 'completed' ? 'secondary' : 'default'}>
-                  {paymentInfo.status}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Amount</span>
-                <span className="font-medium">${paymentInfo.amount}</span>
-              </div>
-              {paymentInfo.date && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Date</span>
-                  <span className="text-sm">
-                    {new Date(paymentInfo.date).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">No payment information available</p>
-          )}
-        </div>
-      )}
 
       <BookingInstructions
         isEditing={isEditing}

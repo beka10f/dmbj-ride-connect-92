@@ -3,7 +3,6 @@ import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "./DistanceCalculator";
 import { DistanceCalculation } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
-import { useUserProfile } from "@/hooks/useUserProfile";
 
 export interface BookingFormData {
   name: string;
@@ -18,15 +17,14 @@ export interface BookingFormData {
 
 export const useBookingForm = () => {
   const { toast } = useToast();
-  const { profile } = useUserProfile();
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<string>("");
   const [cost, setCost] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [formData, setFormData] = useState<BookingFormData>({
-    name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '',
-    email: profile?.email || '',
-    phone: profile?.phone || '',
+    name: "",
+    email: "",
+    phone: "",
     pickup: "",
     dropoff: "",
     date: new Date(),
@@ -75,7 +73,6 @@ export const useBookingForm = () => {
         description: error.message,
         variant: "destructive",
       });
-      console.error("Booking error:", error);
     } finally {
       setLoading(false);
     }
@@ -96,7 +93,6 @@ export const useBookingForm = () => {
             bookingDetails: {
               ...bookingDetails,
               status: 'pending_payment',
-              user_id: profile?.id,
             },
           },
         }
