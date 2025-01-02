@@ -1,18 +1,14 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { DashboardContent } from "@/components/dashboard/DashboardContent";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { profile, isLoading: profileLoading } = useUserProfile();
 
   useEffect(() => {
@@ -50,98 +46,18 @@ const Dashboard = () => {
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       console.log("Auth state changed in Dashboard:", event);
       if (event === 'SIGNED_OUT') {
-        console.log("User signed out, clearing queries and redirecting");
-        queryClient.clear();
+        console.log("User signed out, redirecting");
         navigate('/login');
-      } else if (event === 'SIGNED_IN' && session) {
-        console.log("User signed in, refreshing queries");
-        queryClient.invalidateQueries();
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast, queryClient]);
-
-  const { data: bookings = [], refetch: refetchBookings, isLoading: bookingsLoading, error: bookingsError } = useQuery({
-    queryKey: ["bookings", profile?.id, profile?.role],
-    queryFn: async () => {
-      if (!profile?.id) {
-        console.log("No profile ID available, skipping bookings fetch");
-        return [];
-      }
-
-      console.log("Fetching bookings for profile:", profile.id, "with role:", profile.role);
-      let query = supabase.from("bookings").select("*");
-
-      if (profile.role === 'client') {
-        query = query.eq('user_id', profile.id);
-      } else if (profile.role === 'driver') {
-        query = query.eq('assigned_driver_id', profile.id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Bookings fetch error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load bookings. Please try again.",
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      console.log("Fetched bookings:", data);
-      return data || [];
-    },
-    enabled: !!profile?.id,
-    staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    gcTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    retry: 3,
-  });
-
-  const { data: driverApplications = [], isLoading: applicationsLoading, error: applicationsError } = useQuery({
-    queryKey: ["driverApplications", profile?.id, profile?.role],
-    queryFn: async () => {
-      if (profile?.role !== "admin") {
-        console.log("User is not admin, skipping applications fetch");
-        return [];
-      }
-      
-      console.log("Fetching driver applications");
-      const { data, error } = await supabase
-        .from("driver_applications")
-        .select("*");
-
-      if (error) {
-        console.error("Applications fetch error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load driver applications. Please try again.",
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      console.log("Fetched applications:", data);
-      return data || [];
-    },
-    enabled: profile?.role === "admin",
-    staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    gcTime: 1000 * 60 * 5, // Keep data in cache for 5 minutes
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    retry: 3,
-  });
+  }, [navigate, toast]);
 
   if (profileLoading) {
     return (
@@ -158,44 +74,7 @@ const Dashboard = () => {
 
   if (!profile) return null;
 
-  // Log any errors that occurred during data fetching
-  if (bookingsError) {
-    console.error("Bookings error:", bookingsError);
-  }
-  if (applicationsError) {
-    console.error("Applications error:", applicationsError);
-  }
-
-  const isLoading = bookingsLoading || applicationsLoading;
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8 animate-fadeIn">
-        <DashboardHeader 
-          firstName={profile.first_name}
-          role={profile.role}
-        />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <DashboardStats
-              bookingsCount={bookings.length}
-              applicationsCount={driverApplications.length}
-              isAdmin={profile.role === "admin"}
-              isLoading={isLoading}
-            />
-          </div>
-        </div>
-
-        <DashboardTabs
-          isAdmin={profile.role === "admin"}
-          bookings={bookings}
-          driverApplications={driverApplications}
-          onBookingUpdated={refetchBookings}
-        />
-      </div>
-    </div>
-  );
+  return <DashboardContent profile={profile} />;
 };
 
 export default Dashboard;
