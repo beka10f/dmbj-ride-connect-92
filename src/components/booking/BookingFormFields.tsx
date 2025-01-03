@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import AddressFields from "./form-fields/AddressFields";
 import PersonalInfoFields from "./form-fields/PersonalInfoFields";
 import { BookingFormData } from "./useBookingForm";
+import { Card } from "@/components/ui/card";
 
 const timeSlots = Array.from({ length: 48 }, (_, i) => {
   const hour = Math.floor(i / 2);
@@ -134,10 +135,19 @@ const BookingFormFields = ({
       </div>
 
       {(distance || cost) && (
-        <div className="flex justify-between text-sm">
-          <span>Distance: {distance}</span>
-          <span>Estimated Cost: {cost}</span>
-        </div>
+        <Card className="p-4 bg-gray-50">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Trip Details</h3>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600">Distance:</span>
+              <span className="font-medium">{distance}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600">Estimated Cost:</span>
+              <span className="font-medium">{cost}</span>
+            </div>
+          </div>
+        </Card>
       )}
 
       <Button
