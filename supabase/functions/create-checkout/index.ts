@@ -15,6 +15,12 @@ serve(async (req) => {
   try {
     const { amount, customerDetails, bookingDetails } = await req.json();
 
+    if (!amount || !customerDetails || !bookingDetails) {
+      throw new Error('Missing required fields');
+    }
+
+    console.log('Received request:', { amount, customerDetails, bookingDetails });
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
@@ -55,8 +61,11 @@ serve(async (req) => {
       .single();
 
     if (bookingError) {
+      console.error('Booking creation error:', bookingError);
       throw bookingError;
     }
+
+    console.log('Created booking:', booking);
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -85,6 +94,8 @@ serve(async (req) => {
         customer_phone: customerDetails.phone,
       },
     });
+
+    console.log('Created checkout session:', session.id);
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),

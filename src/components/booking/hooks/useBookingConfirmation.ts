@@ -14,10 +14,25 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
         throw new Error("No booking details available");
       }
 
-      const numericCost = bookingDetails.cost.replace(/[^0-9.]/g, "");
+      const numericCost = parseFloat(bookingDetails.cost.replace(/[^0-9.]/g, ""));
 
-      const { data: checkoutData, error: checkoutError } =
-        await supabase.functions.invoke("create-checkout", {
+      console.log('Creating checkout session with details:', {
+        amount: numericCost,
+        customerDetails: {
+          name: bookingDetails.name,
+          email: bookingDetails.email,
+          phone: bookingDetails.phone,
+        },
+        bookingDetails: {
+          ...bookingDetails,
+          status: "pending_payment",
+          user_id: profile?.id,
+        },
+      });
+
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
+        "create-checkout",
+        {
           body: {
             amount: numericCost,
             customerDetails: {
@@ -31,10 +46,19 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
               user_id: profile?.id,
             },
           },
-        });
+        }
+      );
 
-      if (checkoutError) throw checkoutError;
+      if (checkoutError) {
+        console.error('Checkout error:', checkoutError);
+        throw checkoutError;
+      }
 
+      if (!checkoutData?.url) {
+        throw new Error('No checkout URL received');
+      }
+
+      console.log('Redirecting to checkout:', checkoutData.url);
       window.location.href = checkoutData.url;
     } catch (error: any) {
       console.error("Error creating checkout session:", error);
