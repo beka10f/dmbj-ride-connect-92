@@ -22,18 +22,14 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [localValue, setLocalValue] = useState(value);
+  const [internalValue, setInternalValue] = useState(value);
+  const isUserInput = useRef(false);
 
-  // Sync local state with prop value
+  // Initialize Google Places Autocomplete once
   useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
+    if (!inputRef.current || !window.google || autocompleteRef.current) return;
 
-  useEffect(() => {
-    if (!inputRef.current || !window.google) return;
-
-    // Create new autocomplete instance
-    autocompleteRef.current = new window.google.maps.places.Autocomplete(
+    const autocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
         types: ["address"],
@@ -42,38 +38,36 @@ const AddressAutocomplete = ({
       }
     );
 
-    // Add place_changed listener
-    const listener = autocompleteRef.current.addListener("place_changed", () => {
-      if (!autocompleteRef.current) return;
-      
-      const place = autocompleteRef.current.getPlace();
+    autocompleteRef.current = autocomplete;
+
+    const listener = autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
       if (place.formatted_address) {
-        setLocalValue(place.formatted_address);
+        isUserInput.current = false;
+        setInternalValue(place.formatted_address);
         onChange(place.formatted_address);
       }
     });
 
-    // Cleanup function
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
       }
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-      autocompleteRef.current = null;
     };
-  }, [onChange]);
+  }, []); // Empty dependency array - only run once
 
-  // Handle manual input changes
+  // Sync internal state with prop value when it changes from parent
+  useEffect(() => {
+    if (!isUserInput.current) {
+      setInternalValue(value);
+    }
+  }, [value]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setLocalValue(newValue);
-    
-    // Only update parent state if user is typing manually
-    if (!autocompleteRef.current?.getPlace()) {
-      onChange(newValue);
-    }
+    isUserInput.current = true;
+    setInternalValue(newValue);
+    onChange(newValue);
   };
 
   return (
@@ -83,10 +77,10 @@ const AddressAutocomplete = ({
         <Input
           ref={inputRef}
           id={id}
-          value={localValue}
+          value={internalValue}
           onChange={handleInputChange}
           placeholder={placeholder}
-          className={`bg-white pl-10 ${error ? 'border-red-500' : ''}`}
+          className={`bg-white pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
         />
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
