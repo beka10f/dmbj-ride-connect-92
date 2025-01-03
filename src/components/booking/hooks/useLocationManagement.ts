@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { calculateDistance } from "../DistanceCalculator";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,16 +20,20 @@ export const useLocationManagement = () => {
   }, []);
 
   const calculateTripDetails = useCallback(async () => {
-    if (!locations.pickup || !locations.dropoff) return;
+    if (!locations.pickup || !locations.dropoff) {
+      return null;
+    }
 
     setLoading(true);
     try {
       const result = await calculateDistance(locations.pickup, locations.dropoff);
-      setLocations((prev) => ({
-        ...prev,
+      const updatedLocations = {
+        ...locations,
         distance: result.distanceText,
         cost: result.totalCost,
-      }));
+      };
+      setLocations(updatedLocations);
+      return result;
     } catch (error) {
       console.error("Error calculating distance:", error);
       toast({
@@ -37,6 +41,7 @@ export const useLocationManagement = () => {
         description: "Unable to calculate trip details. Please check your addresses.",
         variant: "destructive",
       });
+      return null;
     } finally {
       setLoading(false);
     }

@@ -90,10 +90,20 @@ export const useBookingForm = () => {
       return;
     }
 
+    if (!locations.pickup || !locations.dropoff) {
+      toast({
+        title: "Error",
+        description: "Please enter both pickup and dropoff locations",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      await calculateTripDetails();
+      // Calculate trip details before proceeding
+      const tripDetails = await calculateTripDetails();
       
-      if (!locations.distance || !locations.cost) {
+      if (!tripDetails || !tripDetails.distance || !tripDetails.cost) {
         console.log('Missing distance or cost calculation');
         toast({
           title: "Error",
@@ -110,15 +120,15 @@ export const useBookingForm = () => {
       console.log('Setting booking details:', {
         ...formData,
         dateTime,
-        distance: locations.distance,
-        cost: locations.cost,
+        distance: tripDetails.distance,
+        cost: tripDetails.cost,
       });
 
       setBookingDetails({
         ...formData,
         dateTime,
-        distance: locations.distance,
-        cost: locations.cost,
+        distance: tripDetails.distance,
+        cost: tripDetails.cost,
       });
 
       setShowConfirmation(true);
