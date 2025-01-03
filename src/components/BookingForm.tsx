@@ -2,7 +2,6 @@ import React from "react";
 import BookingFormFields from "./booking/BookingFormFields";
 import { useBookingForm } from "./booking/useBookingForm";
 import { BookingConfirmationDialog } from "./booking/BookingConfirmationDialog";
-import { Card } from "./ui/card";
 
 const BookingForm = () => {
   const {
@@ -24,14 +23,14 @@ const BookingForm = () => {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+    <section className="py-16 bg-white">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-10 space-y-2">
-          <h2 className="text-3xl font-bold text-primary">Book Your Luxury Ride</h2>
-          <p className="text-gray-600">Experience unparalleled comfort and style</p>
+        <div className="text-center mb-10">
+          <h2 className="text-4xl font-bold text-primary mb-3">Book Your Luxury Ride</h2>
+          <p className="text-gray-600 text-lg">Experience unparalleled comfort and style</p>
         </div>
 
-        <Card className="p-8 shadow-lg bg-white/50 backdrop-blur-sm border-0">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           <BookingFormFields
             formData={formData}
             setFormData={setFormData}
@@ -41,7 +40,7 @@ const BookingForm = () => {
             cost={cost}
             errors={errors}
           />
-        </Card>
+        </div>
 
         <BookingConfirmationDialog
           showConfirmation={showConfirmation}
