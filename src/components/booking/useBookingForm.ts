@@ -103,7 +103,7 @@ export const useBookingForm = () => {
       // Calculate trip details before proceeding
       const tripDetails = await calculateTripDetails();
       
-      if (!tripDetails || !tripDetails.distance || !tripDetails.cost) {
+      if (!tripDetails || !tripDetails.distanceText || !tripDetails.totalCost) {
         console.log('Missing distance or cost calculation');
         toast({
           title: "Error",
@@ -120,15 +120,15 @@ export const useBookingForm = () => {
       console.log('Setting booking details:', {
         ...formData,
         dateTime,
-        distance: tripDetails.distance,
-        cost: tripDetails.cost,
+        distance: tripDetails.distanceText,
+        cost: tripDetails.totalCost,
       });
 
       setBookingDetails({
         ...formData,
         dateTime,
-        distance: tripDetails.distance,
-        cost: tripDetails.cost,
+        distance: tripDetails.distanceText,
+        cost: tripDetails.totalCost,
       });
 
       setShowConfirmation(true);
