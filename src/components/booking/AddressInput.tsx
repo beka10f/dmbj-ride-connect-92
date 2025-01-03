@@ -46,9 +46,7 @@ const AddressInput = ({
       if (debouncedValue.length >= 3) {
         setLoading(true);
         try {
-          console.log('Fetching suggestions for:', debouncedValue);
           const newSuggestions = await getSuggestions(debouncedValue);
-          console.log('Received suggestions:', newSuggestions);
           setSuggestions(newSuggestions);
           setShowSuggestions(true);
         } catch (error) {
@@ -72,6 +70,12 @@ const AddressInput = ({
     if (newValue.length >= 3) {
       setLoading(true);
     }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    onChange(suggestion);
+    setShowSuggestions(false);
+    setSuggestions([]);
   };
 
   return (
@@ -106,10 +110,7 @@ const AddressInput = ({
               <button
                 key={index}
                 className="w-full px-4 py-3 text-left hover:bg-gray-50 text-gray-600 text-sm transition-colors"
-                onClick={() => {
-                  onChange(suggestion);
-                  setShowSuggestions(false);
-                }}
+                onClick={() => handleSuggestionClick(suggestion)}
               >
                 {suggestion}
               </button>

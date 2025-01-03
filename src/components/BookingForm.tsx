@@ -40,6 +40,7 @@ const BookingForm = () => {
               distance={distance}
               cost={cost}
               errors={errors}
+              showTripDetails={showConfirmation}
             />
           </CardContent>
         </Card>

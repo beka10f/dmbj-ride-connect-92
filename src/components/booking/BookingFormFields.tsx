@@ -29,6 +29,7 @@ interface BookingFormFieldsProps {
   distance: string;
   cost: string;
   errors?: Partial<Record<keyof BookingFormData, string>>;
+  showTripDetails?: boolean;
 }
 
 const BookingFormFields = ({
@@ -39,6 +40,7 @@ const BookingFormFields = ({
   distance,
   cost,
   errors,
+  showTripDetails = false,
 }: BookingFormFieldsProps) => {
   const handleFieldChange = (field: keyof BookingFormData, value: any) => {
     setFormData(field, value);
@@ -63,7 +65,7 @@ const BookingFormFields = ({
         errors={errors}
       />
 
-      {distance && cost && (
+      {showTripDetails && distance && cost && (
         <div className="bg-gray-50 p-4 rounded-lg space-y-2">
           <p className="text-sm text-gray-600">Trip Details:</p>
           <div className="flex justify-between">
