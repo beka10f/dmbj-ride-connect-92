@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { calculateDistance } from "../DistanceCalculator";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,9 +25,6 @@ export const useLocationManagement = () => {
     setLocations((prev) => ({
       ...prev,
       [type]: value,
-      // Reset distance and cost when locations change
-      distance: "",
-      cost: "",
     }));
   }, []);
 
@@ -42,7 +39,7 @@ export const useLocationManagement = () => {
       setLocations((prev) => ({
         ...prev,
         distance: details.distanceText,
-        cost: details.totalCost,
+        cost: `$${details.totalCost}`,
       }));
       return true;
     } catch (error: any) {
@@ -57,6 +54,13 @@ export const useLocationManagement = () => {
       setLoading(false);
     }
   }, [locations.pickup, locations.dropoff, toast]);
+
+  // Calculate trip details whenever both locations are set
+  useEffect(() => {
+    if (locations.pickup && locations.dropoff) {
+      calculateTripDetails();
+    }
+  }, [locations.pickup, locations.dropoff, calculateTripDetails]);
 
   return {
     locations,

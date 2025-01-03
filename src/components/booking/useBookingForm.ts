@@ -42,7 +42,7 @@ const initialFormData: BookingFormData = {
 export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
-  const { locations, loading, updateLocation, calculateTripDetails } = useLocationManagement();
+  const { locations, loading, updateLocation } = useLocationManagement();
   
   const {
     name,
@@ -144,9 +144,7 @@ export const useBookingForm = () => {
       return;
     }
 
-    const success = await calculateTripDetails();
-    if (!success) return;
-
+    // Price is already calculated, proceed with booking
     const dateTime = new Date(formData.date);
     const [hours, minutes] = formData.time.split(":");
     dateTime.setHours(parseInt(hours), parseInt(minutes));
@@ -159,7 +157,7 @@ export const useBookingForm = () => {
     });
 
     setShowConfirmation(true);
-  }, [formData, validateForm, calculateTripDetails, locations, toast]);
+  }, [formData, validateForm, locations, toast]);
 
   const handleConfirmBooking = useCallback(async () => {
     try {
@@ -167,7 +165,7 @@ export const useBookingForm = () => {
         throw new Error("No booking details available");
       }
 
-      const numericCost = bookingDetails.cost.replace("$", "");
+      const numericCost = bookingDetails.cost.replace(/[^0-9.]/g, "");
 
       const { data: checkoutData, error: checkoutError } =
         await supabase.functions.invoke("create-checkout", {
