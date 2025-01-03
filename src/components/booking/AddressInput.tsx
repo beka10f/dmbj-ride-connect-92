@@ -21,11 +21,13 @@ const AddressInput = ({
   error,
 }: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    const autocomplete = new window.google.maps.places.Autocomplete(
+    // Create a new autocomplete instance for this input
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
         types: ["address"],
@@ -34,16 +36,21 @@ const AddressInput = ({
       }
     );
 
-    const listener = autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
-      if (place.formatted_address) {
+    // Add the place_changed listener
+    const listener = autocompleteRef.current.addListener("place_changed", () => {
+      const place = autocompleteRef.current?.getPlace();
+      if (place?.formatted_address) {
         onChange(place.formatted_address);
       }
     });
 
+    // Cleanup function
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
+      }
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
   }, [onChange]);
