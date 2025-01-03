@@ -47,8 +47,10 @@ const AddressInput = ({
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
       if (place?.formatted_address) {
-        setInternalValue(place.formatted_address);
-        onChange(place.formatted_address);
+        const newAddress = place.formatted_address;
+        setInternalValue(newAddress);
+        // Immediately trigger the onChange to update parent state
+        onChange(newAddress);
       }
     });
 
@@ -65,7 +67,9 @@ const AddressInput = ({
 
   // Sync internal value with external value
   useEffect(() => {
-    setInternalValue(value);
+    if (value !== internalValue) {
+      setInternalValue(value);
+    }
   }, [value]);
 
   // Handle manual input
