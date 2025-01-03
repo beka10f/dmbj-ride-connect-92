@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "./DistanceCalculator";
 import { DistanceCalculation } from "@/types/booking";
@@ -49,6 +49,15 @@ export const useBookingForm = () => {
   const [bookingDetails, setBookingDetails] = useState<any>(null);
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // Memoize the setFormData handler
+  const handleFieldChange = useCallback((field: keyof BookingFormData, value: any) => {
+    console.log(`Updating ${field} with value:`, value);
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  }, []);
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     let isValid = true;
@@ -90,7 +99,7 @@ export const useBookingForm = () => {
     return isValid;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
       toast({
         title: "Error",
@@ -132,9 +141,9 @@ export const useBookingForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, toast]);
 
-  const handleConfirmBooking = async () => {
+  const handleConfirmBooking = useCallback(async () => {
     try {
       if (!bookingDetails) {
         throw new Error("No booking details available");
@@ -173,11 +182,11 @@ export const useBookingForm = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [bookingDetails, profile?.id, toast]);
 
   return {
     formData,
-    setFormData,
+    setFormData: handleFieldChange,
     loading,
     distance,
     cost,

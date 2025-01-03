@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -23,8 +23,18 @@ const AddressInput = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
+  // Memoize the change handler
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+  }, [onChange]);
+
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
+
+    // Cleanup previous instance if it exists
+    if (autocompleteRef.current) {
+      autocompleteRef.current.unbindAll();
+    }
 
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
@@ -37,6 +47,7 @@ const AddressInput = ({
 
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
+      console.log(`Place selected for ${id}:`, place?.formatted_address);
       if (place?.formatted_address) {
         onChange(place.formatted_address);
       }
@@ -46,8 +57,11 @@ const AddressInput = ({
       if (listener) {
         google.maps.event.removeListener(listener);
       }
+      if (autocompleteRef.current) {
+        autocompleteRef.current.unbindAll();
+      }
     };
-  }, [onChange]);
+  }, [onChange, id]);
 
   return (
     <div className="space-y-2">
@@ -58,7 +72,7 @@ const AddressInput = ({
           type="text"
           id={id}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={handleInputChange}
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
