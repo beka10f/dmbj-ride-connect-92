@@ -1,6 +1,7 @@
 import React from "react";
-import BookingFormFields from "./BookingFormFields";
+import BookingFormFields from "./booking/BookingFormFields";
 import { useBookingForm } from "./useBookingForm";
+
 
 const BookingForm = () => {
   const {
