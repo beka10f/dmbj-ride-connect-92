@@ -91,9 +91,8 @@ export const useBookingForm = () => {
     }
 
     try {
-      // Calculate trip details when Book Now is clicked
       await calculateTripDetails();
-
+      
       if (!locations.distance || !locations.cost) {
         console.log('Missing distance or cost calculation');
         toast({

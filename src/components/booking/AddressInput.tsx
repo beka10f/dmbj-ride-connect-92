@@ -27,6 +27,7 @@ const AddressInput = ({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasSelected, setHasSelected] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const debouncedValue = useDebounce(value, 300);
 
@@ -43,7 +44,7 @@ const AddressInput = ({
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (debouncedValue.length >= 3) {
+      if (debouncedValue.length >= 3 && !hasSelected) {
         setLoading(true);
         try {
           const newSuggestions = await getSuggestions(debouncedValue);
@@ -62,11 +63,12 @@ const AddressInput = ({
     };
 
     fetchSuggestions();
-  }, [debouncedValue]);
+  }, [debouncedValue, hasSelected]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
+    setHasSelected(false);
     if (newValue.length >= 3) {
       setLoading(true);
     }
@@ -77,11 +79,11 @@ const AddressInput = ({
     setShowSuggestions(false);
     setSuggestions([]);
     setLoading(false);
+    setHasSelected(true);
   };
 
   const handleInputFocus = () => {
-    // Only show suggestions if there's a value and suggestions exist
-    if (value.length >= 3 && suggestions.length > 0) {
+    if (value.length >= 3 && suggestions.length > 0 && !hasSelected) {
       setShowSuggestions(true);
     }
   };
