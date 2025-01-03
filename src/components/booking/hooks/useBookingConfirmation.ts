@@ -27,6 +27,22 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
         throw new Error("Invalid cost amount");
       }
 
+      console.log('Creating checkout session with details:', {
+        amount: numericCost,
+        customerDetails: {
+          name: bookingDetails.name,
+          email: bookingDetails.email,
+          phone: bookingDetails.phone,
+        },
+        bookingDetails: {
+          pickup: bookingDetails.pickup,
+          dropoff: bookingDetails.dropoff,
+          dateTime: bookingDetails.dateTime,
+          user_id: profile.id,
+          special_instructions: `Booking for ${bookingDetails.name} - ${bookingDetails.phone}`,
+        },
+      });
+
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
         "create-checkout",
         {
@@ -41,7 +57,6 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
               pickup: bookingDetails.pickup,
               dropoff: bookingDetails.dropoff,
               dateTime: bookingDetails.dateTime,
-              status: "pending_payment",
               user_id: profile.id,
               special_instructions: `Booking for ${bookingDetails.name} - ${bookingDetails.phone}`,
             },

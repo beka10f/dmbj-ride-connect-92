@@ -15,11 +15,11 @@ serve(async (req) => {
   try {
     const { amount, customerDetails, bookingDetails } = await req.json();
 
+    console.log('Received request:', { amount, customerDetails, bookingDetails });
+
     if (!amount || !customerDetails || !bookingDetails) {
       throw new Error('Missing required fields');
     }
-
-    console.log('Received request:', { amount, customerDetails, bookingDetails });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
@@ -42,7 +42,7 @@ serve(async (req) => {
           status: 'pending_payment',
           special_instructions: bookingDetails.special_instructions,
           payment_status: 'pending',
-          payment_amount: amount
+          payment_amount: parseFloat(amount)
         },
       ])
       .select()
@@ -67,13 +67,13 @@ serve(async (req) => {
               name: 'Ride Booking',
               description: `From ${bookingDetails.pickup} to ${bookingDetails.dropoff}`,
             },
-            unit_amount: Math.round(amount * 100), // Convert to cents
+            unit_amount: Math.round(parseFloat(amount) * 100), // Convert to cents
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/?success=true&booking_id=${booking.id}`,
+      success_url: `${req.headers.get('origin')}/dashboard?success=true&booking_id=${booking.id}`,
       cancel_url: `${req.headers.get('origin')}/?canceled=true`,
       metadata: {
         booking_id: booking.id,
