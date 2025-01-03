@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -22,18 +22,10 @@ const AddressInput = ({
 }: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [internalValue, setInternalValue] = useState(value);
 
-  // Initialize autocomplete
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Clean up previous instance if it exists
-    if (autocompleteRef.current) {
-      google.maps.event.clearInstanceListeners(autocompleteRef.current);
-    }
-
-    // Create new autocomplete instance
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -43,41 +35,19 @@ const AddressInput = ({
       }
     );
 
-    // Handle place selection
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
       if (place?.formatted_address) {
-        const newAddress = place.formatted_address;
-        setInternalValue(newAddress);
-        // Immediately trigger the onChange to update parent state
-        onChange(newAddress);
+        onChange(place.formatted_address);
       }
     });
 
-    // Cleanup function
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
       }
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
     };
   }, [onChange]);
-
-  // Sync internal value with external value
-  useEffect(() => {
-    if (value !== internalValue) {
-      setInternalValue(value);
-    }
-  }, [value]);
-
-  // Handle manual input
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInternalValue(newValue);
-    onChange(newValue);
-  };
 
   return (
     <div className="space-y-2">
@@ -87,8 +57,8 @@ const AddressInput = ({
           ref={inputRef}
           type="text"
           id={id}
-          value={internalValue}
-          onChange={handleInputChange}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
