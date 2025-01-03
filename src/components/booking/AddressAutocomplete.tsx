@@ -23,6 +23,7 @@ const AddressAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
   
   // Initialize Google Places Autocomplete
   useEffect(() => {
@@ -40,6 +41,7 @@ const AddressAutocomplete = ({
     const placeChangedListener = autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
       if (place.formatted_address) {
+        setInputValue(place.formatted_address);
         onChange(place.formatted_address);
       }
     });
@@ -59,12 +61,16 @@ const AddressAutocomplete = ({
     };
   }, [id, onChange]);
 
-  // Keep input value in sync with prop
+  // Keep local state in sync with prop value
   useEffect(() => {
-    if (inputRef.current && value !== inputRef.current.value) {
-      inputRef.current.value = value;
-    }
+    setInputValue(value);
   }, [value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
+  };
 
   return (
     <div className="space-y-2">
@@ -73,7 +79,8 @@ const AddressAutocomplete = ({
         <Input
           ref={inputRef}
           id={id}
-          defaultValue={value}
+          value={inputValue}
+          onChange={handleInputChange}
           placeholder={placeholder}
           className={`bg-white pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
