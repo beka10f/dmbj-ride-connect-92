@@ -69,7 +69,6 @@ const AddressInput = ({
     onChange(newValue);
     if (newValue.length >= 3) {
       setLoading(true);
-      setShowSuggestions(true);
     }
   };
 
@@ -77,6 +76,14 @@ const AddressInput = ({
     onChange(suggestion);
     setShowSuggestions(false);
     setSuggestions([]);
+    setLoading(false);
+  };
+
+  const handleInputFocus = () => {
+    // Only show suggestions if there's a value and suggestions exist
+    if (value.length >= 3 && suggestions.length > 0) {
+      setShowSuggestions(true);
+    }
   };
 
   return (
@@ -93,7 +100,7 @@ const AddressInput = ({
           id={id}
           value={value}
           onChange={handleInputChange}
-          onFocus={() => value.length >= 3 && setShowSuggestions(true)}
+          onFocus={handleInputFocus}
           placeholder={placeholder}
           className="h-14 pl-12 text-gray-600 bg-white border border-gray-100 rounded-xl shadow-sm"
           disabled={disabled}
