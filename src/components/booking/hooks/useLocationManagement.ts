@@ -9,19 +9,26 @@ export interface LocationState {
   cost: string;
 }
 
+const initialLocationState: LocationState = {
+  pickup: "",
+  dropoff: "",
+  distance: "",
+  cost: "",
+};
+
 export const useLocationManagement = () => {
   const { toast } = useToast();
-  const [locations, setLocations] = useState<LocationState>({
-    pickup: "",
-    dropoff: "",
-    distance: "",
-    cost: "",
-  });
+  const [locations, setLocations] = useState<LocationState>(initialLocationState);
   const [loading, setLoading] = useState(false);
 
   const updateLocation = useCallback((type: "pickup" | "dropoff", value: string) => {
-    console.log(`Updating ${type} location:`, value);
-    setLocations(prev => ({ ...prev, [type]: value }));
+    setLocations((prev) => ({
+      ...prev,
+      [type]: value,
+      // Reset distance and cost when locations change
+      distance: "",
+      cost: "",
+    }));
   }, []);
 
   const calculateTripDetails = useCallback(async () => {
@@ -32,7 +39,7 @@ export const useLocationManagement = () => {
     setLoading(true);
     try {
       const details = await calculateDistance(locations.pickup, locations.dropoff);
-      setLocations(prev => ({
+      setLocations((prev) => ({
         ...prev,
         distance: details.distanceText,
         cost: details.totalCost,

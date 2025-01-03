@@ -18,6 +18,10 @@ const BookingForm = () => {
     errors,
   } = useBookingForm();
 
+  if (!formData) {
+    return null; // Return early if formData is not yet initialized
+  }
+
   return (
     <div className="max-w-lg mx-auto p-4">
       <h1 className="text-xl font-bold mb-4">Book a Ride</h1>

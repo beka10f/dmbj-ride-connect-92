@@ -28,6 +28,17 @@ interface FormErrors {
   passengers?: string;
 }
 
+const initialFormData: BookingFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  pickup: "",
+  dropoff: "",
+  date: new Date(),
+  time: "",
+  passengers: "1",
+};
+
 export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
