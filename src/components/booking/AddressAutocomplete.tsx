@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -22,23 +22,11 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [internalValue, setInternalValue] = useState(value);
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  // Memoize the onChange handler to maintain referential equality
-  const handleChange = useCallback((newValue: string) => {
-    setInternalValue(newValue);
-    onChange(newValue);
-  }, [onChange]);
-
-  // Initialize Google Places Autocomplete
+  // Initialize Google Places Autocomplete once
   useEffect(() => {
-    if (!inputRef.current || !window.google) return;
-
-    // Clean up previous instance if it exists
-    if (autocompleteRef.current) {
-      google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      autocompleteRef.current = null;
-    }
+    if (!inputRef.current || !window.google || isInitialized) return;
 
     const autocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
@@ -50,14 +38,17 @@ const AddressAutocomplete = ({
     );
 
     autocompleteRef.current = autocomplete;
+    setIsInitialized(true);
 
+    // Place changed listener
     const placeChangedListener = autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
       if (place.formatted_address) {
-        handleChange(place.formatted_address);
+        onChange(place.formatted_address);
       }
     });
 
+    // Cleanup function
     return () => {
       if (placeChangedListener) {
         google.maps.event.removeListener(placeChangedListener);
@@ -66,24 +57,21 @@ const AddressAutocomplete = ({
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
         autocompleteRef.current = null;
       }
+      setIsInitialized(false);
     };
-  }, [handleChange]);
+  }, []);
 
-  // Sync internal state with prop value
+  // Sync input value with prop value
   useEffect(() => {
-    if (value !== internalValue) {
-      setInternalValue(value);
-      
-      // Update input value directly if it differs
-      if (inputRef.current && inputRef.current.value !== value) {
-        inputRef.current.value = value;
-      }
+    if (inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value;
     }
   }, [value]);
 
+  // Handle manual input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    handleChange(newValue);
+    onChange(newValue);
   };
 
   return (
@@ -93,7 +81,7 @@ const AddressAutocomplete = ({
         <Input
           ref={inputRef}
           id={id}
-          value={internalValue}
+          defaultValue={value}
           onChange={handleInputChange}
           placeholder={placeholder}
           className={`bg-white pl-10 ${error ? "border-red-500" : ""}`}
