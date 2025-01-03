@@ -27,6 +27,7 @@ const AddressInput = ({
 }: AddressInputProps) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loading, setLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,14 +41,24 @@ const AddressInput = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
     
-    if (enableSuggestions) {
-      const newSuggestions = getSuggestions(newValue);
-      setSuggestions(newSuggestions);
-      setShowSuggestions(true);
+    if (enableSuggestions && newValue.length >= 3) {
+      setLoading(true);
+      try {
+        const newSuggestions = await getSuggestions(newValue);
+        setSuggestions(newSuggestions);
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error('Error getting suggestions:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
   };
 
@@ -66,15 +77,21 @@ const AddressInput = ({
           id={id}
           value={value}
           onChange={handleInputChange}
-          onFocus={() => enableSuggestions && setShowSuggestions(true)}
+          onFocus={() => enableSuggestions && value.length >= 3 && setShowSuggestions(true)}
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
           disabled={disabled}
         />
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
         
+        {loading && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        )}
+        
         {enableSuggestions && showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
             {suggestions.map((suggestion, index) => (
               <div
                 key={index}
