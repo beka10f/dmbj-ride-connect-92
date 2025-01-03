@@ -69,6 +69,7 @@ const AddressInput = ({
     onChange(newValue);
     if (newValue.length >= 3) {
       setLoading(true);
+      setShowSuggestions(true);
     }
   };
 

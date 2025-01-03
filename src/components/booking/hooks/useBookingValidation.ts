@@ -54,19 +54,13 @@ export const useBookingValidation = () => {
       isValid = false;
     }
 
-    // Date and time validation
+    // Date validation
     if (!formData.date) {
       newErrors.date = "Date is required";
       isValid = false;
-    } else {
-      const selectedDate = new Date(formData.date);
-      const now = new Date();
-      if (selectedDate < now) {
-        newErrors.date = "Date must be in the future";
-        isValid = false;
-      }
     }
 
+    // Time validation
     if (!formData.time?.trim()) {
       newErrors.time = "Time is required";
       isValid = false;
@@ -84,6 +78,9 @@ export const useBookingValidation = () => {
       }
     }
 
+    console.log('Validation errors:', newErrors);
+    console.log('Form data being validated:', formData);
+    
     setErrors(newErrors);
     return isValid;
   }, []);
