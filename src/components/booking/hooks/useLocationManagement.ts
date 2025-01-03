@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { calculateDistance } from "../DistanceCalculator";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,7 +29,8 @@ export const useLocationManagement = () => {
   }, []);
 
   const calculateTripDetails = useCallback(async () => {
-    if (!locations.pickup || !locations.dropoff) {
+    // Only calculate if both addresses are complete (contain commas indicating full addresses)
+    if (!locations.pickup?.includes(',') || !locations.dropoff?.includes(',')) {
       return false;
     }
 
@@ -54,13 +55,6 @@ export const useLocationManagement = () => {
       setLoading(false);
     }
   }, [locations.pickup, locations.dropoff, toast]);
-
-  // Calculate trip details whenever both locations are set
-  useEffect(() => {
-    if (locations.pickup && locations.dropoff) {
-      calculateTripDetails();
-    }
-  }, [locations.pickup, locations.dropoff, calculateTripDetails]);
 
   return {
     locations,
