@@ -1,4 +1,4 @@
-import AddressAutocomplete from "@/components/booking/AddressAutocomplete";
+import AddressInput from "@/components/booking/AddressInput";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -39,7 +39,7 @@ export const QuickBookingForm = ({ onSuccess }: QuickBookingFormProps) => {
   return (
     <>
       <div className="space-y-4">
-        <AddressAutocomplete
+        <AddressInput
           id="quick-pickup"
           label="Pickup Location"
           value={formData.pickup}
@@ -47,7 +47,7 @@ export const QuickBookingForm = ({ onSuccess }: QuickBookingFormProps) => {
           placeholder="Enter pickup address"
         />
 
-        <AddressAutocomplete
+        <AddressInput
           id="quick-dropoff"
           label="Drop-off Location"
           value={formData.dropoff}
