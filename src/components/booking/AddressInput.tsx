@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -22,11 +22,18 @@ const AddressInput = ({
 }: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [internalValue, setInternalValue] = useState(value);
 
+  // Initialize autocomplete
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Create a new autocomplete instance for this input
+    // Clean up previous instance if it exists
+    if (autocompleteRef.current) {
+      google.maps.event.clearInstanceListeners(autocompleteRef.current);
+    }
+
+    // Create new autocomplete instance
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -36,10 +43,11 @@ const AddressInput = ({
       }
     );
 
-    // Add the place_changed listener
+    // Handle place selection
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
       if (place?.formatted_address) {
+        setInternalValue(place.formatted_address);
         onChange(place.formatted_address);
       }
     });
@@ -55,6 +63,18 @@ const AddressInput = ({
     };
   }, [onChange]);
 
+  // Sync internal value with external value
+  useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
+
+  // Handle manual input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInternalValue(newValue);
+    onChange(newValue);
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -63,8 +83,8 @@ const AddressInput = ({
           ref={inputRef}
           type="text"
           id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={internalValue}
+          onChange={handleInputChange}
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
