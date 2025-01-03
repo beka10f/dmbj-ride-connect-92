@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -11,7 +11,6 @@ interface AddressInputProps {
   placeholder?: string;
   error?: string;
   disabled?: boolean;
-  enableSuggestions?: boolean;
 }
 
 const AddressInput = ({
@@ -22,13 +21,12 @@ const AddressInput = ({
   placeholder,
   error,
   disabled,
-  enableSuggestions = false,
 }: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const initializeAutocomplete = useCallback(() => {
-    if (!inputRef.current || !window.google || !enableSuggestions) return;
+    if (!inputRef.current || !window.google) return;
 
     // Cleanup previous instance
     if (autocompleteRef.current) {
@@ -61,15 +59,13 @@ const AddressInput = ({
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, [id, onChange, enableSuggestions]);
+  }, [id, onChange]);
 
-  // Initialize Autocomplete only if suggestions are enabled
+  // Initialize Autocomplete
   useEffect(() => {
-    if (enableSuggestions) {
-      const cleanup = initializeAutocomplete();
-      return () => cleanup?.();
-    }
-  }, [initializeAutocomplete, enableSuggestions]);
+    const cleanup = initializeAutocomplete();
+    return () => cleanup?.();
+  }, [initializeAutocomplete]);
 
   // Sync input value with state
   useEffect(() => {
@@ -78,16 +74,20 @@ const AddressInput = ({
     }
   }, [value]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-  };
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log(`Manual input change for ${id}:`, e.target.value);
+      onChange(e.target.value);
+    },
+    [onChange, id]
+  );
 
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <div className="relative">
         <Input
-          ref={enableSuggestions ? inputRef : undefined}
+          ref={inputRef}
           type="text"
           id={id}
           value={value}
@@ -95,7 +95,7 @@ const AddressInput = ({
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
           disabled={disabled}
-          autoComplete={enableSuggestions ? "off" : "on"}
+          autoComplete="off"
         />
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
       </div>
@@ -104,4 +104,4 @@ const AddressInput = ({
   );
 };
 
-export default AddressInput;
+export default memo(AddressInput);
