@@ -43,7 +43,7 @@ const BookingFormFields = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PersonalInfoFields
         name={formData.name}
         email={formData.email}
@@ -53,78 +53,76 @@ const BookingFormFields = ({
         errors={errors}
       />
 
-      <div className="space-y-6">
-        <AddressFields
-          pickup={formData.pickup}
-          dropoff={formData.dropoff}
-          onPickupChange={(value) => handleFieldChange("pickup", value)}
-          onDropoffChange={(value) => handleFieldChange("dropoff", value)}
-          errors={errors}
-        />
+      <AddressFields
+        pickup={formData.pickup}
+        dropoff={formData.dropoff}
+        onPickupChange={(value) => handleFieldChange("pickup", value)}
+        onDropoffChange={(value) => handleFieldChange("dropoff", value)}
+        errors={errors}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "h-14 justify-start text-left font-normal bg-white border border-gray-100 rounded-xl shadow-sm",
-                  !formData.date && "text-gray-500"
-                )}
-              >
-                <CalendarIcon className="mr-3 h-5 w-5 text-gray-400" />
-                {formData.date ? format(formData.date, "MMMM do, yyyy") : "Select date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={formData.date}
-                onSelect={(newDate) => handleFieldChange("date", newDate || new Date())}
-                initialFocus
-                disabled={(date) => date < new Date()}
-              />
-            </PopoverContent>
-          </Popover>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "h-12 justify-start text-left font-normal bg-white border border-gray-100 rounded-xl shadow-sm w-full",
+                !formData.date && "text-gray-500"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4 text-gray-400" />
+              {formData.date ? format(formData.date, "MMMM do, yyyy") : "Select date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={formData.date}
+              onSelect={(newDate) => handleFieldChange("date", newDate || new Date())}
+              initialFocus
+              disabled={(date) => date < new Date()}
+            />
+          </PopoverContent>
+        </Popover>
 
-          <Select
-            value={formData.time}
-            onValueChange={(value) => handleFieldChange("time", value)}
-          >
-            <SelectTrigger className="h-14 bg-white border border-gray-100 rounded-xl shadow-sm">
-              <div className="flex items-center text-gray-500">
-                <Clock className="mr-3 h-5 w-5 text-gray-400" />
-                {formData.time ? (
-                  timeSlots.find((slot) => slot.value === formData.time)?.label
-                ) : (
-                  "Select pickup time"
-                )}
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              {timeSlots.map((slot) => (
-                <SelectItem key={slot.value} value={slot.value}>
-                  {slot.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select
+          value={formData.time}
+          onValueChange={(value) => handleFieldChange("time", value)}
+        >
+          <SelectTrigger className="h-12 bg-white border border-gray-100 rounded-xl shadow-sm">
+            <div className="flex items-center text-gray-500">
+              <Clock className="mr-2 h-4 w-4 text-gray-400" />
+              {formData.time ? (
+                timeSlots.find((slot) => slot.value === formData.time)?.label
+              ) : (
+                "Select pickup time"
+              )}
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {timeSlots.map((slot) => (
+              <SelectItem key={slot.value} value={slot.value}>
+                {slot.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Button
         type="button"
-        className="w-full h-14 bg-[#B69F80] hover:bg-[#A38E6F] text-white rounded-xl transition-all duration-200 ease-in-out shadow-sm"
+        className="w-full h-12 bg-[#B69F80] hover:bg-[#A38E6F] text-white rounded-xl transition-all duration-200 ease-in-out shadow-sm"
         disabled={loading}
         onClick={onSubmit}
       >
         {loading ? (
           <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
             <span>Processing...</span>
           </div>
         ) : (
-          "Submit Booking"
+          "Book Now"
         )}
       </Button>
     </div>
