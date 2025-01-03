@@ -27,8 +27,6 @@ const AddressFields = ({
         onChange={onPickupChange}
         placeholder="Enter pickup address"
         error={errors?.pickup}
-        enableSuggestions={true}
-        suggestionType="osm"
       />
       <AddressInput
         id="dropoff"
@@ -37,8 +35,6 @@ const AddressFields = ({
         onChange={onDropoffChange}
         placeholder="Enter destination address"
         error={errors?.dropoff}
-        enableSuggestions={true}
-        suggestionType="google"
       />
     </>
   );

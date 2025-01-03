@@ -12,8 +12,6 @@ interface AddressInputProps {
   placeholder?: string;
   error?: string;
   disabled?: boolean;
-  enableSuggestions?: boolean;
-  suggestionType?: 'osm' | 'google';
 }
 
 const AddressInput = ({
@@ -24,8 +22,6 @@ const AddressInput = ({
   placeholder,
   error,
   disabled,
-  enableSuggestions = false,
-  suggestionType = 'osm',
 }: AddressInputProps) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -47,11 +43,11 @@ const AddressInput = ({
     const newValue = e.target.value;
     onChange(newValue);
     
-    if (enableSuggestions && newValue.length >= 3) {
+    if (newValue.length >= 3) {
       setLoading(true);
       try {
-        console.log(`Fetching suggestions using ${suggestionType} for:`, newValue);
-        const newSuggestions = await getSuggestions(newValue, suggestionType);
+        console.log('Fetching suggestions for:', newValue);
+        const newSuggestions = await getSuggestions(newValue);
         console.log('Received suggestions:', newSuggestions);
         setSuggestions(newSuggestions);
         setShowSuggestions(true);
@@ -81,7 +77,7 @@ const AddressInput = ({
           id={id}
           value={value}
           onChange={handleInputChange}
-          onFocus={() => enableSuggestions && value.length >= 3 && setShowSuggestions(true)}
+          onFocus={() => value.length >= 3 && setShowSuggestions(true)}
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
           disabled={disabled}
@@ -94,7 +90,7 @@ const AddressInput = ({
           </div>
         )}
         
-        {enableSuggestions && showSuggestions && suggestions.length > 0 && (
+        {showSuggestions && suggestions.length > 0 && (
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
             {suggestions.map((suggestion, index) => (
               <div
