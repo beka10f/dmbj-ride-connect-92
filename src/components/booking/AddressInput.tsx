@@ -53,6 +53,7 @@ const AddressInput = ({
           setShowSuggestions(true);
         } catch (error) {
           console.error('Error getting suggestions:', error);
+          setSuggestions([]);
         } finally {
           setLoading(false);
         }
@@ -68,6 +69,9 @@ const AddressInput = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
+    if (newValue.length >= 3) {
+      setLoading(true);
+    }
   };
 
   return (
