@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Clock, MapPin } from "lucide-react";
+import { CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -43,18 +43,20 @@ const BookingFormFields = ({
   };
 
   return (
-    <div className="p-8 space-y-6 bg-white rounded-lg">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <PersonalInfoFields
-          name={formData.name}
-          email={formData.email}
-          phone={formData.phone}
-          passengers={formData.passengers}
-          onFieldChange={handleFieldChange}
-          errors={errors}
-        />
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6 p-4 bg-gray-50/50 rounded-lg">
+          <PersonalInfoFields
+            name={formData.name}
+            email={formData.email}
+            phone={formData.phone}
+            passengers={formData.passengers}
+            onFieldChange={handleFieldChange}
+            errors={errors}
+          />
+        </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 p-4 bg-gray-50/50 rounded-lg">
           <AddressFields
             pickup={formData.pickup}
             dropoff={formData.dropoff}
@@ -63,82 +65,80 @@ const BookingFormFields = ({
             errors={errors}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.date && "text-muted-foreground",
-                      errors?.date && "border-red-500"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
-                    {formData.date ? format(formData.date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.date}
-                    onSelect={(newDate) => handleFieldChange("date", newDate || new Date())}
-                    initialFocus
-                    disabled={(date) => date < new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors?.date && (
-                <p className="text-sm text-red-500">{errors.date}</p>
-              )}
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal bg-white",
+                    !formData.date && "text-muted-foreground",
+                    errors?.date && "border-red-500"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                  {formData.date ? format(formData.date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.date}
+                  onSelect={(newDate) => handleFieldChange("date", newDate || new Date())}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                />
+              </PopoverContent>
+            </Popover>
 
-            <div className="space-y-2">
-              <Select
-                value={formData.time}
-                onValueChange={(value) => handleFieldChange("time", value)}
-              >
-                <SelectTrigger className={cn(
-                  errors?.time && "border-red-500"
-                )}>
-                  <SelectValue placeholder="Select time">
-                    {formData.time ? (
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-gray-500" />
-                        {timeSlots.find((slot) => slot.value === formData.time)?.label}
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-gray-500" />
-                        <span>Select time</span>
-                      </div>
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {timeSlots.map((slot) => (
-                    <SelectItem key={slot.value} value={slot.value}>
-                      {slot.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors?.time && (
-                <p className="text-sm text-red-500">{errors.time}</p>
-              )}
-            </div>
+            <Select
+              value={formData.time}
+              onValueChange={(value) => handleFieldChange("time", value)}
+            >
+              <SelectTrigger className={cn(
+                "bg-white",
+                errors?.time && "border-red-500"
+              )}>
+                <SelectValue placeholder="Select time">
+                  {formData.time ? (
+                    <div className="flex items-center">
+                      <Clock className="mr-2 h-4 w-4 text-gray-500" />
+                      {timeSlots.find((slot) => slot.value === formData.time)?.label}
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <Clock className="mr-2 h-4 w-4 text-gray-500" />
+                      <span>Select time</span>
+                    </div>
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map((slot) => (
+                  <SelectItem key={slot.value} value={slot.value}>
+                    {slot.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
 
       <Button
         type="button"
-        className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg font-semibold transition-all duration-200 ease-in-out mt-6"
+        className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg font-semibold transition-all duration-200 ease-in-out mt-8"
         disabled={loading}
         onClick={onSubmit}
       >
-        {loading ? "Processing..." : "Book Your Ride"}
+        {loading ? (
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+            <span>Processing...</span>
+          </div>
+        ) : (
+          "Book Your Luxury Ride"
+        )}
       </Button>
     </div>
   );
