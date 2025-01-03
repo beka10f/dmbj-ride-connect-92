@@ -3,8 +3,8 @@ import { Hero } from "@/components/Hero";
 import { Benefits } from "@/components/Benefits";
 import { Footer } from "@/components/Footer";
 
-const LazyBookingForm = lazy(() => import("@/components/BookingForm").then(module => ({ default: module.BookingForm })));
-const LazyFleet = lazy(() => import("@/components/Fleet").then(module => ({ default: module.Fleet })));
+const BookingForm = lazy(() => import("@/components/BookingForm"));
+const Fleet = lazy(() => import("@/components/Fleet"));
 
 const LoadingFallback = () => (
   <div className="w-full h-64 flex items-center justify-center">
@@ -18,10 +18,10 @@ const Index = () => {
       <Hero />
       <Benefits />
       <Suspense fallback={<LoadingFallback />}>
-        <LazyBookingForm />
+        <BookingForm />
       </Suspense>
       <Suspense fallback={<LoadingFallback />}>
-        <LazyFleet />
+        <Fleet />
       </Suspense>
       <Footer />
     </div>
