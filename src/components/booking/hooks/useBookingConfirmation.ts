@@ -14,7 +14,12 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
         throw new Error("No booking details available");
       }
 
+      // Remove currency symbol and convert to number
       const numericCost = parseFloat(bookingDetails.cost.replace(/[^0-9.]/g, ""));
+
+      if (isNaN(numericCost)) {
+        throw new Error("Invalid cost amount");
+      }
 
       console.log('Creating checkout session with details:', {
         amount: numericCost,

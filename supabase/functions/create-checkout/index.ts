@@ -79,7 +79,7 @@ serve(async (req) => {
               name: 'Ride Booking',
               description: `From ${bookingDetails.pickup} to ${bookingDetails.dropoff}`,
             },
-            unit_amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+            unit_amount: Math.round(amount * 100), // Convert to cents
           },
           quantity: 1,
         },
