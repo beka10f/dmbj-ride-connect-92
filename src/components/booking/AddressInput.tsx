@@ -51,9 +51,11 @@ const AddressInput = ({
     if (enableSuggestions && newValue.length >= 3) {
       setLoading(true);
       try {
+        console.log(`Fetching suggestions using ${suggestionType} for:`, newValue);
         const newSuggestions = suggestionType === "google" 
           ? await getGoogleSuggestions(newValue)
           : await getSuggestions(newValue);
+        console.log('Received suggestions:', newSuggestions);
         setSuggestions(newSuggestions);
         setShowSuggestions(true);
       } catch (error) {

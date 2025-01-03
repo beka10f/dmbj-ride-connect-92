@@ -4,11 +4,23 @@ export const getGoogleSuggestions = async (input: string): Promise<string[]> => 
   if (!input) return [];
 
   try {
+    console.log('Fetching Google Places suggestions for:', input);
+    
     const { data, error } = await supabase.functions.invoke('google-places', {
       body: { input }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error from Google Places function:', error);
+      throw error;
+    }
+
+    console.log('Google Places response:', data);
+
+    if (!data.predictions) {
+      console.warn('No predictions in response:', data);
+      return [];
+    }
 
     return data.predictions.map((prediction: any) => prediction.description);
   } catch (error) {
