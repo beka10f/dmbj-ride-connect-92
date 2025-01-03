@@ -1,4 +1,3 @@
-import { memo } from "react";
 import AddressInput from "../AddressInput";
 
 interface AddressFieldsProps {
@@ -10,7 +9,6 @@ interface AddressFieldsProps {
     pickup?: string;
     dropoff?: string;
   };
-  disabled?: boolean;
 }
 
 const AddressFields = ({
@@ -19,10 +17,9 @@ const AddressFields = ({
   onPickupChange,
   onDropoffChange,
   errors,
-  disabled,
 }: AddressFieldsProps) => {
   return (
-    <div className="space-y-4">
+    <>
       <AddressInput
         id="pickup"
         label="Pickup Location"
@@ -30,7 +27,6 @@ const AddressFields = ({
         onChange={onPickupChange}
         placeholder="Enter pickup address"
         error={errors?.pickup}
-        disabled={disabled}
         enableSuggestions={true}
       />
       <AddressInput
@@ -40,11 +36,10 @@ const AddressFields = ({
         onChange={onDropoffChange}
         placeholder="Enter destination address"
         error={errors?.dropoff}
-        disabled={disabled}
-        enableSuggestions={true}
+        enableSuggestions={false}
       />
-    </div>
+    </>
   );
 };
 
-export default memo(AddressFields);
+export default AddressFields;
