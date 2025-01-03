@@ -30,31 +30,19 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Get user session if available
-    const authHeader = req.headers.get('Authorization');
-    let userId = null;
-    
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabaseClient.auth.getUser(token);
-      if (user) {
-        userId = user.id;
-      }
-    }
-
-    // Create booking in database
+    // Create booking in database first
     const { data: booking, error: bookingError } = await supabaseClient
       .from('bookings')
       .insert([
         {
-          user_id: userId,
+          user_id: bookingDetails.user_id,
           pickup_location: bookingDetails.pickup,
           dropoff_location: bookingDetails.dropoff,
-          pickup_date: new Date(bookingDetails.dateTime).toISOString(),
+          pickup_date: bookingDetails.dateTime,
           status: 'pending_payment',
-          special_instructions: `Guest Booking - Name: ${customerDetails.name}, Phone: ${customerDetails.phone}`,
+          special_instructions: bookingDetails.special_instructions,
           payment_status: 'pending',
-          payment_amount: parseFloat(amount)
+          payment_amount: amount
         },
       ])
       .select()

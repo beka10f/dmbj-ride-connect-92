@@ -14,10 +14,12 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
         throw new Error("No booking details available");
       }
 
-      // Remove currency symbol and convert to number
-      const numericCost = parseFloat(bookingDetails.cost.replace(/[^0-9.]/g, ""));
+      // Extract numeric value from cost string (e.g., "$50.00" -> 50.00)
+      const costString = bookingDetails.cost.replace(/[^0-9.]/g, "");
+      const numericCost = parseFloat(costString);
 
       if (isNaN(numericCost)) {
+        console.error('Invalid cost amount:', bookingDetails.cost);
         throw new Error("Invalid cost amount");
       }
 
@@ -46,9 +48,12 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
               phone: bookingDetails.phone,
             },
             bookingDetails: {
-              ...bookingDetails,
+              pickup: bookingDetails.pickup,
+              dropoff: bookingDetails.dropoff,
+              dateTime: bookingDetails.dateTime,
               status: "pending_payment",
               user_id: profile?.id,
+              special_instructions: `Booking for ${bookingDetails.name} - ${bookingDetails.phone}`,
             },
           },
         }
@@ -60,6 +65,7 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
       }
 
       if (!checkoutData?.url) {
+        console.error('No checkout URL received:', checkoutData);
         throw new Error('No checkout URL received');
       }
 
