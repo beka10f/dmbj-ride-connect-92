@@ -16,6 +16,17 @@ export interface BookingFormData {
   passengers: string;
 }
 
+interface FormErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  pickup?: string;
+  dropoff?: string;
+  date?: string;
+  time?: string;
+  passengers?: string;
+}
+
 export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
@@ -25,6 +36,7 @@ export const useBookingForm = () => {
   const [cost, setCost] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const [formData, setFormData] = useState<BookingFormData>({
     name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "",
@@ -37,13 +49,59 @@ export const useBookingForm = () => {
     passengers: "1",
   });
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    let isValid = true;
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+      isValid = false;
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+      isValid = false;
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+      isValid = false;
+    }
+
+    if (!formData.pickup.trim()) {
+      newErrors.pickup = "Pickup location is required";
+      isValid = false;
+    }
+
+    if (!formData.dropoff.trim()) {
+      newErrors.dropoff = "Drop-off location is required";
+      isValid = false;
+    }
+
+    if (!formData.time) {
+      newErrors.time = "Pickup time is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async () => {
+    if (!validateForm()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields correctly",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      if (!formData.pickup || !formData.dropoff) {
-        throw new Error("Please fill in all required fields");
-      }
-
       const details: DistanceCalculation = await calculateDistance(
         formData.pickup,
         formData.dropoff
@@ -126,6 +184,7 @@ export const useBookingForm = () => {
     showConfirmation,
     setShowConfirmation,
     bookingDetails,
+    errors,
     handleSubmit,
     handleConfirmBooking,
   };

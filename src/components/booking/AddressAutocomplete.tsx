@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MapPin } from "lucide-react";
 
 interface AddressAutocompleteProps {
   id: string;
@@ -8,6 +9,7 @@ interface AddressAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  error?: string;
 }
 
 const AddressAutocomplete = ({
@@ -16,19 +18,30 @@ const AddressAutocomplete = ({
   value,
   onChange,
   placeholder,
+  error,
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
+  const handlePlaceSelect = useCallback(() => {
+    if (!autocompleteRef.current) return;
+    
+    const place = autocompleteRef.current.getPlace();
+    if (place.formatted_address) {
+      onChange(place.formatted_address);
+    }
+  }, [onChange]);
+
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Clean up previous instance
+    // Cleanup previous instance
     if (autocompleteRef.current) {
       google.maps.event.clearInstanceListeners(autocompleteRef.current);
     }
 
-    const autocomplete = new window.google.maps.places.Autocomplete(
+    // Create new instance
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
         types: ["address"],
@@ -37,14 +50,11 @@ const AddressAutocomplete = ({
       }
     );
 
-    autocompleteRef.current = autocomplete;
-
-    const listener = autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
-      if (place.formatted_address) {
-        onChange(place.formatted_address);
-      }
-    });
+    // Add place_changed listener
+    const listener = autocompleteRef.current.addListener(
+      "place_changed",
+      handlePlaceSelect
+    );
 
     return () => {
       if (listener) {
@@ -55,20 +65,24 @@ const AddressAutocomplete = ({
       }
       autocompleteRef.current = null;
     };
-  }, [onChange]);
+  }, [handlePlaceSelect]);
 
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input
-        ref={inputRef}
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="bg-white"
-        autoComplete="off"
-      />
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`bg-white pl-10 ${error ? 'border-red-500' : ''}`}
+          autoComplete="off"
+        />
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+      </div>
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
 };

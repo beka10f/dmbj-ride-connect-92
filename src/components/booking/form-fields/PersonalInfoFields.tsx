@@ -8,6 +8,12 @@ interface PersonalInfoFieldsProps {
   phone: string;
   passengers: string;
   onFieldChange: (field: string, value: string) => void;
+  errors?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    passengers?: string;
+  };
 }
 
 const PersonalInfoFields = ({
@@ -16,6 +22,7 @@ const PersonalInfoFields = ({
   phone,
   passengers,
   onFieldChange,
+  errors,
 }: PersonalInfoFieldsProps) => {
   return (
     <>
@@ -26,7 +33,11 @@ const PersonalInfoFields = ({
           value={name}
           onChange={(e) => onFieldChange("name", e.target.value)}
           placeholder="John Doe"
+          className={errors?.name ? "border-red-500" : ""}
         />
+        {errors?.name && (
+          <p className="text-sm text-red-500">{errors.name}</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -37,7 +48,11 @@ const PersonalInfoFields = ({
           value={email}
           onChange={(e) => onFieldChange("email", e.target.value)}
           placeholder="john@example.com"
+          className={errors?.email ? "border-red-500" : ""}
         />
+        {errors?.email && (
+          <p className="text-sm text-red-500">{errors.email}</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -48,7 +63,11 @@ const PersonalInfoFields = ({
           value={phone}
           onChange={(e) => onFieldChange("phone", e.target.value)}
           placeholder="+1 (555) 000-0000"
+          className={errors?.phone ? "border-red-500" : ""}
         />
+        {errors?.phone && (
+          <p className="text-sm text-red-500">{errors.phone}</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -57,7 +76,13 @@ const PersonalInfoFields = ({
           value={passengers}
           onValueChange={(value) => onFieldChange("passengers", value)}
         >
-          <SelectTrigger id="passengers" className="bg-white">
+          <SelectTrigger 
+            id="passengers" 
+            className={cn(
+              "bg-white",
+              errors?.passengers && "border-red-500"
+            )}
+          >
             <SelectValue placeholder="Select passengers" />
           </SelectTrigger>
           <SelectContent>
@@ -67,6 +92,9 @@ const PersonalInfoFields = ({
             <SelectItem value="4">4 Passengers</SelectItem>
           </SelectContent>
         </Select>
+        {errors?.passengers && (
+          <p className="text-sm text-red-500">{errors.passengers}</p>
+        )}
       </div>
     </>
   );

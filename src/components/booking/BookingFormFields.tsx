@@ -23,11 +23,12 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
 
 interface BookingFormFieldsProps {
   formData: BookingFormData;
-  setFormData: (data: any) => void;
+  setFormData: (data: BookingFormData) => void;
   onSubmit: () => void;
   loading: boolean;
   distance: string;
   cost: string;
+  errors?: Partial<Record<keyof BookingFormData, string>>;
 }
 
 const BookingFormFields = ({
@@ -37,12 +38,13 @@ const BookingFormFields = ({
   loading,
   distance,
   cost,
+  errors,
 }: BookingFormFieldsProps) => {
-  const handleFieldChange = (field: keyof BookingFormData, value: string) => {
-    setFormData((prev: BookingFormData) => ({
-      ...prev,
+  const handleFieldChange = (field: keyof BookingFormData, value: any) => {
+    setFormData({
+      ...formData,
       [field]: value,
-    }));
+    });
   };
 
   return (
@@ -54,6 +56,7 @@ const BookingFormFields = ({
           phone={formData.phone}
           passengers={formData.passengers}
           onFieldChange={handleFieldChange}
+          errors={errors}
         />
 
         <AddressFields
@@ -61,6 +64,7 @@ const BookingFormFields = ({
           dropoff={formData.dropoff}
           onPickupChange={(value) => handleFieldChange("pickup", value)}
           onDropoffChange={(value) => handleFieldChange("dropoff", value)}
+          errors={errors}
         />
 
         <div className="space-y-2">
@@ -71,7 +75,8 @@ const BookingFormFields = ({
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal bg-white",
-                  !formData.date && "text-muted-foreground"
+                  !formData.date && "text-muted-foreground",
+                  errors?.date && "border-red-500"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -82,31 +87,27 @@ const BookingFormFields = ({
               <Calendar
                 mode="single"
                 selected={formData.date}
-                onSelect={(newDate) =>
-                  setFormData((prev: BookingFormData) => ({
-                    ...prev,
-                    date: newDate || new Date(),
-                  }))
-                }
+                onSelect={(newDate) => handleFieldChange("date", newDate || new Date())}
                 initialFocus
-                disabled={(d) => d < new Date()}
+                disabled={(date) => date < new Date()}
               />
             </PopoverContent>
           </Popover>
+          {errors?.date && (
+            <p className="text-sm text-red-500">{errors.date}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Pickup Time</label>
           <Select
             value={formData.time}
-            onValueChange={(value) =>
-              setFormData((prev: BookingFormData) => ({
-                ...prev,
-                time: value,
-              }))
-            }
+            onValueChange={(value) => handleFieldChange("time", value)}
           >
-            <SelectTrigger className="bg-white">
+            <SelectTrigger className={cn(
+              "bg-white",
+              errors?.time && "border-red-500"
+            )}>
               <SelectValue placeholder="Select pickup time">
                 {formData.time ? (
                   <div className="flex items-center">
@@ -129,6 +130,9 @@ const BookingFormFields = ({
               ))}
             </SelectContent>
           </Select>
+          {errors?.time && (
+            <p className="text-sm text-red-500">{errors.time}</p>
+          )}
         </div>
       </div>
 

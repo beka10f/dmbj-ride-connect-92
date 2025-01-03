@@ -5,6 +5,10 @@ interface AddressFieldsProps {
   dropoff: string;
   onPickupChange: (value: string) => void;
   onDropoffChange: (value: string) => void;
+  errors?: {
+    pickup?: string;
+    dropoff?: string;
+  };
 }
 
 const AddressFields = ({
@@ -12,6 +16,7 @@ const AddressFields = ({
   dropoff,
   onPickupChange,
   onDropoffChange,
+  errors,
 }: AddressFieldsProps) => {
   return (
     <>
@@ -21,6 +26,7 @@ const AddressFields = ({
         value={pickup}
         onChange={onPickupChange}
         placeholder="Enter pickup address"
+        error={errors?.pickup}
       />
       <AddressAutocomplete
         id="dropoff"
@@ -28,6 +34,7 @@ const AddressFields = ({
         value={dropoff}
         onChange={onDropoffChange}
         placeholder="Enter destination address"
+        error={errors?.dropoff}
       />
     </>
   );

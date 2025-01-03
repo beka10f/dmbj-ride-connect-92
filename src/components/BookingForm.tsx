@@ -15,6 +15,7 @@ const BookingForm = () => {
     showConfirmation,
     setShowConfirmation,
     bookingDetails,
+    errors,
   } = useBookingForm();
 
   return (
@@ -28,6 +29,7 @@ const BookingForm = () => {
         loading={loading}
         distance={distance}
         cost={cost}
+        errors={errors}
       />
 
       <BookingConfirmationDialog
