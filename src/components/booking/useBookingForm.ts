@@ -31,13 +31,6 @@ export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
 
-  const [loading, setLoading] = useState(false);
-  const [distance, setDistance] = useState<string>("");
-  const [cost, setCost] = useState<string>("");
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [bookingDetails, setBookingDetails] = useState<any>(null);
-  const [errors, setErrors] = useState<FormErrors>({});
-
   const [formData, setFormData] = useState<BookingFormData>({
     name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "",
     email: profile?.email || "",
@@ -48,6 +41,13 @@ export const useBookingForm = () => {
     time: "",
     passengers: "1",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [distance, setDistance] = useState<string>("");
+  const [cost, setCost] = useState<string>("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};

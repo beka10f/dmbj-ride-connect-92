@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -22,13 +22,11 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
-  
-  // Initialize Google Places Autocomplete
-  useEffect(() => {
-    if (!inputRef.current || !window.google || isInitialized) return;
 
+  useEffect(() => {
+    if (!inputRef.current || !window.google) return;
+
+    // Initialize Google Places Autocomplete
     const autocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -38,17 +36,17 @@ const AddressAutocomplete = ({
       }
     );
 
+    // Listen for place selection
     const placeChangedListener = autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
       if (place.formatted_address) {
-        setInputValue(place.formatted_address);
         onChange(place.formatted_address);
       }
     });
 
     autocompleteRef.current = autocomplete;
-    setIsInitialized(true);
 
+    // Cleanup
     return () => {
       if (placeChangedListener) {
         google.maps.event.removeListener(placeChangedListener);
@@ -56,21 +54,8 @@ const AddressAutocomplete = ({
       if (autocompleteRef.current) {
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
-      autocompleteRef.current = null;
-      setIsInitialized(false);
     };
-  }, [id, onChange]);
-
-  // Keep local state in sync with prop value
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    onChange(newValue);
-  };
+  }, [onChange]);
 
   return (
     <div className="space-y-2">
@@ -79,8 +64,8 @@ const AddressAutocomplete = ({
         <Input
           ref={inputRef}
           id={id}
-          value={inputValue}
-          onChange={handleInputChange}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={`bg-white pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
