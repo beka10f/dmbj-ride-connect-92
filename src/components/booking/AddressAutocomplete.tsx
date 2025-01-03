@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -23,11 +23,22 @@ const AddressAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [internalValue, setInternalValue] = useState(value);
-  const isUserInput = useRef(false);
+  
+  // Memoize the onChange handler to maintain referential equality
+  const handleChange = useCallback((newValue: string) => {
+    setInternalValue(newValue);
+    onChange(newValue);
+  }, [onChange]);
 
-  // Initialize Google Places Autocomplete once
+  // Initialize Google Places Autocomplete
   useEffect(() => {
-    if (!inputRef.current || !window.google || autocompleteRef.current) return;
+    if (!inputRef.current || !window.google) return;
+
+    // Clean up previous instance if it exists
+    if (autocompleteRef.current) {
+      google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
+    }
 
     const autocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
@@ -40,34 +51,39 @@ const AddressAutocomplete = ({
 
     autocompleteRef.current = autocomplete;
 
-    const listener = autocomplete.addListener("place_changed", () => {
+    const placeChangedListener = autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
       if (place.formatted_address) {
-        isUserInput.current = false;
-        setInternalValue(place.formatted_address);
-        onChange(place.formatted_address);
+        handleChange(place.formatted_address);
       }
     });
 
     return () => {
-      if (listener) {
-        google.maps.event.removeListener(listener);
+      if (placeChangedListener) {
+        google.maps.event.removeListener(placeChangedListener);
+      }
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
       }
     };
-  }, []); // Empty dependency array - only run once
+  }, [handleChange]);
 
-  // Sync internal state with prop value when it changes from parent
+  // Sync internal state with prop value
   useEffect(() => {
-    if (!isUserInput.current) {
+    if (value !== internalValue) {
       setInternalValue(value);
+      
+      // Update input value directly if it differs
+      if (inputRef.current && inputRef.current.value !== value) {
+        inputRef.current.value = value;
+      }
     }
   }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    isUserInput.current = true;
-    setInternalValue(newValue);
-    onChange(newValue);
+    handleChange(newValue);
   };
 
   return (
