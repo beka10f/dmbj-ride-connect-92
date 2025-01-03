@@ -2,54 +2,50 @@ import { useState, useCallback } from "react";
 import { calculateDistance } from "../DistanceCalculator";
 import { useToast } from "@/hooks/use-toast";
 
-export interface LocationState {
+interface LocationState {
   pickup: string;
   dropoff: string;
   distance: string;
   cost: string;
 }
 
-const initialLocationState: LocationState = {
-  pickup: "",
-  dropoff: "",
-  distance: "",
-  cost: "",
-};
-
 export const useLocationManagement = () => {
   const { toast } = useToast();
-  const [locations, setLocations] = useState<LocationState>(initialLocationState);
+  const [locations, setLocations] = useState<LocationState>({
+    pickup: "",
+    dropoff: "",
+    distance: "",
+    cost: "",
+  });
   const [loading, setLoading] = useState(false);
 
   const updateLocation = useCallback(async (type: "pickup" | "dropoff", value: string) => {
-    setLocations((prev) => ({
-      ...prev,
-      [type]: value,
-    }));
+    setLocations((prev) => ({ ...prev, [type]: value }));
 
-    // If both locations are set and contain commas (indicating complete addresses)
     const updatedLocations = {
       ...locations,
       [type]: value,
     };
 
-    if (updatedLocations.pickup?.includes(',') && updatedLocations.dropoff?.includes(',')) {
+    if (updatedLocations.pickup && updatedLocations.dropoff) {
       setLoading(true);
       try {
-        console.log('Calculating distance for:', updatedLocations.pickup, updatedLocations.dropoff);
-        const details = await calculateDistance(updatedLocations.pickup, updatedLocations.dropoff);
-        console.log('Calculated details:', details);
+        const result = await calculateDistance(
+          updatedLocations.pickup,
+          updatedLocations.dropoff
+        );
+        
         setLocations((prev) => ({
           ...prev,
           [type]: value,
-          distance: details.distanceText,
-          cost: `$${details.totalCost}`,
+          distance: result.distanceText,
+          cost: result.totalCost,
         }));
-      } catch (error: any) {
-        console.error("Error calculating trip details:", error);
+      } catch (error) {
+        console.error("Error calculating distance:", error);
         toast({
           title: "Error",
-          description: "Failed to calculate trip details. Please check the addresses.",
+          description: "Failed to calculate trip distance. Please try again.",
           variant: "destructive",
         });
       } finally {
