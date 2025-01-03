@@ -30,7 +30,6 @@ const CarCard = memo(({ car, index }: { car: typeof cars[0]; index: number }) =>
     transition={{ duration: 0.5, delay: index * 0.2 }}
     className="bg-white rounded-3xl shadow-sm overflow-hidden ios-btn-active"
   >
-    {/* Fixed-height container to keep images consistent */}
     <div className="flex items-center justify-center h-40 sm:h-48 md:h-56 overflow-hidden">
       <img
         src={car.image}
@@ -52,7 +51,7 @@ const CarCard = memo(({ car, index }: { car: typeof cars[0]; index: number }) =>
 
 CarCard.displayName = "CarCard";
 
-export const Fleet = memo(() => {
+const Fleet = memo(() => {
   return (
     <section id="fleet" className="py-8 sm:py-12 md:py-16 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -70,3 +69,5 @@ export const Fleet = memo(() => {
 });
 
 Fleet.displayName = "Fleet";
+
+export default Fleet;
