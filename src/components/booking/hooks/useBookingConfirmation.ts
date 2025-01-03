@@ -14,10 +14,6 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
         throw new Error("No booking details available");
       }
 
-      if (!profile?.id) {
-        throw new Error("User must be logged in to book");
-      }
-
       // Extract numeric value from cost string (e.g., "$50.00" -> 50.00)
       const costString = bookingDetails.cost.replace(/[^0-9.]/g, "");
       const numericCost = parseFloat(costString);
@@ -38,7 +34,7 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
           pickup: bookingDetails.pickup,
           dropoff: bookingDetails.dropoff,
           dateTime: bookingDetails.dateTime,
-          user_id: profile.id,
+          user_id: profile?.id,
           special_instructions: `Booking for ${bookingDetails.name} - ${bookingDetails.phone}`,
         },
       });
@@ -57,7 +53,7 @@ export const useBookingConfirmation = (profile: UserProfile | null) => {
               pickup: bookingDetails.pickup,
               dropoff: bookingDetails.dropoff,
               dateTime: bookingDetails.dateTime,
-              user_id: profile.id,
+              user_id: profile?.id,
               special_instructions: `Booking for ${bookingDetails.name} - ${bookingDetails.phone}`,
             },
           },

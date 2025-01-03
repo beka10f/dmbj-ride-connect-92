@@ -35,7 +35,6 @@ serve(async (req) => {
       .from('bookings')
       .insert([
         {
-          user_id: bookingDetails.user_id,
           pickup_location: bookingDetails.pickup,
           dropoff_location: bookingDetails.dropoff,
           pickup_date: bookingDetails.dateTime,
