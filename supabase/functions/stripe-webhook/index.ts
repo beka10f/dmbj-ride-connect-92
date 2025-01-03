@@ -24,13 +24,14 @@ serve(async (req) => {
       throw new Error('Webhook secret not configured');
     }
 
+    console.log('Processing webhook event...');
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
       webhookSecret
     );
 
-    console.log('Processing webhook event:', event.type);
+    console.log('Webhook event type:', event.type);
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
@@ -49,8 +50,11 @@ serve(async (req) => {
           .eq('id', bookingId);
 
         if (error) {
+          console.error('Error updating booking:', error);
           throw error;
         }
+        
+        console.log(`Successfully updated booking ${bookingId}`);
       }
     }
 
