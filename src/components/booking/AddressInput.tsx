@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
 import { getSuggestions } from "./utils/addressSuggestions";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface AddressInputProps {
   id: string;
@@ -27,6 +28,7 @@ const AddressInput = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const debouncedValue = useDebounce(value, 300);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,25 +41,33 @@ const AddressInput = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (debouncedValue.length >= 3) {
+        setLoading(true);
+        try {
+          console.log('Fetching suggestions for:', debouncedValue);
+          const newSuggestions = await getSuggestions(debouncedValue);
+          console.log('Received suggestions:', newSuggestions);
+          setSuggestions(newSuggestions);
+          setShowSuggestions(true);
+        } catch (error) {
+          console.error('Error getting suggestions:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedValue]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
-    
-    if (newValue.length >= 3) {
-      setLoading(true);
-      try {
-        const newSuggestions = await getSuggestions(newValue);
-        setSuggestions(newSuggestions);
-        setShowSuggestions(true);
-      } catch (error) {
-        console.error('Error getting suggestions:', error);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
   };
 
   return (
