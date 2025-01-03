@@ -23,7 +23,7 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
 
 interface BookingFormFieldsProps {
   formData: BookingFormData;
-  setFormData: (data: BookingFormData) => void;
+  setFormData: (dataOrField: BookingFormData | keyof BookingFormData, value?: any) => void;
   onSubmit: () => void;
   loading: boolean;
   distance: string;
@@ -41,10 +41,7 @@ const BookingFormFields = ({
   errors,
 }: BookingFormFieldsProps) => {
   const handleFieldChange = (field: keyof BookingFormData, value: any) => {
-    setFormData({
-      ...formData,
-      [field]: value,
-    });
+    setFormData(field, value);
   };
 
   return (

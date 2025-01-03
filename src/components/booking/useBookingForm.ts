@@ -49,13 +49,18 @@ export const useBookingForm = () => {
   const [bookingDetails, setBookingDetails] = useState<any>(null);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Memoize the setFormData handler
-  const handleFieldChange = useCallback((field: keyof BookingFormData, value: any) => {
-    console.log(`Updating ${field} with value:`, value);
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+  // Update the setFormData handler to accept either full object or field updates
+  const handleFormUpdate = useCallback((dataOrField: BookingFormData | keyof BookingFormData, value?: any) => {
+    if (typeof dataOrField === 'object') {
+      // Handle full object update
+      setFormData(dataOrField);
+    } else {
+      // Handle individual field update
+      setFormData(prev => ({
+        ...prev,
+        [dataOrField]: value,
+      }));
+    }
   }, []);
 
   const validateForm = (): boolean => {
@@ -141,7 +146,7 @@ export const useBookingForm = () => {
     } finally {
       setLoading(false);
     }
-  }, [formData, toast]);
+  }, [formData, toast, validateForm]);
 
   const handleConfirmBooking = useCallback(async () => {
     try {
@@ -186,7 +191,7 @@ export const useBookingForm = () => {
 
   return {
     formData,
-    setFormData: handleFieldChange,
+    setFormData: handleFormUpdate,
     loading,
     distance,
     cost,
