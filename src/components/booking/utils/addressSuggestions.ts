@@ -20,7 +20,7 @@ export const getSuggestions = async (input: string): Promise<string[]> => {
     console.log('Google Places API response:', data);
 
     if (!data?.predictions || !Array.isArray(data.predictions)) {
-      console.warn('Invalid response format from Google Places API:', data);
+      console.warn('Invalid response format:', data);
       return [];
     }
 
