@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const getGoogleSuggestions = async (input: string): Promise<string[]> => {
-  if (!input) return [];
+  if (!input || input.length < 3) return [];
 
   try {
     console.log('Fetching Google Places suggestions for:', input);
@@ -12,12 +12,12 @@ export const getGoogleSuggestions = async (input: string): Promise<string[]> => 
 
     if (error) {
       console.error('Error from Google Places function:', error);
-      throw error;
+      return [];
     }
 
     console.log('Google Places response:', data);
 
-    if (!data.predictions) {
+    if (!data?.predictions) {
       console.warn('No predictions in response:', data);
       return [];
     }
@@ -27,4 +27,4 @@ export const getGoogleSuggestions = async (input: string): Promise<string[]> => 
     console.error('Error fetching Google Places suggestions:', error);
     return [];
   }
-}
+};

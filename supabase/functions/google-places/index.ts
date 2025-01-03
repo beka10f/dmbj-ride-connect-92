@@ -16,11 +16,18 @@ serve(async (req) => {
     const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY')
 
     if (!apiKey) {
-      console.error('Google Maps API key not configured');
+      console.error('Google Maps API key not configured')
       throw new Error('Google Maps API key not configured')
     }
 
-    console.log('Fetching suggestions for input:', input);
+    if (!input || input.length < 3) {
+      return new Response(
+        JSON.stringify({ predictions: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Fetching suggestions for input:', input)
 
     const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
       input
@@ -29,11 +36,11 @@ serve(async (req) => {
     const response = await fetch(url)
     const data = await response.json()
 
-    console.log('Google Places API response status:', data.status);
+    console.log('Google Places API response status:', data.status)
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      console.error('Google Places API error:', data);
-      throw new Error(`Google Places API error: ${data.status}`);
+      console.error('Google Places API error:', data)
+      throw new Error(`Google Places API error: ${data.status}`)
     }
 
     return new Response(
@@ -46,7 +53,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error in google-places function:', error);
+    console.error('Error in google-places function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {
