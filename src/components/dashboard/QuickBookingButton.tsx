@@ -1,20 +1,24 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import BookingForm from "../BookingForm";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { QuickBookingDialog } from "./QuickBookingDialog";
+import { useState } from "react";
 
 export const QuickBookingButton = () => {
+  const [open, setOpen] = useState(false);
+  
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-secondary text-primary hover:bg-secondary/90">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 bg-white hover:bg-gray-50"
+        >
+          <Plus className="h-4 w-4" />
           Quick Book
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
-        <BookingForm />
-      </DialogContent>
+      <QuickBookingDialog onClose={() => setOpen(false)} />
     </Dialog>
   );
 };

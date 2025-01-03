@@ -78,10 +78,7 @@ export const useBookingForm = () => {
   }, [updateLocation, handleDateChange, handleTimeChange, handlePersonalInfoChange]);
 
   const handleSubmit = useCallback(async () => {
-    console.log('Submitting form with data:', formData);
-    
     if (!validateForm(formData)) {
-      console.log('Form validation failed');
       toast({
         title: "Error",
         description: "Please fill in all required fields correctly",
@@ -90,44 +87,18 @@ export const useBookingForm = () => {
       return;
     }
 
-    if (!locations.distance || !locations.cost) {
-      console.log('Missing distance or cost calculation');
-      toast({
-        title: "Error",
-        description: "Unable to calculate trip distance and cost. Please check your addresses.",
-        variant: "destructive",
-      });
-      return;
-    }
+    const dateTime = new Date(formData.date);
+    const [hours, minutes] = formData.time.split(":");
+    dateTime.setHours(parseInt(hours), parseInt(minutes));
 
-    try {
-      const dateTime = new Date(formData.date);
-      const [hours, minutes] = formData.time.split(":");
-      dateTime.setHours(parseInt(hours), parseInt(minutes));
+    setBookingDetails({
+      ...formData,
+      dateTime,
+      distance: locations.distance,
+      cost: locations.cost,
+    });
 
-      console.log('Setting booking details:', {
-        ...formData,
-        dateTime,
-        distance: locations.distance,
-        cost: locations.cost,
-      });
-
-      setBookingDetails({
-        ...formData,
-        dateTime,
-        distance: locations.distance,
-        cost: locations.cost,
-      });
-
-      setShowConfirmation(true);
-    } catch (error) {
-      console.error('Error preparing booking details:', error);
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    }
+    setShowConfirmation(true);
   }, [formData, validateForm, locations, toast, setBookingDetails, setShowConfirmation]);
 
   return {
