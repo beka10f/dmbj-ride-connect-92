@@ -19,11 +19,12 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [inputValue, setInputValue] = useState(value);
 
+  // Initialize Google Places Autocomplete
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Initialize autocomplete for this specific input
     const newAutocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -33,18 +34,16 @@ const AddressAutocomplete = ({
       }
     );
 
-    // Store the autocomplete instance in ref
     autocompleteRef.current = newAutocomplete;
 
-    // Set up place_changed listener
     const listener = newAutocomplete.addListener("place_changed", () => {
       const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
+        setInputValue(place.formatted_address);
         onChange(place.formatted_address);
       }
     });
 
-    // Cleanup function
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
@@ -57,14 +56,14 @@ const AddressAutocomplete = ({
 
   // Sync input value with parent state
   useEffect(() => {
-    if (inputRef.current && value !== inputRef.current.value) {
-      inputRef.current.value = value;
-    }
+    setInputValue(value);
   }, [value]);
 
   // Handle manual input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
   };
 
   return (
@@ -73,7 +72,7 @@ const AddressAutocomplete = ({
       <Input
         ref={inputRef}
         id={id}
-        value={value}
+        value={inputValue}
         onChange={handleInputChange}
         placeholder={placeholder}
         className="bg-white"
