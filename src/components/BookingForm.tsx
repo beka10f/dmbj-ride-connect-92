@@ -19,7 +19,7 @@ const BookingForm = () => {
   } = useBookingForm();
 
   if (!formData) {
-    return null; // Return early if formData is not yet initialized
+    return <div>Loading...</div>;
   }
 
   return (

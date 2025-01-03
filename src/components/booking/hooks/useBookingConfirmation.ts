@@ -6,7 +6,7 @@ import { UserProfile } from "@/types/user";
 export const useBookingConfirmation = (profile: UserProfile | null) => {
   const { toast } = useToast();
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [bookingDetails, setBookingDetails] = useState(null);
 
   const handleConfirmBooking = useCallback(async () => {
     try {

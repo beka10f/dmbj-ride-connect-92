@@ -51,8 +51,8 @@ export const useBookingForm = () => {
     name,
     email,
     phone,
-    pickup: locations.pickup,
-    dropoff: locations.dropoff,
+    pickup: locations.pickup || "",
+    dropoff: locations.dropoff || "",
     date,
     time,
     passengers,
@@ -87,7 +87,6 @@ export const useBookingForm = () => {
       return;
     }
 
-    // Price is already calculated, proceed with booking
     const dateTime = new Date(formData.date);
     const [hours, minutes] = formData.time.split(":");
     dateTime.setHours(parseInt(hours), parseInt(minutes));
