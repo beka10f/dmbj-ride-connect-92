@@ -28,17 +28,15 @@ const AddressAutocomplete = ({
     
     const place = autocompleteRef.current.getPlace();
     if (place.formatted_address) {
-      onChange(place.formatted_address);
+      // Use a setTimeout to ensure the state update happens after the current execution context
+      setTimeout(() => {
+        onChange(place.formatted_address);
+      }, 0);
     }
   }, [onChange]);
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
-
-    // Cleanup previous instance
-    if (autocompleteRef.current) {
-      google.maps.event.clearInstanceListeners(autocompleteRef.current);
-    }
 
     // Create new instance
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
@@ -56,6 +54,7 @@ const AddressAutocomplete = ({
       handlePlaceSelect
     );
 
+    // Cleanup function
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
@@ -67,6 +66,11 @@ const AddressAutocomplete = ({
     };
   }, [handlePlaceSelect]);
 
+  // Controlled input handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -75,7 +79,7 @@ const AddressAutocomplete = ({
           ref={inputRef}
           id={id}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={handleInputChange}
           placeholder={placeholder}
           className={`bg-white pl-10 ${error ? 'border-red-500' : ''}`}
           autoComplete="off"
