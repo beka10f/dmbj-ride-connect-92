@@ -36,6 +36,8 @@ const BookingFormFields = ({
   setFormData,
   onSubmit,
   loading,
+  distance,
+  cost,
   errors,
 }: BookingFormFieldsProps) => {
   const handleFieldChange = (field: keyof BookingFormData, value: any) => {
@@ -60,6 +62,20 @@ const BookingFormFields = ({
         onDropoffChange={(value) => handleFieldChange("dropoff", value)}
         errors={errors}
       />
+
+      {distance && cost && (
+        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+          <p className="text-sm text-gray-600">Trip Details:</p>
+          <div className="flex justify-between">
+            <span className="text-sm">Distance:</span>
+            <span className="font-medium">{distance}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm">Estimated Cost:</span>
+            <span className="font-medium">{cost}</span>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Popover>
@@ -113,7 +129,7 @@ const BookingFormFields = ({
       <Button
         type="button"
         className="w-full h-12 bg-[#B69F80] hover:bg-[#A38E6F] text-white rounded-xl transition-all duration-200 ease-in-out shadow-sm"
-        disabled={loading}
+        disabled={loading || !formData.pickup || !formData.dropoff}
         onClick={onSubmit}
       >
         {loading ? (
