@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -22,23 +22,17 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [localValue, setLocalValue] = useState(value);
 
-  const handlePlaceSelect = useCallback(() => {
-    if (!autocompleteRef.current) return;
-    
-    const place = autocompleteRef.current.getPlace();
-    if (place.formatted_address) {
-      // Use a setTimeout to ensure the state update happens after the current execution context
-      setTimeout(() => {
-        onChange(place.formatted_address);
-      }, 0);
-    }
-  }, [onChange]);
+  // Sync local state with prop value
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Create new instance
+    // Create new autocomplete instance
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -49,10 +43,15 @@ const AddressAutocomplete = ({
     );
 
     // Add place_changed listener
-    const listener = autocompleteRef.current.addListener(
-      "place_changed",
-      handlePlaceSelect
-    );
+    const listener = autocompleteRef.current.addListener("place_changed", () => {
+      if (!autocompleteRef.current) return;
+      
+      const place = autocompleteRef.current.getPlace();
+      if (place.formatted_address) {
+        setLocalValue(place.formatted_address);
+        onChange(place.formatted_address);
+      }
+    });
 
     // Cleanup function
     return () => {
@@ -64,11 +63,17 @@ const AddressAutocomplete = ({
       }
       autocompleteRef.current = null;
     };
-  }, [handlePlaceSelect]);
+  }, [onChange]);
 
-  // Controlled input handler
+  // Handle manual input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    
+    // Only update parent state if user is typing manually
+    if (!autocompleteRef.current?.getPlace()) {
+      onChange(newValue);
+    }
   };
 
   return (
@@ -78,7 +83,7 @@ const AddressAutocomplete = ({
         <Input
           ref={inputRef}
           id={id}
-          value={value}
+          value={localValue}
           onChange={handleInputChange}
           placeholder={placeholder}
           className={`bg-white pl-10 ${error ? 'border-red-500' : ''}`}
