@@ -4,6 +4,9 @@ import { calculateDistance } from "./DistanceCalculator";
 import { DistanceCalculation } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAddressFields } from "./hooks/useAddressFields";
+import { usePersonalInfo } from "./hooks/usePersonalInfo";
+import { useDateTime } from "./hooks/useDateTime";
 
 export interface BookingFormData {
   name: string;
@@ -30,17 +33,28 @@ interface FormErrors {
 export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
-
-  const [formData, setFormData] = useState<BookingFormData>({
-    name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "",
-    email: profile?.email || "",
-    phone: profile?.phone || "",
-    pickup: "",
-    dropoff: "",
-    date: new Date(),
-    time: "",
-    passengers: "1",
-  });
+  
+  const { 
+    pickup, 
+    dropoff, 
+    handlePickupChange, 
+    handleDropoffChange 
+  } = useAddressFields();
+  
+  const {
+    name,
+    email,
+    phone,
+    passengers,
+    handleFieldChange: handlePersonalInfoChange
+  } = usePersonalInfo(profile);
+  
+  const {
+    date,
+    time,
+    handleDateChange,
+    handleTimeChange
+  } = useDateTime();
 
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<string>("");
@@ -49,19 +63,35 @@ export const useBookingForm = () => {
   const [bookingDetails, setBookingDetails] = useState<any>(null);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Update the setFormData handler to accept either full object or field updates
-  const handleFormUpdate = useCallback((dataOrField: BookingFormData | keyof BookingFormData, value?: any) => {
-    if (typeof dataOrField === 'object') {
-      // Handle full object update
-      setFormData(dataOrField);
-    } else {
-      // Handle individual field update
-      setFormData(prev => ({
-        ...prev,
-        [dataOrField]: value,
-      }));
+  const formData: BookingFormData = {
+    name,
+    email,
+    phone,
+    pickup,
+    dropoff,
+    date,
+    time,
+    passengers,
+  };
+
+  const handleFormUpdate = useCallback((field: keyof BookingFormData, value: any) => {
+    switch (field) {
+      case "pickup":
+        handlePickupChange(value);
+        break;
+      case "dropoff":
+        handleDropoffChange(value);
+        break;
+      case "date":
+        handleDateChange(value);
+        break;
+      case "time":
+        handleTimeChange(value);
+        break;
+      default:
+        handlePersonalInfoChange(field, value);
     }
-  }, []);
+  }, [handlePickupChange, handleDropoffChange, handleDateChange, handleTimeChange, handlePersonalInfoChange]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};

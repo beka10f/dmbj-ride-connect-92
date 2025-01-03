@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
@@ -24,20 +24,22 @@ const AddressInput = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const isPlaceSelectionRef = useRef(false);
 
-  // Handle manual input changes
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isPlaceSelectionRef.current) {
+      console.log(`Manual input change for ${id}:`, e.target.value);
       onChange(e.target.value);
     }
     isPlaceSelectionRef.current = false;
-  }, [onChange]);
+  }, [onChange, id]);
 
+  // Initialize and cleanup Autocomplete
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Cleanup previous instance if it exists
+    // Cleanup previous instance
     if (autocompleteRef.current) {
-      autocompleteRef.current.unbindAll();
+      google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
     }
 
     // Initialize new autocomplete instance
@@ -64,10 +66,18 @@ const AddressInput = ({
         google.maps.event.removeListener(listener);
       }
       if (autocompleteRef.current) {
-        autocompleteRef.current.unbindAll();
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
   }, [onChange, id]);
+
+  // Sync input value with state
+  useEffect(() => {
+    if (inputRef.current && inputRef.current.value !== value) {
+      console.log(`Syncing input value for ${id}:`, value);
+      inputRef.current.value = value;
+    }
+  }, [value, id]);
 
   return (
     <div className="space-y-2">
@@ -90,4 +100,4 @@ const AddressInput = ({
   );
 };
 
-export default AddressInput;
+export default memo(AddressInput);
