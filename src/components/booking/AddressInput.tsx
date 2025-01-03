@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
 import { getSuggestions } from "./utils/addressSuggestions";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface AddressInputProps {
   id: string;
@@ -27,6 +28,7 @@ const AddressInput = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const debouncedValue = useDebounce(value, 300);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,39 +41,44 @@ const AddressInput = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (debouncedValue.length >= 3) {
+        setLoading(true);
+        try {
+          console.log('Fetching suggestions for:', debouncedValue);
+          const newSuggestions = await getSuggestions(debouncedValue);
+          console.log('Received suggestions:', newSuggestions);
+          setSuggestions(newSuggestions);
+          setShowSuggestions(true);
+        } catch (error) {
+          console.error('Error getting suggestions:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedValue]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
-    
-    if (newValue.length >= 3) {
-      setLoading(true);
-      try {
-        console.log('Fetching suggestions for:', newValue);
-        const newSuggestions = await getSuggestions(newValue);
-        console.log('Received suggestions:', newSuggestions);
-        setSuggestions(newSuggestions);
-        setShowSuggestions(true);
-      } catch (error) {
-        console.error('Error getting suggestions:', error);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    onChange(suggestion);
-    setSuggestions([]);
-    setShowSuggestions(false);
   };
 
   return (
     <div className="space-y-2" ref={wrapperRef}>
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-base font-normal">
+        {label}
+      </Label>
       <div className="relative">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+          <MapPin className="h-5 w-5" />
+        </div>
         <Input
           type="text"
           id={id}
@@ -79,32 +86,34 @@ const AddressInput = ({
           onChange={handleInputChange}
           onFocus={() => value.length >= 3 && setShowSuggestions(true)}
           placeholder={placeholder}
-          className={`pl-10 ${error ? "border-red-500" : ""}`}
+          className="h-14 pl-12 text-gray-600 bg-white border border-gray-100 rounded-xl shadow-sm"
           disabled={disabled}
         />
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
         
         {loading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
           </div>
         )}
         
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-auto">
             {suggestions.map((suggestion, index) => (
-              <div
+              <button
                 key={index}
-                className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-                onClick={() => handleSuggestionClick(suggestion)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 text-gray-600 text-sm transition-colors"
+                onClick={() => {
+                  onChange(suggestion);
+                  setShowSuggestions(false);
+                }}
               >
                 {suggestion}
-              </div>
+              </button>
             ))}
           </div>
         )}
       </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>
   );
 };

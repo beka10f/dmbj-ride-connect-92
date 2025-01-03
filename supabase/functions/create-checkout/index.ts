@@ -15,6 +15,12 @@ serve(async (req) => {
   try {
     const { amount, customerDetails, bookingDetails } = await req.json();
 
+    console.log('Received request:', { amount, customerDetails, bookingDetails });
+
+    if (!amount || !customerDetails || !bookingDetails) {
+      throw new Error('Missing required fields');
+    }
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
@@ -24,29 +30,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Get user session if available
-    const authHeader = req.headers.get('Authorization');
-    let userId = null;
-    
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabaseClient.auth.getUser(token);
-      if (user) {
-        userId = user.id;
-      }
-    }
-
-    // Create booking in database
+    // Create booking in database first
     const { data: booking, error: bookingError } = await supabaseClient
       .from('bookings')
       .insert([
         {
-          user_id: userId,
+          user_id: bookingDetails.user_id,
           pickup_location: bookingDetails.pickup,
           dropoff_location: bookingDetails.dropoff,
-          pickup_date: new Date(bookingDetails.dateTime).toISOString(),
+          pickup_date: bookingDetails.dateTime,
           status: 'pending_payment',
-          special_instructions: `Guest Booking - Name: ${customerDetails.name}, Phone: ${customerDetails.phone}`,
+          special_instructions: bookingDetails.special_instructions,
           payment_status: 'pending',
           payment_amount: parseFloat(amount)
         },
@@ -55,8 +49,11 @@ serve(async (req) => {
       .single();
 
     if (bookingError) {
+      console.error('Booking creation error:', bookingError);
       throw bookingError;
     }
+
+    console.log('Created booking:', booking);
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -76,7 +73,7 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/?success=true&booking_id=${booking.id}`,
+      success_url: `${req.headers.get('origin')}/dashboard?success=true&booking_id=${booking.id}`,
       cancel_url: `${req.headers.get('origin')}/?canceled=true`,
       metadata: {
         booking_id: booking.id,
@@ -85,6 +82,8 @@ serve(async (req) => {
         customer_phone: customerDetails.phone,
       },
     });
+
+    console.log('Created checkout session:', session.id);
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),

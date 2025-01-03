@@ -7,13 +7,11 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ firstName, role }: DashboardHeaderProps) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Welcome, {firstName || "User"}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+    <div className="border-b">
+      <div className="flex items-center justify-between h-16 px-4">
+        <div className="space-y-0.5">
+          <h2 className="text-2xl font-bold tracking-tight">Welcome, {firstName || "User"}</h2>
+          <p className="text-muted-foreground">
             {role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
           </p>
         </div>
