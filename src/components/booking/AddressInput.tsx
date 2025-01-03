@@ -26,33 +26,17 @@ const AddressInput = ({
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Create the Autocomplete instance
     const options: google.maps.places.AutocompleteOptions = {
       types: ["address"],
       componentRestrictions: { country: "us" },
       fields: ["formatted_address"],
     };
 
-    // Create a new session token
-    const sessionToken = new google.maps.places.AutocompleteSessionToken();
-    
-    // Create the autocomplete instance
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       options
     );
 
-    // Set the session token on the service
-    if (autocompleteRef.current) {
-      const service = new google.maps.places.AutocompleteService();
-      service.getPlacePredictions({ 
-        input: inputRef.current.value,
-        sessionToken,
-        ...options
-      });
-    }
-
-    // Add the place_changed listener
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
       if (place?.formatted_address) {
@@ -60,17 +44,15 @@ const AddressInput = ({
       }
     });
 
-    // Cleanup function
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
       }
       if (autocompleteRef.current) {
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
-        autocompleteRef.current = null;
       }
     };
-  }, [onChange, id]); // Add id to dependencies to ensure unique instances
+  }, [onChange]);
 
   return (
     <div className="space-y-2">
@@ -85,7 +67,6 @@ const AddressInput = ({
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
-          data-address-type={id}
         />
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
       </div>
