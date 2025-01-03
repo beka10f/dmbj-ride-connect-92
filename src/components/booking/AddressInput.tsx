@@ -36,6 +36,7 @@ const AddressInput = ({
       autocompleteRef.current.unbindAll();
     }
 
+    // Initialize new autocomplete instance
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -47,8 +48,13 @@ const AddressInput = ({
 
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
-      console.log(`Place selected for ${id}:`, place?.formatted_address);
       if (place?.formatted_address) {
+        console.log(`Place selected for ${id}:`, place.formatted_address);
+        // Explicitly update the input value
+        if (inputRef.current) {
+          inputRef.current.value = place.formatted_address;
+        }
+        // Update the state through onChange
         onChange(place.formatted_address);
       }
     });
@@ -62,6 +68,13 @@ const AddressInput = ({
       }
     };
   }, [onChange, id]);
+
+  // Ensure the input value stays in sync with the controlled value prop
+  useEffect(() => {
+    if (inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value;
+    }
+  }, [value]);
 
   return (
     <div className="space-y-2">
