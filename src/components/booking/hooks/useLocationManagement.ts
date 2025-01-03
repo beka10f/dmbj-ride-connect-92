@@ -21,45 +21,46 @@ export const useLocationManagement = () => {
   const [locations, setLocations] = useState<LocationState>(initialLocationState);
   const [loading, setLoading] = useState(false);
 
-  const updateLocation = useCallback((type: "pickup" | "dropoff", value: string) => {
+  const updateLocation = useCallback(async (type: "pickup" | "dropoff", value: string) => {
     setLocations((prev) => ({
       ...prev,
       [type]: value,
     }));
-  }, []);
 
-  const calculateTripDetails = useCallback(async () => {
-    // Only calculate if both addresses are complete (contain commas indicating full addresses)
-    if (!locations.pickup?.includes(',') || !locations.dropoff?.includes(',')) {
-      return false;
-    }
+    // If both locations are set and contain commas (indicating complete addresses)
+    const updatedLocations = {
+      ...locations,
+      [type]: value,
+    };
 
-    setLoading(true);
-    try {
-      const details = await calculateDistance(locations.pickup, locations.dropoff);
-      setLocations((prev) => ({
-        ...prev,
-        distance: details.distanceText,
-        cost: `$${details.totalCost}`,
-      }));
-      return true;
-    } catch (error: any) {
-      console.error("Error calculating trip details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to calculate trip details. Please check the addresses.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
+    if (updatedLocations.pickup?.includes(',') && updatedLocations.dropoff?.includes(',')) {
+      setLoading(true);
+      try {
+        console.log('Calculating distance for:', updatedLocations.pickup, updatedLocations.dropoff);
+        const details = await calculateDistance(updatedLocations.pickup, updatedLocations.dropoff);
+        console.log('Calculated details:', details);
+        setLocations((prev) => ({
+          ...prev,
+          [type]: value,
+          distance: details.distanceText,
+          cost: `$${details.totalCost}`,
+        }));
+      } catch (error: any) {
+        console.error("Error calculating trip details:", error);
+        toast({
+          title: "Error",
+          description: "Failed to calculate trip details. Please check the addresses.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [locations.pickup, locations.dropoff, toast]);
+  }, [locations, toast]);
 
   return {
     locations,
     loading,
     updateLocation,
-    calculateTripDetails,
   };
 };

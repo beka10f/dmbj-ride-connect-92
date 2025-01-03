@@ -6,6 +6,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -18,18 +19,14 @@ serve(async (req) => {
       throw new Error('Google Maps API key not configured');
     }
 
-    // Add components=country:us to restrict results to US addresses
     const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
       input
-    )}&components=country:us&key=${GOOGLE_MAPS_API_KEY}&types=address`;
+    )}&key=${GOOGLE_MAPS_API_KEY}`;
 
     const response = await fetch(url);
     const data = await response.json();
 
-    if (!response.ok) {
-      console.error('Google Places API error:', data);
-      throw new Error('Failed to fetch address suggestions');
-    }
+    console.log('Google Places API response:', JSON.stringify(data));
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
