@@ -13,6 +13,7 @@ interface AddressInputProps {
   error?: string;
   disabled?: boolean;
   enableSuggestions?: boolean;
+  suggestionType?: 'osm' | 'google';
 }
 
 const AddressInput = ({
@@ -24,6 +25,7 @@ const AddressInput = ({
   error,
   disabled,
   enableSuggestions = false,
+  suggestionType = 'osm',
 }: AddressInputProps) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -48,7 +50,9 @@ const AddressInput = ({
     if (enableSuggestions && newValue.length >= 3) {
       setLoading(true);
       try {
-        const newSuggestions = await getSuggestions(newValue);
+        console.log(`Fetching suggestions using ${suggestionType} for:`, newValue);
+        const newSuggestions = await getSuggestions(newValue, suggestionType);
+        console.log('Received suggestions:', newSuggestions);
         setSuggestions(newSuggestions);
         setShowSuggestions(true);
       } catch (error) {

@@ -1,49 +1,40 @@
-const NOMINATIM_API = "https://nominatim.openstreetmap.org/search";
+import { supabase } from "@/integrations/supabase/client";
 
-export const getSuggestions = async (input: string): Promise<string[]> => {
-  if (!input || input.length < 3) return [];
-  
-  try {
-    const params = new URLSearchParams({
-      q: input,
-      format: 'json',
-      limit: '5',
-      addressdetails: '1',
-      countrycodes: 'us', // Limit to US addresses
-      featuretype: 'street,house,building,residential', // Specific types of locations
-    });
-
-    const response = await fetch(`${NOMINATIM_API}?${params}`, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'RideBooking_App'
+export const getSuggestions = async (input: string, type: 'osm' | 'google' = 'osm'): Promise<string[]> => {
+  if (type === 'google') {
+    try {
+      const { data, error } = await supabase.functions.invoke('google-places', {
+        body: { input }
+      });
+      
+      if (error) {
+        console.error('Error fetching Google Places suggestions:', error);
+        return [];
       }
-    });
 
-    if (!response.ok) {
-      console.error('Failed to fetch suggestions:', response.statusText);
+      return data.predictions.map((prediction: any) => prediction.description);
+    } catch (error) {
+      console.error('Error in Google Places API call:', error);
       return [];
     }
-
-    const data = await response.json();
-    
-    // Format the addresses to be more specific and readable
-    return data.map((result: any) => {
-      const { address } = result;
-      const parts = [];
-      
-      // Build address string with specific components
-      if (address.house_number) parts.push(address.house_number);
-      if (address.road) parts.push(address.road);
-      if (address.suburb) parts.push(address.suburb);
-      if (address.city || address.town) parts.push(address.city || address.town);
-      if (address.state) parts.push(address.state);
-      if (address.postcode) parts.push(address.postcode);
-      
-      return parts.join(', ');
-    }).filter(Boolean); // Remove any empty strings
-  } catch (error) {
-    console.error('Error fetching suggestions:', error);
-    return [];
+  } else {
+    // OSM suggestions
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          input
+        )}&limit=5`
+      );
+      const data = await response.json();
+      return data.map(
+        (item: any) =>
+          `${item.address.road || ''}, ${item.address.city || ''}, ${
+            item.address.state || ''
+          }, ${item.address.country || ''}, ${item.address.postcode || ''}`
+      );
+    } catch (error) {
+      console.error('Error in OSM API call:', error);
+      return [];
+    }
   }
 };

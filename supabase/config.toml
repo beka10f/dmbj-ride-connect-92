@@ -1,4 +1,4 @@
 project_id = "tzwmuvdnwxbhodguqdid"
 
-[functions.create-checkout]
-verify_jwt = true
+[functions.google-places]
+verify_jwt = false
