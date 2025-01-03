@@ -18,54 +18,51 @@ const AddressAutocomplete = ({
   placeholder,
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [autocomplete, setAutocomplete] =
-    useState<google.maps.places.Autocomplete | null>(null);
-
-  // Keep a reference to the listener for cleanup
-  const autocompleteListener = useRef<google.maps.MapsEventListener | null>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Clean up any previous instance
-    if (autocomplete) {
-      google.maps.event.clearInstanceListeners(autocomplete);
-    }
+    // Initialize autocomplete for this specific input
+    const newAutocomplete = new window.google.maps.places.Autocomplete(
+      inputRef.current,
+      {
+        types: ["address"],
+        componentRestrictions: { country: "us" },
+        fields: ["formatted_address"],
+      }
+    );
 
-    const newAutocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-      types: ["address"],
-      componentRestrictions: { country: "us" },
-      fields: ["formatted_address"],
-    });
+    // Store the autocomplete instance in ref
+    autocompleteRef.current = newAutocomplete;
 
-    // Register the place_changed listener
-    autocompleteListener.current = newAutocomplete.addListener("place_changed", () => {
+    // Set up place_changed listener
+    const listener = newAutocomplete.addListener("place_changed", () => {
       const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
-        // Update parent state
         onChange(place.formatted_address);
-
-        // Also update the raw input field
-        if (inputRef.current) {
-          inputRef.current.value = place.formatted_address;
-        }
       }
     });
 
-    setAutocomplete(newAutocomplete);
-
-    // Cleanup when component unmounts or re-inits
+    // Cleanup function
     return () => {
-      if (autocompleteListener.current) {
-        google.maps.event.removeListener(autocompleteListener.current);
+      if (listener) {
+        google.maps.event.removeListener(listener);
       }
-      if (autocomplete) {
-        google.maps.event.clearInstanceListeners(autocomplete);
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
   }, [onChange]);
 
-  // Also handle manual typing in the input
+  // Sync input value with parent state
+  useEffect(() => {
+    if (inputRef.current && value !== inputRef.current.value) {
+      inputRef.current.value = value;
+    }
+  }, [value]);
+
+  // Handle manual input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };
