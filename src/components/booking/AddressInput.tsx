@@ -10,6 +10,7 @@ interface AddressInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   error?: string;
+  disabled?: boolean;
 }
 
 const AddressInput = ({
@@ -19,30 +20,19 @@ const AddressInput = ({
   onChange,
   placeholder,
   error,
+  disabled,
 }: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const isPlaceSelectionRef = useRef(false);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isPlaceSelectionRef.current) {
-      console.log(`Manual input change for ${id}:`, e.target.value);
-      onChange(e.target.value);
-    }
-    isPlaceSelectionRef.current = false;
-  }, [onChange, id]);
-
-  // Initialize and cleanup Autocomplete
-  useEffect(() => {
+  const initializeAutocomplete = useCallback(() => {
     if (!inputRef.current || !window.google) return;
 
     // Cleanup previous instance
     if (autocompleteRef.current) {
       google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      autocompleteRef.current = null;
     }
 
-    // Initialize new autocomplete instance
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -52,32 +42,45 @@ const AddressInput = ({
       }
     );
 
-    const listener = autocompleteRef.current.addListener("place_changed", () => {
-      const place = autocompleteRef.current?.getPlace();
-      if (place?.formatted_address) {
-        console.log(`Place selected for ${id}:`, place.formatted_address);
-        isPlaceSelectionRef.current = true;
-        onChange(place.formatted_address);
+    const listener = autocompleteRef.current.addListener(
+      "place_changed",
+      () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (place?.formatted_address) {
+          console.log(`Place selected for ${id}:`, place.formatted_address);
+          onChange(place.formatted_address);
+        }
       }
-    });
+    );
 
     return () => {
-      if (listener) {
-        google.maps.event.removeListener(listener);
-      }
+      if (listener) google.maps.event.removeListener(listener);
       if (autocompleteRef.current) {
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, [onChange, id]);
+  }, [id, onChange]);
+
+  // Initialize Autocomplete
+  useEffect(() => {
+    const cleanup = initializeAutocomplete();
+    return () => cleanup?.();
+  }, [initializeAutocomplete]);
 
   // Sync input value with state
   useEffect(() => {
     if (inputRef.current && inputRef.current.value !== value) {
-      console.log(`Syncing input value for ${id}:`, value);
       inputRef.current.value = value;
     }
-  }, [value, id]);
+  }, [value]);
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log(`Manual input change for ${id}:`, e.target.value);
+      onChange(e.target.value);
+    },
+    [onChange, id]
+  );
 
   return (
     <div className="space-y-2">
@@ -91,6 +94,7 @@ const AddressInput = ({
           onChange={handleInputChange}
           placeholder={placeholder}
           className={`pl-10 ${error ? "border-red-500" : ""}`}
+          disabled={disabled}
           autoComplete="off"
         />
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />

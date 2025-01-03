@@ -1,10 +1,8 @@
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { calculateDistance } from "./DistanceCalculator";
-import { DistanceCalculation } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { useAddressFields } from "./hooks/useAddressFields";
+import { useLocationManagement } from "./hooks/useLocationManagement";
 import { usePersonalInfo } from "./hooks/usePersonalInfo";
 import { useDateTime } from "./hooks/useDateTime";
 
@@ -33,13 +31,7 @@ interface FormErrors {
 export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
-  
-  const { 
-    pickup, 
-    dropoff, 
-    handlePickupChange, 
-    handleDropoffChange 
-  } = useAddressFields();
+  const { locations, loading, updateLocation, calculateTripDetails } = useLocationManagement();
   
   const {
     name,
@@ -56,9 +48,6 @@ export const useBookingForm = () => {
     handleTimeChange
   } = useDateTime();
 
-  const [loading, setLoading] = useState(false);
-  const [distance, setDistance] = useState<string>("");
-  const [cost, setCost] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<any>(null);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -67,8 +56,8 @@ export const useBookingForm = () => {
     name,
     email,
     phone,
-    pickup,
-    dropoff,
+    pickup: locations.pickup,
+    dropoff: locations.dropoff,
     date,
     time,
     passengers,
@@ -77,10 +66,10 @@ export const useBookingForm = () => {
   const handleFormUpdate = useCallback((field: keyof BookingFormData, value: any) => {
     switch (field) {
       case "pickup":
-        handlePickupChange(value);
+        updateLocation("pickup", value);
         break;
       case "dropoff":
-        handleDropoffChange(value);
+        updateLocation("dropoff", value);
         break;
       case "date":
         handleDateChange(value);
@@ -91,9 +80,9 @@ export const useBookingForm = () => {
       default:
         handlePersonalInfoChange(field, value);
     }
-  }, [handlePickupChange, handleDropoffChange, handleDateChange, handleTimeChange, handlePersonalInfoChange]);
+  }, [updateLocation, handleDateChange, handleTimeChange, handlePersonalInfoChange]);
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
     let isValid = true;
 
@@ -132,7 +121,7 @@ export const useBookingForm = () => {
 
     setErrors(newErrors);
     return isValid;
-  };
+  }, [formData]);
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
@@ -144,39 +133,22 @@ export const useBookingForm = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const details: DistanceCalculation = await calculateDistance(
-        formData.pickup,
-        formData.dropoff
-      );
+    const success = await calculateTripDetails();
+    if (!success) return;
 
-      setDistance(details.distanceText || "");
-      setCost(details.totalCost);
+    const dateTime = new Date(formData.date);
+    const [hours, minutes] = formData.time.split(":");
+    dateTime.setHours(parseInt(hours), parseInt(minutes));
 
-      const dateTime = new Date(formData.date);
-      const [hours, minutes] = formData.time.split(":");
-      dateTime.setHours(parseInt(hours), parseInt(minutes));
+    setBookingDetails({
+      ...formData,
+      dateTime,
+      distance: locations.distance,
+      cost: locations.cost,
+    });
 
-      setBookingDetails({
-        ...formData,
-        dateTime,
-        distance: details.distanceText || "",
-        cost: details.totalCost,
-      });
-
-      setShowConfirmation(true);
-    } catch (error: any) {
-      console.error("Submit error:", error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [formData, toast, validateForm]);
+    setShowConfirmation(true);
+  }, [formData, validateForm, calculateTripDetails, locations, toast]);
 
   const handleConfirmBooking = useCallback(async () => {
     try {
@@ -203,10 +175,7 @@ export const useBookingForm = () => {
           },
         });
 
-      if (checkoutError) {
-        console.error("Checkout error:", checkoutError);
-        throw checkoutError;
-      }
+      if (checkoutError) throw checkoutError;
 
       window.location.href = checkoutData.url;
     } catch (error: any) {
@@ -223,8 +192,8 @@ export const useBookingForm = () => {
     formData,
     setFormData: handleFormUpdate,
     loading,
-    distance,
-    cost,
+    distance: locations.distance,
+    cost: locations.cost,
     showConfirmation,
     setShowConfirmation,
     bookingDetails,
