@@ -19,9 +19,9 @@ const AddressFields = ({
   errors,
 }: AddressFieldsProps) => {
   return (
-    <>
+    <div className="space-y-4">
       <AddressInput
-        id="pickup"
+        id="pickup-location"
         label="Pickup Location"
         value={pickup}
         onChange={onPickupChange}
@@ -29,14 +29,14 @@ const AddressFields = ({
         error={errors?.pickup}
       />
       <AddressInput
-        id="dropoff"
+        id="dropoff-location"
         label="Drop-off Location"
         value={dropoff}
         onChange={onDropoffChange}
         placeholder="Enter destination address"
         error={errors?.dropoff}
       />
-    </>
+    </div>
   );
 };
 
