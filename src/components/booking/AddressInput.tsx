@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
 import { getSuggestions } from "./utils/addressSuggestions";
+import { getGoogleSuggestions } from "./utils/googleAddressSuggestions";
 
 interface AddressInputProps {
   id: string;
@@ -13,6 +14,7 @@ interface AddressInputProps {
   error?: string;
   disabled?: boolean;
   enableSuggestions?: boolean;
+  suggestionType?: "osm" | "google";
 }
 
 const AddressInput = ({
@@ -24,6 +26,7 @@ const AddressInput = ({
   error,
   disabled,
   enableSuggestions = false,
+  suggestionType = "osm",
 }: AddressInputProps) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -48,7 +51,9 @@ const AddressInput = ({
     if (enableSuggestions && newValue.length >= 3) {
       setLoading(true);
       try {
-        const newSuggestions = await getSuggestions(newValue);
+        const newSuggestions = suggestionType === "google" 
+          ? await getGoogleSuggestions(newValue)
+          : await getSuggestions(newValue);
         setSuggestions(newSuggestions);
         setShowSuggestions(true);
       } catch (error) {
