@@ -20,11 +20,9 @@ const AddressAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  // Initialize Google Places Autocomplete
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Create a new autocomplete instance for this specific input
     const newAutocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -34,10 +32,8 @@ const AddressAutocomplete = ({
       }
     );
 
-    // Store the autocomplete instance
     autocompleteRef.current = newAutocomplete;
 
-    // Add place_changed listener specific to this instance
     const listener = newAutocomplete.addListener("place_changed", () => {
       const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
@@ -45,7 +41,6 @@ const AddressAutocomplete = ({
       }
     });
 
-    // Cleanup on unmount
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
@@ -55,12 +50,7 @@ const AddressAutocomplete = ({
       }
       autocompleteRef.current = null;
     };
-  }, [onChange, id]); // Include id in dependencies to ensure unique instances
-
-  // Handle manual input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-  };
+  }, [onChange, id]);
 
   return (
     <div className="space-y-2">
@@ -69,7 +59,7 @@ const AddressAutocomplete = ({
         ref={inputRef}
         id={id}
         value={value}
-        onChange={handleInputChange}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="bg-white"
         autoComplete="off"

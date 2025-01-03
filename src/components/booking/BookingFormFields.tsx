@@ -1,22 +1,15 @@
 import { memo } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import AddressAutocomplete from "./AddressAutocomplete";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import AddressFields from "./form-fields/AddressFields";
+import PersonalInfoFields from "./form-fields/PersonalInfoFields";
+import { BookingFormData } from "./useBookingForm";
 
-// Define time slots outside component to avoid re-creating them on each render
 const timeSlots = Array.from({ length: 48 }, (_, i) => {
   const hour = Math.floor(i / 2);
   const minute = i % 2 === 0 ? "00" : "30";
@@ -29,17 +22,8 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
 });
 
 interface BookingFormFieldsProps {
-  formData: {
-    name: string;
-    email: string;
-    phone: string;
-    pickup: string;
-    dropoff: string;
-    passengers: string;
-    date: Date | undefined;
-    time: string;
-  };
-  setFormData: (data: any) => void; // Could be improved with stricter types
+  formData: BookingFormData;
+  setFormData: (data: any) => void;
   onSubmit: () => void;
   loading: boolean;
   distance: string;
@@ -54,141 +38,54 @@ const BookingFormFields = ({
   distance,
   cost,
 }: BookingFormFieldsProps) => {
-  const {
-    name,
-    email,
-    phone,
-    pickup,
-    dropoff,
-    passengers,
-    date,
-    time,
-  } = formData;
-
-  // A helper for basic text inputs (name, email, phone)
-  const handleChange =
-    (field: keyof BookingFormFieldsProps["formData"]) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev: any) => ({
-        ...prev,
-        [field]: e.target.value,
-      }));
-    };
+  const handleFieldChange = (field: keyof BookingFormData, value: string) => {
+    setFormData((prev: BookingFormData) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {/* Full Name */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
-          <Input
-            id="name"
-            value={name}
-            onChange={handleChange("name")}
-            placeholder="John Doe"
-          />
-        </div>
-
-        {/* Email Address */}
-        <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={handleChange("email")}
-            placeholder="john@example.com"
-          />
-        </div>
-
-        {/* Phone Number */}
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={phone}
-            onChange={handleChange("phone")}
-            placeholder="+1 (555) 000-0000"
-          />
-        </div>
-
-        {/* Number of Passengers */}
-        <div className="space-y-2">
-          <Label htmlFor="passengers">Number of Passengers</Label>
-          <Select
-            value={passengers}
-            onValueChange={(value) =>
-              setFormData((prev: any) => ({
-                ...prev,
-                passengers: value,
-              }))
-            }
-          >
-            <SelectTrigger id="passengers" className="bg-white">
-              <SelectValue placeholder="Select passengers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1 Passenger</SelectItem>
-              <SelectItem value="2">2 Passengers</SelectItem>
-              <SelectItem value="3">3 Passengers</SelectItem>
-              <SelectItem value="4">4 Passengers</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Pickup Location (AddressAutocomplete) */}
-        <AddressAutocomplete
-          id="pickup"
-          label="Pickup Location"
-          value={pickup}
-          onChange={(val) =>
-            setFormData((prev: any) => ({
-              ...prev,
-              pickup: val,
-            }))
-          }
-          placeholder="Enter pickup address"
+        <PersonalInfoFields
+          name={formData.name}
+          email={formData.email}
+          phone={formData.phone}
+          passengers={formData.passengers}
+          onFieldChange={handleFieldChange}
         />
 
-        {/* Drop-off Location (AddressAutocomplete) */}
-        <AddressAutocomplete
-          id="dropoff"
-          label="Drop-off Location"
-          value={dropoff}
-          onChange={(val) =>
-            setFormData((prev: any) => ({
-              ...prev,
-              dropoff: val,
-            }))
-          }
-          placeholder="Enter destination address"
+        <AddressFields
+          pickup={formData.pickup}
+          dropoff={formData.dropoff}
+          onPickupChange={(value) => handleFieldChange("pickup", value)}
+          onDropoffChange={(value) => handleFieldChange("dropoff", value)}
         />
 
-        {/* Date Selection */}
         <div className="space-y-2">
-          <Label>Date</Label>
+          <label className="text-sm font-medium">Date</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal bg-white",
-                  !date && "text-muted-foreground"
+                  !formData.date && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                {formData.date ? format(formData.date, "PPP") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={date}
+                selected={formData.date}
                 onSelect={(newDate) =>
-                  setFormData((prev: any) => ({
+                  setFormData((prev: BookingFormData) => ({
                     ...prev,
-                    date: newDate,
+                    date: newDate || new Date(),
                   }))
                 }
                 initialFocus
@@ -198,13 +95,12 @@ const BookingFormFields = ({
           </Popover>
         </div>
 
-        {/* Time Selection */}
         <div className="space-y-2">
-          <Label>Pickup Time</Label>
+          <label className="text-sm font-medium">Pickup Time</label>
           <Select
-            value={time}
+            value={formData.time}
             onValueChange={(value) =>
-              setFormData((prev: any) => ({
+              setFormData((prev: BookingFormData) => ({
                 ...prev,
                 time: value,
               }))
@@ -212,10 +108,10 @@ const BookingFormFields = ({
           >
             <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select pickup time">
-                {time ? (
+                {formData.time ? (
                   <div className="flex items-center">
                     <Clock className="mr-2 h-4 w-4" />
-                    {timeSlots.find((slot) => slot.value === time)?.label}
+                    {timeSlots.find((slot) => slot.value === formData.time)?.label}
                   </div>
                 ) : (
                   <div className="flex items-center">
@@ -236,7 +132,6 @@ const BookingFormFields = ({
         </div>
       </div>
 
-      {/* Distance/Cost Display (if desired) */}
       {(distance || cost) && (
         <div className="flex justify-between text-sm">
           <span>Distance: {distance}</span>
@@ -244,7 +139,6 @@ const BookingFormFields = ({
         </div>
       )}
 
-      {/* Submit Button */}
       <Button
         type="button"
         className="w-full bg-secondary text-primary hover:bg-secondary/90"

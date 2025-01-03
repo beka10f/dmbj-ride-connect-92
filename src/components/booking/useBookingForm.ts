@@ -25,7 +25,6 @@ export const useBookingForm = () => {
   const [cost, setCost] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Prepopulate form from user profile (if available)
   const [formData, setFormData] = useState<BookingFormData>({
     name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "",
     email: profile?.email || "",
@@ -46,7 +45,6 @@ export const useBookingForm = () => {
         throw new Error("Please fill in all required fields");
       }
 
-      // Calculate distance & cost
       const details: DistanceCalculation = await calculateDistance(
         formData.pickup,
         formData.dropoff
@@ -55,12 +53,10 @@ export const useBookingForm = () => {
       setDistance(details.distanceText || "");
       setCost(details.totalCost);
 
-      // Merge date & time into a single Date object
       const dateTime = new Date(formData.date);
       const [hours, minutes] = formData.time.split(":");
       dateTime.setHours(parseInt(hours), parseInt(minutes));
 
-      // Prepare booking details (before confirming)
       setBookingDetails({
         pickup: formData.pickup,
         dropoff: formData.dropoff,
@@ -87,10 +83,8 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      // Remove '$' sign if present
       const numericCost = cost.replace("$", "");
 
-      // Create checkout session via Supabase Function
       const { data: checkoutData, error: checkoutError } =
         await supabase.functions.invoke("create-checkout", {
           body: {
@@ -103,14 +97,13 @@ export const useBookingForm = () => {
             bookingDetails: {
               ...bookingDetails,
               status: "pending_payment",
-              user_id: profile?.id, // If you have user IDs
+              user_id: profile?.id,
             },
           },
         });
 
       if (checkoutError) throw checkoutError;
 
-      // Redirect to checkout page
       window.location.href = checkoutData.url;
     } catch (error: any) {
       console.error("Error creating checkout session:", error);
