@@ -1,4 +1,4 @@
-import AddressAutocomplete from "../AddressAutocomplete";
+import AddressInput from "../AddressInput";
 
 interface AddressFieldsProps {
   pickup: string;
@@ -20,7 +20,7 @@ const AddressFields = ({
 }: AddressFieldsProps) => {
   return (
     <>
-      <AddressAutocomplete
+      <AddressInput
         id="pickup"
         label="Pickup Location"
         value={pickup}
@@ -28,7 +28,7 @@ const AddressFields = ({
         placeholder="Enter pickup address"
         error={errors?.pickup}
       />
-      <AddressAutocomplete
+      <AddressInput
         id="dropoff"
         label="Drop-off Location"
         value={dropoff}

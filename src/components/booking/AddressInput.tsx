@@ -3,30 +3,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
 
-interface AddressAutocompleteProps {
+interface AddressInputProps {
   id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
-  placeholder: string;
+  placeholder?: string;
   error?: string;
 }
 
-const AddressAutocomplete = ({
+const AddressInput = ({
   id,
   label,
   value,
   onChange,
   placeholder,
   error,
-}: AddressAutocompleteProps) => {
+}: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    // Initialize Google Places Autocomplete
     const autocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -36,23 +34,16 @@ const AddressAutocomplete = ({
       }
     );
 
-    // Listen for place selection
-    const placeChangedListener = autocomplete.addListener("place_changed", () => {
+    const listener = autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
       if (place.formatted_address) {
         onChange(place.formatted_address);
       }
     });
 
-    autocompleteRef.current = autocomplete;
-
-    // Cleanup
     return () => {
-      if (placeChangedListener) {
-        google.maps.event.removeListener(placeChangedListener);
-      }
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      if (listener) {
+        google.maps.event.removeListener(listener);
       }
     };
   }, [onChange]);
@@ -63,11 +54,12 @@ const AddressAutocomplete = ({
       <div className="relative">
         <Input
           ref={inputRef}
+          type="text"
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`bg-white pl-10 ${error ? "border-red-500" : ""}`}
+          className={`pl-10 ${error ? "border-red-500" : ""}`}
           autoComplete="off"
         />
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -77,4 +69,4 @@ const AddressAutocomplete = ({
   );
 };
 
-export default AddressAutocomplete;
+export default AddressInput;
