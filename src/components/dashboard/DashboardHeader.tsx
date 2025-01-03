@@ -1,5 +1,3 @@
-import { QuickBookingButton } from "./QuickBookingButton";
-
 interface DashboardHeaderProps {
   firstName: string | null;
   role: string;
@@ -17,7 +15,6 @@ export const DashboardHeader = ({ firstName, role }: DashboardHeaderProps) => {
             {role === "admin" ? "Admin Dashboard" : "Your Dashboard"}
           </p>
         </div>
-        {role === "client" && <QuickBookingButton />}
       </div>
     </div>
   );
