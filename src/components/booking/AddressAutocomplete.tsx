@@ -19,12 +19,13 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [inputValue, setInputValue] = useState(value);
+  const [localValue, setLocalValue] = useState(value);
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
+    // Create a new autocomplete instance for this specific input
     const newAutocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
@@ -34,16 +35,20 @@ const AddressAutocomplete = ({
       }
     );
 
+    // Store the autocomplete instance
     autocompleteRef.current = newAutocomplete;
 
+    // Add place_changed listener specific to this instance
     const listener = newAutocomplete.addListener("place_changed", () => {
       const place = newAutocomplete.getPlace();
       if (place.formatted_address) {
-        setInputValue(place.formatted_address);
-        onChange(place.formatted_address);
+        const newAddress = place.formatted_address;
+        setLocalValue(newAddress);
+        onChange(newAddress);
       }
     });
 
+    // Cleanup on unmount
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
@@ -51,18 +56,21 @@ const AddressAutocomplete = ({
       if (autocompleteRef.current) {
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
+      autocompleteRef.current = null;
     };
-  }, [onChange]);
+  }, [onChange, id]); // Include id in dependencies to ensure unique instances
 
-  // Sync input value with parent state
+  // Sync with parent value when it changes
   useEffect(() => {
-    setInputValue(value);
+    if (value !== localValue) {
+      setLocalValue(value);
+    }
   }, [value]);
 
   // Handle manual input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setInputValue(newValue);
+    setLocalValue(newValue);
     onChange(newValue);
   };
 
@@ -72,7 +80,7 @@ const AddressAutocomplete = ({
       <Input
         ref={inputRef}
         id={id}
-        value={inputValue}
+        value={localValue}
         onChange={handleInputChange}
         placeholder={placeholder}
         className="bg-white"
@@ -82,4 +90,5 @@ const AddressAutocomplete = ({
   );
 };
 
+// Ensure component only rerenders when props actually change
 export default memo(AddressAutocomplete);
