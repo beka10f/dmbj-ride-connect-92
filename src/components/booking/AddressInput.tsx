@@ -26,17 +26,17 @@ const AddressInput = ({
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    const options: google.maps.places.AutocompleteOptions = {
-      types: ["address"],
-      componentRestrictions: { country: "us" },
-      fields: ["formatted_address"],
-    };
-
+    // Create a new autocomplete instance for this input
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
-      options
+      {
+        types: ["address"],
+        componentRestrictions: { country: "us" },
+        fields: ["formatted_address"],
+      }
     );
 
+    // Add the place_changed listener
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
       if (place?.formatted_address) {
@@ -44,6 +44,7 @@ const AddressInput = ({
       }
     });
 
+    // Cleanup function
     return () => {
       if (listener) {
         google.maps.event.removeListener(listener);
