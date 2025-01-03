@@ -9,12 +9,13 @@ export const getSuggestions = async (input: string): Promise<string[]> => {
       format: 'json',
       limit: '5',
       addressdetails: '1',
+      countrycodes: 'us', // Limit to US addresses
+      featuretype: 'street,house,building,residential', // Specific types of locations
     });
 
     const response = await fetch(`${NOMINATIM_API}?${params}`, {
       headers: {
         'Accept': 'application/json',
-        // Add a user agent as requested by Nominatim's usage policy
         'User-Agent': 'RideBooking_App'
       }
     });
@@ -26,19 +27,21 @@ export const getSuggestions = async (input: string): Promise<string[]> => {
 
     const data = await response.json();
     
-    // Format the addresses from the response
+    // Format the addresses to be more specific and readable
     return data.map((result: any) => {
       const { address } = result;
-      const parts = [
-        address.road,
-        address.house_number,
-        address.city,
-        address.state,
-        address.country
-      ].filter(Boolean);
+      const parts = [];
+      
+      // Build address string with specific components
+      if (address.house_number) parts.push(address.house_number);
+      if (address.road) parts.push(address.road);
+      if (address.suburb) parts.push(address.suburb);
+      if (address.city || address.town) parts.push(address.city || address.town);
+      if (address.state) parts.push(address.state);
+      if (address.postcode) parts.push(address.postcode);
       
       return parts.join(', ');
-    });
+    }).filter(Boolean); // Remove any empty strings
   } catch (error) {
     console.error('Error fetching suggestions:', error);
     return [];
