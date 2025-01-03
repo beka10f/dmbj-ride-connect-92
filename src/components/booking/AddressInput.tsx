@@ -22,10 +22,14 @@ const AddressInput = ({
 }: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const isPlaceSelectionRef = useRef(false);
 
-  // Memoize the change handler
+  // Handle manual input changes
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    if (!isPlaceSelectionRef.current) {
+      onChange(e.target.value);
+    }
+    isPlaceSelectionRef.current = false;
   }, [onChange]);
 
   useEffect(() => {
@@ -50,11 +54,7 @@ const AddressInput = ({
       const place = autocompleteRef.current?.getPlace();
       if (place?.formatted_address) {
         console.log(`Place selected for ${id}:`, place.formatted_address);
-        // Explicitly update the input value
-        if (inputRef.current) {
-          inputRef.current.value = place.formatted_address;
-        }
-        // Update the state through onChange
+        isPlaceSelectionRef.current = true;
         onChange(place.formatted_address);
       }
     });
@@ -68,13 +68,6 @@ const AddressInput = ({
       }
     };
   }, [onChange, id]);
-
-  // Ensure the input value stays in sync with the controlled value prop
-  useEffect(() => {
-    if (inputRef.current && inputRef.current.value !== value) {
-      inputRef.current.value = value;
-    }
-  }, [value]);
 
   return (
     <div className="space-y-2">
