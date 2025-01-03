@@ -1,62 +1,51 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { calculateDistance } from "../DistanceCalculator";
 import { useToast } from "@/hooks/use-toast";
 
-interface LocationState {
-  pickup: string;
-  dropoff: string;
-  distance: string;
-  cost: string;
-}
-
 export const useLocationManagement = () => {
-  const { toast } = useToast();
-  const [locations, setLocations] = useState<LocationState>({
+  const [locations, setLocations] = useState({
     pickup: "",
     dropoff: "",
     distance: "",
     cost: "",
   });
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  const updateLocation = useCallback(async (type: "pickup" | "dropoff", value: string) => {
-    setLocations((prev) => ({ ...prev, [type]: value }));
-
-    const updatedLocations = {
-      ...locations,
+  const updateLocation = useCallback((type: "pickup" | "dropoff", value: string) => {
+    setLocations((prev) => ({
+      ...prev,
       [type]: value,
-    };
+    }));
+  }, []);
 
-    if (updatedLocations.pickup && updatedLocations.dropoff) {
-      setLoading(true);
-      try {
-        const result = await calculateDistance(
-          updatedLocations.pickup,
-          updatedLocations.dropoff
-        );
-        
-        setLocations((prev) => ({
-          ...prev,
-          [type]: value,
-          distance: result.distanceText,
-          cost: result.totalCost,
-        }));
-      } catch (error) {
-        console.error("Error calculating distance:", error);
-        toast({
-          title: "Error",
-          description: "Failed to calculate trip distance. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
+  const calculateTripDetails = useCallback(async () => {
+    if (!locations.pickup || !locations.dropoff) return;
+
+    setLoading(true);
+    try {
+      const result = await calculateDistance(locations.pickup, locations.dropoff);
+      setLocations((prev) => ({
+        ...prev,
+        distance: result.distanceText,
+        cost: result.totalCost,
+      }));
+    } catch (error) {
+      console.error("Error calculating distance:", error);
+      toast({
+        title: "Error",
+        description: "Unable to calculate trip details. Please check your addresses.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  }, [locations, toast]);
+  }, [locations.pickup, locations.dropoff, toast]);
 
   return {
     locations,
     loading,
     updateLocation,
+    calculateTripDetails,
   };
 };

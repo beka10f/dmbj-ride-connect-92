@@ -21,7 +21,7 @@ export interface BookingFormData {
 export const useBookingForm = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
-  const { locations, loading, updateLocation } = useLocationManagement();
+  const { locations, loading, updateLocation, calculateTripDetails } = useLocationManagement();
   
   const {
     name,
@@ -90,17 +90,20 @@ export const useBookingForm = () => {
       return;
     }
 
-    if (!locations.distance || !locations.cost) {
-      console.log('Missing distance or cost calculation');
-      toast({
-        title: "Error",
-        description: "Unable to calculate trip distance and cost. Please check your addresses.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      // Calculate trip details when Book Now is clicked
+      await calculateTripDetails();
+
+      if (!locations.distance || !locations.cost) {
+        console.log('Missing distance or cost calculation');
+        toast({
+          title: "Error",
+          description: "Unable to calculate trip distance and cost. Please check your addresses.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const dateTime = new Date(formData.date);
       const [hours, minutes] = formData.time.split(":");
       dateTime.setHours(parseInt(hours), parseInt(minutes));
@@ -128,7 +131,7 @@ export const useBookingForm = () => {
         variant: "destructive",
       });
     }
-  }, [formData, validateForm, locations, toast, setBookingDetails, setShowConfirmation]);
+  }, [formData, validateForm, locations, toast, setBookingDetails, setShowConfirmation, calculateTripDetails]);
 
   return {
     formData,
