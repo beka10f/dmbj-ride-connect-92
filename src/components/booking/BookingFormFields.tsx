@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Clock, MapPin, User, Mail, Phone, Users } from "lucide-react";
+import { CalendarIcon, Clock, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -43,38 +43,18 @@ const BookingFormFields = ({
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Personal Information
-          </h3>
-          <p className="text-gray-500">Please provide your contact details</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <PersonalInfoFields
-            name={formData.name}
-            email={formData.email}
-            phone={formData.phone}
-            passengers={formData.passengers}
-            onFieldChange={handleFieldChange}
-            errors={errors}
-          />
-        </div>
-      </div>
+    <div className="p-8 space-y-6 bg-white rounded-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <PersonalInfoFields
+          name={formData.name}
+          email={formData.email}
+          phone={formData.phone}
+          passengers={formData.passengers}
+          onFieldChange={handleFieldChange}
+          errors={errors}
+        />
 
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Trip Details
-          </h3>
-          <p className="text-gray-500">Enter your pickup and drop-off locations</p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6">
+        <div className="space-y-6">
           <AddressFields
             pickup={formData.pickup}
             dropoff={formData.dropoff}
@@ -83,9 +63,8 @@ const BookingFormFields = ({
             errors={errors}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Date</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -96,7 +75,7 @@ const BookingFormFields = ({
                       errors?.date && "border-red-500"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4 text-secondary" />
+                    <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
                     {formData.date ? format(formData.date, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
@@ -116,7 +95,6 @@ const BookingFormFields = ({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Pickup Time</label>
               <Select
                 value={formData.time}
                 onValueChange={(value) => handleFieldChange("time", value)}
@@ -124,16 +102,16 @@ const BookingFormFields = ({
                 <SelectTrigger className={cn(
                   errors?.time && "border-red-500"
                 )}>
-                  <SelectValue placeholder="Select pickup time">
+                  <SelectValue placeholder="Select time">
                     {formData.time ? (
                       <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-secondary" />
+                        <Clock className="mr-2 h-4 w-4 text-gray-500" />
                         {timeSlots.find((slot) => slot.value === formData.time)?.label}
                       </div>
                     ) : (
                       <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-secondary" />
-                        <span>Select pickup time</span>
+                        <Clock className="mr-2 h-4 w-4 text-gray-500" />
+                        <span>Select time</span>
                       </div>
                     )}
                   </SelectValue>
@@ -156,11 +134,11 @@ const BookingFormFields = ({
 
       <Button
         type="button"
-        className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg font-semibold transition-all duration-200 ease-in-out"
+        className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg font-semibold transition-all duration-200 ease-in-out mt-6"
         disabled={loading}
         onClick={onSubmit}
       >
-        {loading ? "Processing..." : "Submit Booking"}
+        {loading ? "Processing..." : "Book Your Ride"}
       </Button>
     </div>
   );

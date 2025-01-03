@@ -23,24 +23,22 @@ const BookingForm = () => {
   }
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gray-50">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-bold text-primary mb-3">Book Your Luxury Ride</h2>
-          <p className="text-gray-600 text-lg">Experience unparalleled comfort and style</p>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-semibold text-gray-900 mb-2">Book Your Luxury Ride</h2>
+          <p className="text-gray-600">Experience unparalleled comfort and style</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-          <BookingFormFields
-            formData={formData}
-            setFormData={setFormData}
-            onSubmit={handleSubmit}
-            loading={loading}
-            distance={distance}
-            cost={cost}
-            errors={errors}
-          />
-        </div>
+        <BookingFormFields
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleSubmit}
+          loading={loading}
+          distance={distance}
+          cost={cost}
+          errors={errors}
+        />
 
         <BookingConfirmationDialog
           showConfirmation={showConfirmation}
