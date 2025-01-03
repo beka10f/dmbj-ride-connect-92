@@ -23,7 +23,12 @@ const AddressAutocomplete = ({
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
 
-    const newAutocomplete = new window.google.maps.places.Autocomplete(
+    // Clean up previous instance
+    if (autocompleteRef.current) {
+      google.maps.event.clearInstanceListeners(autocompleteRef.current);
+    }
+
+    const autocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {
         types: ["address"],
@@ -32,10 +37,10 @@ const AddressAutocomplete = ({
       }
     );
 
-    autocompleteRef.current = newAutocomplete;
+    autocompleteRef.current = autocomplete;
 
-    const listener = newAutocomplete.addListener("place_changed", () => {
-      const place = newAutocomplete.getPlace();
+    const listener = autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
       if (place.formatted_address) {
         onChange(place.formatted_address);
       }
@@ -50,7 +55,7 @@ const AddressAutocomplete = ({
       }
       autocompleteRef.current = null;
     };
-  }, [onChange, id]);
+  }, [onChange]);
 
   return (
     <div className="space-y-2">

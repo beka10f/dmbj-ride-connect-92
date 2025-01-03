@@ -1,5 +1,4 @@
 import AddressAutocomplete from "../AddressAutocomplete";
-import { BookingFormData } from "../useBookingForm";
 
 interface AddressFieldsProps {
   pickup: string;

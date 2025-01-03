@@ -24,6 +24,7 @@ export const useBookingForm = () => {
   const [distance, setDistance] = useState<string>("");
   const [cost, setCost] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
 
   const [formData, setFormData] = useState<BookingFormData>({
     name: profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "",
@@ -35,8 +36,6 @@ export const useBookingForm = () => {
     time: "",
     passengers: "1",
   });
-
-  const [bookingDetails, setBookingDetails] = useState<any>(null);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -58,19 +57,15 @@ export const useBookingForm = () => {
       dateTime.setHours(parseInt(hours), parseInt(minutes));
 
       setBookingDetails({
-        pickup: formData.pickup,
-        dropoff: formData.dropoff,
+        ...formData,
         dateTime,
         distance: details.distanceText || "",
         cost: details.totalCost,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        passengers: formData.passengers,
       });
 
       setShowConfirmation(true);
     } catch (error: any) {
+      console.error("Submit error:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -83,16 +78,20 @@ export const useBookingForm = () => {
 
   const handleConfirmBooking = async () => {
     try {
-      const numericCost = cost.replace("$", "");
+      if (!bookingDetails) {
+        throw new Error("No booking details available");
+      }
+
+      const numericCost = bookingDetails.cost.replace("$", "");
 
       const { data: checkoutData, error: checkoutError } =
         await supabase.functions.invoke("create-checkout", {
           body: {
             amount: numericCost,
             customerDetails: {
-              name: formData.name,
-              email: formData.email,
-              phone: formData.phone,
+              name: bookingDetails.name,
+              email: bookingDetails.email,
+              phone: bookingDetails.phone,
             },
             bookingDetails: {
               ...bookingDetails,
@@ -102,7 +101,10 @@ export const useBookingForm = () => {
           },
         });
 
-      if (checkoutError) throw checkoutError;
+      if (checkoutError) {
+        console.error("Checkout error:", checkoutError);
+        throw checkoutError;
+      }
 
       window.location.href = checkoutData.url;
     } catch (error: any) {
