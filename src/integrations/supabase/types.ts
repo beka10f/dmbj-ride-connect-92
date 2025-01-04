@@ -9,44 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      audit_logs: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          event_type: Database["public"]["Enums"]["audit_event_type"]
-          id: string
-          timestamp: string
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          event_type: Database["public"]["Enums"]["audit_event_type"]
-          id?: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          event_type?: Database["public"]["Enums"]["audit_event_type"]
-          id?: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       bookings: {
         Row: {
           assigned_driver_id: string | null
@@ -180,18 +142,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_rate_limit: {
-        Args: {
-          user_id: string
-          action_type: string
-          max_requests?: number
-          window_minutes?: number
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      audit_event_type: "auth" | "data" | "security" | "error"
       user_role: "client" | "driver" | "admin"
     }
     CompositeTypes: {
