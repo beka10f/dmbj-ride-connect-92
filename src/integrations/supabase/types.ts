@@ -149,6 +149,8 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          mfa_enabled: boolean | null
+          mfa_secret: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -159,6 +161,8 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          mfa_enabled?: boolean | null
+          mfa_secret?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -169,9 +173,35 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          mfa_enabled?: boolean | null
+          mfa_secret?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rate_limited_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          max_requests: number
+          window_minutes: number
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          max_requests: number
+          window_minutes: number
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          max_requests?: number
+          window_minutes?: number
         }
         Relationships: []
       }
@@ -180,6 +210,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_generic_rate_limit: {
+        Args: {
+          user_id: string
+          action_type: string
+          max_requests?: number
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           user_id: string
