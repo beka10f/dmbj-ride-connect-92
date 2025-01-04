@@ -26,12 +26,17 @@ export const useAuthState = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
+      // Immediately clear the session state before navigation
       clearSession();
-      navigate('/login');
+      
+      // Show toast before navigation
       toast({
         title: "Success",
         description: "Successfully signed out",
       });
+      
+      // Navigate after state is cleared
+      navigate('/login');
     } catch (error: any) {
       console.error("Sign out error:", error);
       toast({
@@ -102,7 +107,6 @@ export const useAuthState = () => {
       } else if (event === 'SIGNED_OUT') {
         if (mounted) {
           clearSession();
-          navigate('/login');
         }
       }
     });
