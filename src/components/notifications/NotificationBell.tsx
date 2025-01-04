@@ -9,65 +9,86 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const NotificationBell = () => {
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Listen for new bookings
+    // Listen for new bookings and payment updates
     const bookingsChannel = supabase
       .channel('bookings_channel')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'bookings' },
+        { event: '*', schema: 'public', table: 'bookings' },
         (payload) => {
-          setHasNewNotifications(true);
-          toast({
-            title: "New Booking",
-            description: `New booking received from ${payload.new.pickup_location} to ${payload.new.dropoff_location}`,
-          });
-          setNotifications(prev => [{
-            type: 'booking',
-            data: payload.new,
-            time: new Date().toISOString()
-          }, ...prev]);
-        }
-      )
-      .subscribe();
-
-    // Listen for new driver applications
-    const applicationsChannel = supabase
-      .channel('applications_channel')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'driver_applications' },
-        (payload) => {
-          setHasNewNotifications(true);
-          toast({
-            title: "New Driver Application",
-            description: "A new driver has applied to join the platform",
-          });
-          setNotifications(prev => [{
-            type: 'application',
-            data: payload.new,
-            time: new Date().toISOString()
-          }, ...prev]);
+          console.log("Received booking update:", payload);
+          
+          // Check if this is a payment notification
+          if (payload.new && 
+              payload.new.pickup_location === 'NOTIFICATION' && 
+              payload.new.status === 'notification') {
+            try {
+              const notificationData = JSON.parse(payload.new.special_instructions);
+              if (notificationData.type === 'payment_confirmation') {
+                setHasNewNotifications(true);
+                toast({
+                  title: "Payment Confirmed",
+                  description: `Payment of $${notificationData.amount} received for booking from ${notificationData.customerName}`,
+                });
+                setNotifications(prev => [{
+                  type: 'payment',
+                  data: notificationData,
+                  time: new Date().toISOString()
+                }, ...prev]);
+                
+                // Invalidate queries to refresh the dashboard data
+                queryClient.invalidateQueries({ queryKey: ['bookings'] });
+              }
+            } catch (e) {
+              console.error("Error parsing notification data:", e);
+            }
+          } else {
+            // Handle regular booking notifications
+            setHasNewNotifications(true);
+            toast({
+              title: "New Booking",
+              description: `New booking received from ${payload.new.pickup_location} to ${payload.new.dropoff_location}`,
+            });
+            setNotifications(prev => [{
+              type: 'booking',
+              data: payload.new,
+              time: new Date().toISOString()
+            }, ...prev]);
+          }
         }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(bookingsChannel);
-      supabase.removeChannel(applicationsChannel);
     };
-  }, [toast]);
+  }, [toast, queryClient]);
+
+  const formatNotificationMessage = (notification: any) => {
+    if (notification.type === 'payment') {
+      return `Payment of $${notification.data.amount} received from ${notification.data.customerName}`;
+    }
+    return `Booking from ${notification.data.pickup_location} to ${notification.data.dropoff_location}`;
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative" size="icon" onClick={() => setHasNewNotifications(false)}>
+        <Button 
+          variant="ghost" 
+          className="relative" 
+          size="icon" 
+          onClick={() => setHasNewNotifications(false)}
+        >
           {hasNewNotifications ? <BellDot className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
         </Button>
       </DropdownMenuTrigger>
@@ -80,12 +101,10 @@ export const NotificationBell = () => {
           notifications.map((notification, index) => (
             <DropdownMenuItem key={index} className="flex flex-col items-start p-4">
               <div className="font-semibold">
-                {notification.type === 'booking' ? 'New Booking' : 'New Driver Application'}
+                {notification.type === 'payment' ? 'Payment Confirmed' : 'New Booking'}
               </div>
               <div className="text-sm text-muted-foreground">
-                {notification.type === 'booking' 
-                  ? `From ${notification.data.pickup_location} to ${notification.data.dropoff_location}`
-                  : 'New driver application received'}
+                {formatNotificationMessage(notification)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
                 {new Date(notification.time).toLocaleString()}
