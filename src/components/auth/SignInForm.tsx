@@ -16,6 +16,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 
+const PASSWORD_REQUIREMENTS = {
+  minLength: 8,
+  requireNumbers: true,
+  requireSpecialChars: true,
+  requireUppercase: true,
+};
+
 export const SignInForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -26,6 +33,22 @@ export const SignInForm = () => {
     password: "",
   });
 
+  const validatePassword = (password: string) => {
+    if (password.length < PASSWORD_REQUIREMENTS.minLength) {
+      return "Password must be at least 8 characters long";
+    }
+    if (PASSWORD_REQUIREMENTS.requireNumbers && !/\d/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    if (PASSWORD_REQUIREMENTS.requireSpecialChars && !/[!@#$%^&*]/.test(password)) {
+      return "Password must contain at least one special character (!@#$%^&*)";
+    }
+    if (PASSWORD_REQUIREMENTS.requireUppercase && !/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    return null;
+  };
+
   const validateForm = () => {
     if (!formData.email.trim()) {
       setError("Email is required");
@@ -35,10 +58,13 @@ export const SignInForm = () => {
       setError("Password is required");
       return false;
     }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+    
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return false;
     }
+    
     return true;
   };
 
@@ -150,6 +176,9 @@ export const SignInForm = () => {
                 required
                 disabled={loading}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Password must be at least 8 characters long and contain numbers, special characters, and uppercase letters.
+              </p>
             </div>
 
             <Button 
