@@ -71,6 +71,17 @@ export const DriverForm = () => {
         throw new Error("Failed to update profile information");
       }
 
+      // Sign in as the new user to create the driver application
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        console.error("Sign in error:", signInError);
+        throw new Error("Failed to sign in as new user");
+      }
+
       // Now create the driver application
       const { error: applicationError } = await supabase
         .from("driver_applications")
