@@ -9,7 +9,11 @@ export const getSuggestions = async (input: string): Promise<string[]> => {
     console.log('Fetching suggestions for:', input);
     
     const { data, error } = await supabase.functions.invoke('google-places', {
-      body: { input }
+      body: { input },
+      headers: {
+        // Ensure we're sending the auth header
+        Authorization: `Bearer ${supabase.auth.getSession()?.data?.session?.access_token}`
+      }
     });
     
     if (error) {
