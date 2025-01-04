@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import QRCode from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react'; // Changed to named import
 
 export const MFASetup = () => {
   const [secret, setSecret] = useState('');
@@ -80,7 +80,7 @@ export const MFASetup = () => {
       ) : (
         <div className="space-y-6">
           <div className="flex justify-center">
-            <QRCode value={qrCode} size={200} />
+            <QRCodeCanvas value={qrCode} size={200} />
           </div>
           
           <div className="space-y-2">

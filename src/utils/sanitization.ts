@@ -11,7 +11,7 @@ export const sanitizeInput = (input: string): string => {
 
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.trim().length > 0 && emailRegex.test(email);
+  return email.trim().length > 0 && emailRegex.test(email);
 };
 
 export const validatePhone = (phone: string): boolean => {
@@ -19,11 +19,13 @@ export const validatePhone = (phone: string): boolean => {
   return phone.trim().length > 0 && phoneRegex.test(phone);
 };
 
-export const sanitizeFormData = <T extends Record<string, any>>(data: T): T => {
-  const sanitized = { ...data };
-  Object.keys(sanitized).forEach(key => {
-    if (typeof sanitized[key] === 'string') {
-      sanitized[key] = sanitizeInput(sanitized[key]);
+export const sanitizeFormData = <T extends Record<string, any>>(data: T): Partial<T> => {
+  const sanitized: Partial<T> = {};
+  Object.keys(data).forEach(key => {
+    if (typeof data[key] === 'string') {
+      sanitized[key as keyof T] = sanitizeInput(data[key]) as T[keyof T];
+    } else {
+      sanitized[key as keyof T] = data[key];
     }
   });
   return sanitized;
