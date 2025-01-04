@@ -26,16 +26,15 @@ export const useAuthState = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      // Immediately clear the session state before navigation
+      // Clear the session state
       clearSession();
       
-      // Show toast before navigation
+      // Show toast and navigate
       toast({
         title: "Success",
         description: "Successfully signed out",
       });
       
-      // Navigate after state is cleared
       navigate('/login');
     } catch (error: any) {
       console.error("Sign out error:", error);
@@ -65,7 +64,7 @@ export const useAuthState = () => {
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
           
           if (mounted) {
             setIsAdmin(profile?.role === 'admin');
@@ -98,7 +97,7 @@ export const useAuthState = () => {
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
           
           if (mounted) {
             setIsAdmin(profile?.role === 'admin');

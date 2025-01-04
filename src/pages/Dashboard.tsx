@@ -20,6 +20,11 @@ const Dashboard = () => {
         
         if (!session) {
           console.log("No active session found, redirecting to login");
+          toast({
+            title: "Authentication Required",
+            description: "Please sign in to access the dashboard",
+            variant: "destructive",
+          });
           navigate('/login');
           return;
         }
