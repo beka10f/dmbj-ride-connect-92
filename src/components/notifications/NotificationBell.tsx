@@ -11,14 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Database } from "@/integrations/supabase/types";
-import { RealtimeChannel } from "@supabase/supabase-js";
+import { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 type BookingRow = Database['public']['Tables']['bookings']['Row'];
-type RealtimePayload = {
-  new: BookingRow;
-  old: BookingRow;
-  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
-};
+type RealtimePayload = RealtimePostgresChangesPayload<BookingRow>;
 
 type NotificationType = {
   type: 'payment' | 'booking';
@@ -63,7 +59,7 @@ export const NotificationBell = () => {
             } catch (e) {
               console.error("Error parsing notification data:", e);
             }
-          } else {
+          } else if (payload.new) {
             setHasNewNotifications(true);
             toast({
               title: "New Booking",
