@@ -32,9 +32,6 @@ export const Navigation = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
-      // Clear local session data even if the API call fails
-      await supabase.auth.clearSession();
-      
       toast({
         title: "Notice",
         description: "You have been signed out",

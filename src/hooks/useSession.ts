@@ -51,10 +51,9 @@ export const useSession = () => {
       console.log("Auth state changed:", event, currentSession?.user?.id);
       
       if (mounted) {
-        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-          console.log("User signed out or deleted, clearing session");
+        if (event === 'SIGNED_OUT') {
+          console.log("User signed out, clearing session");
           setSession(null);
-          await supabase.auth.clearSession();
         } else if (currentSession) {
           setSession(currentSession);
         }
