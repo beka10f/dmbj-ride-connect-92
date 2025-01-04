@@ -1,8 +1,31 @@
 import { DistanceCalculation } from "@/types/booking";
 
-export const calculateDistance = async (pickup: string, dropoff: string): Promise<DistanceCalculation> => {
+// Function to load Google Maps API script
+const loadGoogleMapsAPI = (): Promise<void> => {
   return new Promise((resolve, reject) => {
-    try {
+    if (window.google?.maps) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+
+    script.addEventListener('load', () => resolve());
+    script.addEventListener('error', () => reject(new Error('Failed to load Google Maps API')));
+
+    document.head.appendChild(script);
+  });
+};
+
+export const calculateDistance = async (pickup: string, dropoff: string): Promise<DistanceCalculation> => {
+  try {
+    // Ensure Google Maps API is loaded
+    await loadGoogleMapsAPI();
+
+    return new Promise((resolve, reject) => {
       const service = new google.maps.DistanceMatrixService();
       
       service.getDistanceMatrix(
@@ -24,21 +47,25 @@ export const calculateDistance = async (pickup: string, dropoff: string): Promis
               const baseFee = 15; // Base fee for all rides
               const totalCost = (distanceInMiles * rate + baseFee).toFixed(2);
               
+              console.log('Distance calculation successful:', { distanceText, totalCost });
+              
               resolve({ 
                 distanceText, 
                 totalCost: `$${totalCost}` 
               });
             } else {
+              console.error('Route calculation failed:', route.status);
               reject(new Error('Unable to calculate distance. Please check addresses.'));
             }
           } else {
+            console.error('Distance Matrix failed:', status);
             reject(new Error('Error calculating distance'));
           }
         }
       );
-    } catch (error) {
-      console.error('Distance calculation error:', error);
-      reject(new Error('Failed to calculate distance'));
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Distance calculation error:', error);
+    throw new Error('Failed to calculate distance');
+  }
 };
