@@ -16,21 +16,31 @@ export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { session, isAuthenticated } = useSession();
   const { toast } = useToast();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent multiple sign out attempts
+    
+    setIsSigningOut(true);
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
       toast({
         title: "Success",
         description: "Successfully signed out",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign out error:", error);
+      // Clear local session data even if the API call fails
+      await supabase.auth.clearSession();
+      
       toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive",
+        title: "Notice",
+        description: "You have been signed out",
       });
+    } finally {
+      setIsSigningOut(false);
     }
   };
 

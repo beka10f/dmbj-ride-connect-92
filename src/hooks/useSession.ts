@@ -8,35 +8,63 @@ export const useSession = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
-      if (error) {
-        console.error("Error fetching session:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch session",
-          variant: "destructive",
-        });
+    const initSession = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Error fetching session:", error);
+          if (mounted) {
+            toast({
+              title: "Error",
+              description: "Failed to fetch session",
+              variant: "destructive",
+            });
+            setSession(null);
+          }
+          return;
+        }
+        console.log("Initial session check:", currentSession?.user?.id || "No session");
+        if (mounted) {
+          setSession(currentSession);
+        }
+      } catch (error) {
+        console.error("Session initialization error:", error);
+        if (mounted) {
+          setSession(null);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
-      console.log("Initial session check:", currentSession?.user?.id || "No session");
-      setSession(currentSession);
-      setIsLoading(false);
-    });
+    };
+
+    initSession();
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-      console.log("Auth state changed:", _event, currentSession?.user?.id);
-      setSession(currentSession);
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log("Auth state changed:", event, currentSession?.user?.id);
       
-      if (_event === 'SIGNED_OUT') {
-        console.log("User signed out, clearing session");
-        setSession(null);
+      if (mounted) {
+        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          console.log("User signed out or deleted, clearing session");
+          setSession(null);
+          await supabase.auth.clearSession();
+        } else if (currentSession) {
+          setSession(currentSession);
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [toast]);
 
   return {
