@@ -45,15 +45,14 @@ export const useSession = () => {
     initSession();
 
     // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log("Auth state changed:", event, currentSession?.user?.id);
       
       if (mounted) {
-        if (event === 'SIGNED_OUT') {
-          console.log("User signed out, clearing session");
+        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          console.log("User signed out or deleted, clearing session");
           setSession(null);
+          localStorage.removeItem('supabase.auth.token');
         } else if (currentSession) {
           setSession(currentSession);
         }

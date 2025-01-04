@@ -23,11 +23,16 @@ export const Navigation = () => {
     
     setIsSigningOut(true);
     try {
-      // Immediately clear the local session state
+      // Clear local session state first
       setSession(null);
+      localStorage.removeItem('supabase.auth.token');
       
-      // Attempt to sign out from Supabase
-      await supabase.auth.signOut();
+      // Then attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Sign out API error:", error);
+        // Even if API call fails, we've already cleared local state
+      }
       
       toast({
         title: "Success",
@@ -35,7 +40,7 @@ export const Navigation = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
-      
+      // No need to clear session again as it's already cleared
       toast({
         title: "Notice",
         description: "You have been signed out",
