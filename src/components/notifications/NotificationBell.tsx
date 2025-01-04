@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Database } from "@/integrations/supabase/types";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 type BookingRow = Database['public']['Tables']['bookings']['Row'];
 type RealtimePayload = {
@@ -32,7 +33,7 @@ export const NotificationBell = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const bookingsChannel = supabase
+    const channel: RealtimeChannel = supabase
       .channel('bookings_channel')
       .on(
         'postgres_changes',
@@ -79,7 +80,7 @@ export const NotificationBell = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(bookingsChannel);
+      supabase.removeChannel(channel);
     };
   }, [toast, queryClient]);
 
