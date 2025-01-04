@@ -8,27 +8,42 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { NavigationItems } from "./navigation/NavigationItems";
-import { useAuthState } from "./auth/useAuthState";
+import { useSession } from "@/hooks/useSession";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const Navigation = () => {
-  // State for controlling the mobile drawer
   const [isOpen, setIsOpen] = useState(false);
+  const { session, isAuthenticated } = useSession();
+  const { toast } = useToast();
 
-  // Destructure auth-related values from your custom hook
-  const { isLoggedIn, isAdmin, handleSignOut } = useAuthState();
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Success",
+        description: "Successfully signed out",
+      });
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <nav className="bg-[#0F172A] fixed top-0 left-0 right-0 w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between py-4">
-          {/* Brand / Logo Section */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-semibold text-[#BFA181]">
               DMBJ Transportation
             </span>
           </Link>
 
-          {/* Mobile Navigation (Drawer) */}
           <div className="sm:hidden">
             <Drawer open={isOpen} onOpenChange={setIsOpen}>
               <DrawerTrigger asChild>
@@ -38,8 +53,8 @@ export const Navigation = () => {
               </DrawerTrigger>
               <DrawerContent className="bg-[#0F172A] p-6">
                 <NavigationItems
-                  isLoggedIn={isLoggedIn}
-                  isAdmin={isAdmin}
+                  isLoggedIn={isAuthenticated}
+                  isAdmin={session?.user?.role === 'admin'}
                   handleSignOut={handleSignOut}
                   setIsOpen={setIsOpen}
                 />
@@ -47,11 +62,10 @@ export const Navigation = () => {
             </Drawer>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden sm:block">
             <NavigationItems
-              isLoggedIn={isLoggedIn}
-              isAdmin={isAdmin}
+              isLoggedIn={isAuthenticated}
+              isAdmin={session?.user?.role === 'admin'}
               handleSignOut={handleSignOut}
               setIsOpen={setIsOpen}
             />
