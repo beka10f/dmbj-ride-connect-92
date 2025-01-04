@@ -15,7 +15,7 @@ interface AddressInputProps {
   disabled?: boolean;
 }
 
-const AddressInput = ({
+export const AddressInput = ({
   id,
   label,
   value,
@@ -132,5 +132,3 @@ const AddressInput = ({
     </div>
   );
 };
-
-export default AddressInput;

@@ -1,4 +1,4 @@
-import AddressInput from "../AddressInput";
+import { AddressInput } from "../AddressInput";
 
 interface AddressFieldsProps {
   pickup: string;
