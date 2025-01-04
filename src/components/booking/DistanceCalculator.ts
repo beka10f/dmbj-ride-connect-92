@@ -1,22 +1,35 @@
 import { DistanceCalculation } from "@/types/booking";
+import { supabase } from "@/integrations/supabase/client";
 
 // Function to load Google Maps API script
-const loadGoogleMapsAPI = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
+const loadGoogleMapsAPI = async (): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
     if (window.google?.maps) {
       resolve();
       return;
     }
 
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
+    try {
+      // Call the Google Places Edge Function to get the API key
+      const { data, error } = await supabase.functions.invoke('google-places', {
+        method: 'GET',
+      });
 
-    script.addEventListener('load', () => resolve());
-    script.addEventListener('error', () => reject(new Error('Failed to load Google Maps API')));
+      if (error) throw error;
 
-    document.head.appendChild(script);
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+
+      script.addEventListener('load', () => resolve());
+      script.addEventListener('error', () => reject(new Error('Failed to load Google Maps API')));
+
+      document.head.appendChild(script);
+    } catch (error) {
+      console.error('Error loading Google Maps API:', error);
+      reject(error);
+    }
   });
 };
 
