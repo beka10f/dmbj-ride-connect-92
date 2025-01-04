@@ -19,16 +19,20 @@ export const DriverForm = () => {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
 
+      // Generate a UUID for the new profile
+      const newProfileId = crypto.randomUUID();
+
       // First, create a profile for the driver
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .insert([{
+        .insert({
+          id: newProfileId,
           first_name: formData.get("name")?.toString().split(" ")[0],
           last_name: formData.get("name")?.toString().split(" ").slice(1).join(" "),
           email: formData.get("email") as string,
           phone: formData.get("phone") as string,
           role: "driver"
-        }])
+        })
         .select()
         .single();
 
