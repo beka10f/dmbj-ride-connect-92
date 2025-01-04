@@ -30,10 +30,10 @@ export const DashboardTabs = ({ isAdmin, bookings, driverApplications, onBooking
           )}
         </TabsList>
 
-        <div className="relative">
+        <div className="relative min-h-[400px]">
           <TabsContent 
             value="bookings" 
-            className="space-y-4 pt-2 data-[state=inactive]:absolute data-[state=inactive]:inset-0 data-[state=inactive]:hidden animate-in fade-in-0 slide-in-from-left-1/2 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-right-1/2"
+            className="absolute inset-0 space-y-4 pt-2 transition-opacity duration-300 data-[state=inactive]:pointer-events-none data-[state=inactive]:opacity-0 data-[state=active]:opacity-100"
           >
             <BookingsTable 
               bookings={bookings} 
@@ -44,7 +44,7 @@ export const DashboardTabs = ({ isAdmin, bookings, driverApplications, onBooking
           {isAdmin && (
             <TabsContent 
               value="applications" 
-              className="space-y-4 pt-2 data-[state=inactive]:absolute data-[state=inactive]:inset-0 data-[state=inactive]:hidden animate-in fade-in-0 slide-in-from-right-1/2 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-left-1/2"
+              className="absolute inset-0 space-y-4 pt-2 transition-opacity duration-300 data-[state=inactive]:pointer-events-none data-[state=inactive]:opacity-0 data-[state=active]:opacity-100"
             >
               <ApplicationsTable applications={driverApplications} />
             </TabsContent>
