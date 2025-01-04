@@ -15,7 +15,6 @@ export const useAuthState = () => {
     console.log("Clearing session state");
     setIsLoggedIn(false);
     setIsAdmin(false);
-    // Clear local storage to prevent token issues
     localStorage.clear();
   };
 
@@ -34,7 +33,6 @@ export const useAuthState = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
-      // Force clear session on error
       clearSession();
       toast({
         title: "Error",
@@ -56,16 +54,18 @@ export const useAuthState = () => {
         
         if (error) {
           console.error("Session error:", error);
-          if (error.message.includes("refresh_token_not_found")) {
+          if (mounted) {
             clearSession();
-            toast({
-              title: "Session Expired",
-              description: "Please sign in again",
-              variant: "destructive",
-            });
-            navigate('/login');
-            return;
+            if (error.message.includes("refresh_token_not_found")) {
+              toast({
+                title: "Session Expired",
+                description: "Please sign in again",
+                variant: "destructive",
+              });
+              navigate('/login');
+            }
           }
+          return;
         }
         
         if (session && mounted) {
@@ -80,12 +80,12 @@ export const useAuthState = () => {
           
           if (profileError) {
             console.error("Profile fetch error:", profileError);
-            clearSession();
+            if (mounted) clearSession();
             return;
           }
           
-          if (mounted) {
-            setIsAdmin(profile?.role === 'admin');
+          if (mounted && profile) {
+            setIsAdmin(profile.role === 'admin');
           }
         } else {
           console.log("No active session");
@@ -113,11 +113,11 @@ export const useAuthState = () => {
             .eq('id', session.user.id)
             .single();
           
-          if (mounted) {
-            setIsAdmin(profile?.role === 'admin');
+          if (mounted && profile) {
+            setIsAdmin(profile.role === 'admin');
           }
         }
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      } else if (event === 'SIGNED_OUT') {
         if (mounted) {
           clearSession();
           navigate('/');

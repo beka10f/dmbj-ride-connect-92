@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,11 +25,16 @@ const Dashboard = () => {
             description: "There was an error checking your session. Please try logging in again.",
             variant: "destructive",
           });
-          throw error;
+          navigate('/login');
+          return;
         }
         
         if (!session) {
           console.log("No active session found, redirecting to login");
+          toast({
+            title: "Authentication Required",
+            description: "Please sign in to access the dashboard",
+          });
           navigate('/login');
           return;
         }
@@ -46,8 +53,8 @@ const Dashboard = () => {
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log("Auth state changed in Dashboard:", event);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed in Dashboard:", event, session?.user?.id);
       if (event === 'SIGNED_OUT') {
         console.log("User signed out, redirecting");
         navigate('/login');
@@ -72,7 +79,20 @@ const Dashboard = () => {
     );
   }
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-7xl mx-auto">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Unable to load profile data. Please try refreshing the page.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
 
   return <DashboardContent profile={profile} />;
 };
