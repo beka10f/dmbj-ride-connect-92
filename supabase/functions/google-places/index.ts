@@ -6,7 +6,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -16,7 +15,6 @@ serve(async (req) => {
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY')
 
     if (!GOOGLE_MAPS_API_KEY) {
-      console.error('Google Maps API key not configured')
       throw new Error('Google Maps API key not configured')
     }
 
@@ -29,18 +27,12 @@ serve(async (req) => {
 
     console.log('Fetching suggestions for:', input)
 
-    const url = new URL('https://maps.googleapis.com/maps/api/place/autocomplete/json')
-    url.searchParams.append('input', input)
-    url.searchParams.append('components', 'country:us')
-    url.searchParams.append('key', GOOGLE_MAPS_API_KEY)
+    const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+      input
+    )}&components=country:us&key=${GOOGLE_MAPS_API_KEY}`
 
     const response = await fetch(url)
     const data = await response.json()
-
-    if (!response.ok) {
-      console.error('Google Places API error:', data)
-      throw new Error('Failed to fetch suggestions from Google Places API')
-    }
 
     console.log('Google Places API response:', data)
 
@@ -56,12 +48,9 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        status: 'error'
-      }),
+      JSON.stringify({ error: error.message }),
       { 
-        status: 200, // Return 200 even for errors to prevent CORS issues
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
