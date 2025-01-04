@@ -33,7 +33,7 @@ export const ApplicationsTable = ({ applications }: ApplicationsTableProps) => {
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
-              <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[250px]">Applicant Info</TableHead>
+              <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[300px]">Applicant Info</TableHead>
               <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">Experience</TableHead>
               <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">License</TableHead>
               <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Applied</TableHead>
@@ -47,16 +47,26 @@ export const ApplicationsTable = ({ applications }: ApplicationsTableProps) => {
                 className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors dark:border-gray-800 dark:hover:bg-gray-800/50"
               >
                 <TableCell className="py-4">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <User className="h-5 w-5 text-purple-500 shrink-0" />
-                      <div className="text-base font-medium text-gray-900 dark:text-gray-100">
-                        Driver #{application.id.slice(0, 8)}
+                      <div className="flex-shrink-0">
+                        <User className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          Driver #{application.id.slice(0, 8)}
+                        </p>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2 ml-7">
+                      <Phone className="h-4 w-4 text-blue-500" />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        +1 (555) 123-4567
+                      </span>
+                    </div>
                     {application.about_text && (
-                      <div className="flex items-start gap-2 ml-7">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                      <div className="ml-7 mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                           {application.about_text}
                         </p>
                       </div>
@@ -65,7 +75,7 @@ export const ApplicationsTable = ({ applications }: ApplicationsTableProps) => {
                 </TableCell>
                 <TableCell className="py-4">
                   <div className="flex items-center gap-2">
-                    <Car className="h-4 w-4 text-blue-500 shrink-0" />
+                    <Car className="h-4 w-4 text-green-500" />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {application.years_experience} years
                     </span>
@@ -73,7 +83,7 @@ export const ApplicationsTable = ({ applications }: ApplicationsTableProps) => {
                 </TableCell>
                 <TableCell className="py-4">
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-green-500 shrink-0" />
+                    <FileText className="h-4 w-4 text-orange-500" />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {application.license_number}
                     </span>
@@ -81,7 +91,7 @@ export const ApplicationsTable = ({ applications }: ApplicationsTableProps) => {
                 </TableCell>
                 <TableCell className="py-4">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-orange-500 shrink-0" />
+                    <Calendar className="h-4 w-4 text-indigo-500" />
                     <span className="text-sm text-gray-700 dark:text-gray-300">
                       {format(new Date(application.created_at), "MMM d, yyyy")}
                     </span>
@@ -90,7 +100,7 @@ export const ApplicationsTable = ({ applications }: ApplicationsTableProps) => {
                 <TableCell className="py-4">
                   <Badge 
                     variant="outline" 
-                    className={`${getStatusStyle(application.status)} px-3 py-1 rounded-full font-medium text-xs capitalize`}
+                    className={`${getStatusStyle(application.status)} px-3 py-1 rounded-full font-medium text-xs capitalize shadow-sm`}
                   >
                     {application.status}
                   </Badge>

@@ -81,11 +81,11 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px] lg:min-w-[150px]">Pickup</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px] lg:min-w-[150px]">Dropoff</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Date</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Time</TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[80px]">Price</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[180px] lg:min-w-[200px]">Pickup</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[180px] lg:min-w-[200px]">Dropoff</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">Date</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[120px]">Time</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Price</TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[100px]">Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -96,47 +96,51 @@ export const BookingsTable = ({ bookings, onBookingUpdated }: BookingsTableProps
                   className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer dark:border-gray-800 dark:hover:bg-gray-800/50"
                   onClick={() => setSelectedBooking(booking)}
                 >
-                  <TableCell className="py-3">
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px] lg:max-w-[300px]">
+                      <div className="flex-shrink-0">
+                        <MapPin className="h-4 w-4 text-purple-500" />
+                      </div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[150px] sm:max-w-[200px] lg:max-w-[300px]">
                         {booking.pickup_location}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="py-3">
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px] lg:max-w-[300px]">
+                      <div className="flex-shrink-0">
+                        <MapPin className="h-4 w-4 text-indigo-500" />
+                      </div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[150px] sm:max-w-[200px] lg:max-w-[300px]">
                         {booking.dropoff_location}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="py-3">
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
+                      <Calendar className="h-4 w-4 text-green-500" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">
                         {format(new Date(booking.pickup_date), "MMM d")}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="py-3">
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400 shrink-0" />
+                      <Clock className="h-4 w-4 text-orange-500" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">
                         {format(new Date(booking.pickup_date), "h:mm a")}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="py-3">
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-gray-400 shrink-0" />
+                      <DollarSign className="h-4 w-4 text-blue-500" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">
                         ${bookingCosts[booking.id] || '...'}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="py-3">
+                  <TableCell className="py-4">
                     <BookingStatus status={booking.status} />
                   </TableCell>
                 </TableRow>
