@@ -74,17 +74,15 @@ export const SignInForm = () => {
         return;
       }
 
-      if (data.session) {
-        // Store the complete session in localStorage
-        localStorage.setItem('sb-session', JSON.stringify(data.session));
-        
+      if (data?.session) {
+        console.log("Sign in successful, session created");
         toast({
           title: "Welcome back!",
           description: "Successfully signed in.",
         });
         navigate("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Unexpected error during sign in:", error);
       setError("An unexpected error occurred. Please try again later.");
     } finally {

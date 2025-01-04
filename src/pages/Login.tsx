@@ -9,12 +9,19 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session on mount
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log("Existing session found, redirecting to dashboard");
-        navigate("/dashboard");
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Session check error:", error);
+          return;
+        }
+        if (session) {
+          console.log("Active session found, redirecting to dashboard");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Session check failed:", error);
       }
     };
     
