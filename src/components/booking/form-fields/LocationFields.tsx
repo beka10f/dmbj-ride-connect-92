@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { AddressInput } from "../AddressInput";
+import AddressInput from "../AddressInput";
 
 interface LocationFieldsProps {
   pickup: string;
