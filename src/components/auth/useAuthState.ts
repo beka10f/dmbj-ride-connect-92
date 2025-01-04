@@ -27,7 +27,7 @@ export const useAuthState = () => {
       if (error) throw error;
       
       clearSession();
-      navigate('/');
+      navigate('/login');
       toast({
         title: "Success",
         description: "Successfully signed out",
@@ -69,14 +69,12 @@ export const useAuthState = () => {
           console.log("No active session");
           if (mounted) {
             clearSession();
-            navigate('/login');
           }
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (mounted) {
           clearSession();
-          navigate('/login');
         }
       } finally {
         if (mounted) setIsLoading(false);
