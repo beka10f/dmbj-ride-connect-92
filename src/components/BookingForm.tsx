@@ -24,14 +24,14 @@ const BookingForm = () => {
   }
 
   return (
-    <section className="py-12 bg-white">
-      <div className="max-w-2xl mx-auto px-4">
-        <Card className="animate-fadeIn">
-          <CardHeader className="text-center space-y-1 pb-6">
-            <CardTitle className="text-2xl font-semibold text-primary">Book Your Ride</CardTitle>
+    <section className="py-8 sm:py-12 bg-white" id="booking">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <Card className="animate-fadeIn shadow-lg sm:shadow">
+          <CardHeader className="text-center space-y-1 pb-4 sm:pb-6">
+            <CardTitle className="text-xl sm:text-2xl font-semibold text-primary">Book Your Ride</CardTitle>
             <p className="text-sm text-muted-foreground">Enter your trip details below</p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 sm:px-6">
             <BookingFormFields
               formData={formData}
               setFormData={setFormData}

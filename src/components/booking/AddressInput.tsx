@@ -15,7 +15,7 @@ interface AddressInputProps {
   disabled?: boolean;
 }
 
-const AddressInput = ({
+export const AddressInput = ({
   id,
   label,
   value,
@@ -94,7 +94,7 @@ const AddressInput = ({
         {label}
       </Label>
       <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
           <MapPin className="h-5 w-5" />
         </div>
         <Input
@@ -104,7 +104,7 @@ const AddressInput = ({
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           placeholder={placeholder}
-          className="h-14 pl-12 text-gray-600 bg-white border border-gray-100 rounded-xl shadow-sm"
+          className="h-12 pl-10 text-gray-600 bg-white border border-gray-100 rounded-xl shadow-sm"
           disabled={disabled}
         />
         
@@ -115,7 +115,7 @@ const AddressInput = ({
         )}
         
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-auto">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
@@ -132,5 +132,3 @@ const AddressInput = ({
     </div>
   );
 };
-
-export default AddressInput;

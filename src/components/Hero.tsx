@@ -21,7 +21,7 @@ export const Hero = () => {
             transition={{ duration: 0.6 }}
             className="space-y-4 sm:space-y-6"
           >
-            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-tight px-2 sm:px-0">
               Luxury Transportation
               <span className="block text-secondary mt-2 font-medium">At Your Service</span>
             </h1>
@@ -29,7 +29,7 @@ export const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-sm sm:text-base md:text-xl mb-6 sm:mb-8 text-gray-300 max-w-2xl mx-auto leading-relaxed px-2"
+              className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-gray-300 max-w-2xl mx-auto leading-relaxed px-2"
             >
               Experience the epitome of comfort and elegance with our premium
               limousine service
