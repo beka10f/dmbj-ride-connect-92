@@ -14,17 +14,23 @@ import { useToast } from "@/hooks/use-toast";
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { session, isAuthenticated } = useSession();
+  const { session, isAuthenticated, setSession } = useSession();
   const { toast } = useToast();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
-    if (isSigningOut) return; // Prevent multiple sign out attempts
+    if (isSigningOut) return;
     
     setIsSigningOut(true);
     try {
+      // First try to sign out normally
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Sign out error:", error);
+        // If the API call fails, manually clear the session
+        setSession(null);
+      }
       
       toast({
         title: "Success",
@@ -32,6 +38,9 @@ export const Navigation = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
+      // In case of any error, manually clear the session
+      setSession(null);
+      
       toast({
         title: "Notice",
         description: "You have been signed out",

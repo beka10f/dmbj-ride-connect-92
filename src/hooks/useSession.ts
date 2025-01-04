@@ -68,6 +68,7 @@ export const useSession = () => {
 
   return {
     session,
+    setSession,
     isLoading,
     isAuthenticated: !!session,
     user: session?.user,
