@@ -23,14 +23,11 @@ export const Navigation = () => {
     
     setIsSigningOut(true);
     try {
-      // First try to sign out normally
-      const { error } = await supabase.auth.signOut();
+      // Immediately clear the local session state
+      setSession(null);
       
-      if (error) {
-        console.error("Sign out error:", error);
-        // If the API call fails, manually clear the session
-        setSession(null);
-      }
+      // Attempt to sign out from Supabase
+      await supabase.auth.signOut();
       
       toast({
         title: "Success",
@@ -38,8 +35,6 @@ export const Navigation = () => {
       });
     } catch (error: any) {
       console.error("Sign out error:", error);
-      // In case of any error, manually clear the session
-      setSession(null);
       
       toast({
         title: "Notice",
