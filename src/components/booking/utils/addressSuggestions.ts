@@ -8,15 +8,8 @@ export const getSuggestions = async (input: string): Promise<string[]> => {
   try {
     console.log('Fetching suggestions for:', input);
     
-    // Get the session first
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-    
     const { data, error } = await supabase.functions.invoke('google-places', {
-      body: { input },
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
+      body: { input }
     });
     
     if (error) {

@@ -10,42 +10,29 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { RealtimeChannel } from "@supabase/supabase-js";
-
-type BookingNotification = {
-  pickup_location: string;
-  dropoff_location: string;
-  status: string;
-  special_instructions: string;
-}
-
-interface NotificationData {
-  type: 'payment' | 'booking';
-  data: any;
-  time: string;
-}
 
 export const NotificationBell = () => {
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const bookingsChannel: RealtimeChannel = supabase
+    // Listen for new bookings and payment updates
+    const bookingsChannel = supabase
       .channel('bookings_channel')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'bookings' },
         (payload) => {
           console.log("Received booking update:", payload);
-          const newBooking = payload.new as BookingNotification;
           
-          if (newBooking && 
-              newBooking.pickup_location === 'NOTIFICATION' && 
-              newBooking.status === 'notification') {
+          // Check if this is a payment notification
+          if (payload.new && 
+              payload.new.pickup_location === 'NOTIFICATION' && 
+              payload.new.status === 'notification') {
             try {
-              const notificationData = JSON.parse(newBooking.special_instructions);
+              const notificationData = JSON.parse(payload.new.special_instructions);
               if (notificationData.type === 'payment_confirmation') {
                 setHasNewNotifications(true);
                 toast({
@@ -58,20 +45,22 @@ export const NotificationBell = () => {
                   time: new Date().toISOString()
                 }, ...prev]);
                 
+                // Invalidate queries to refresh the dashboard data
                 queryClient.invalidateQueries({ queryKey: ['bookings'] });
               }
             } catch (e) {
               console.error("Error parsing notification data:", e);
             }
-          } else if (newBooking) {
+          } else {
+            // Handle regular booking notifications
             setHasNewNotifications(true);
             toast({
               title: "New Booking",
-              description: `New booking received from ${newBooking.pickup_location} to ${newBooking.dropoff_location}`,
+              description: `New booking received from ${payload.new.pickup_location} to ${payload.new.dropoff_location}`,
             });
             setNotifications(prev => [{
               type: 'booking',
-              data: newBooking,
+              data: payload.new,
               time: new Date().toISOString()
             }, ...prev]);
           }
@@ -84,7 +73,7 @@ export const NotificationBell = () => {
     };
   }, [toast, queryClient]);
 
-  const formatNotificationMessage = (notification: NotificationData) => {
+  const formatNotificationMessage = (notification: any) => {
     if (notification.type === 'payment') {
       return `Payment of $${notification.data.amount} received from ${notification.data.customerName}`;
     }

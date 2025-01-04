@@ -15,6 +15,8 @@ export const useAuthState = () => {
     console.log("Clearing session state");
     setIsLoggedIn(false);
     setIsAdmin(false);
+    // Clear local storage to prevent token issues
+    localStorage.clear();
   };
 
   const handleSignOut = async () => {
@@ -23,24 +25,20 @@ export const useAuthState = () => {
     setIsSigningOut(true);
     try {
       console.log("Attempting to sign out");
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Clear the session state
+      await supabase.auth.signOut();
       clearSession();
-      
-      // Show toast and navigate
+      navigate('/');
       toast({
         title: "Success",
         description: "Successfully signed out",
       });
-      
-      navigate('/login');
     } catch (error: any) {
       console.error("Sign out error:", error);
+      // Force clear session on error
+      clearSession();
       toast({
         title: "Error",
-        description: "Failed to sign out properly. Please try again.",
+        description: "Failed to sign out properly. Please refresh the page.",
         variant: "destructive",
       });
     } finally {
@@ -54,32 +52,48 @@ export const useAuthState = () => {
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session error:", error);
+          if (error.message.includes("refresh_token_not_found")) {
+            clearSession();
+            toast({
+              title: "Session Expired",
+              description: "Please sign in again",
+              variant: "destructive",
+            });
+            navigate('/login');
+            return;
+          }
+        }
         
         if (session && mounted) {
           console.log("Session found:", session.user.id);
           setIsLoggedIn(true);
           
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
-            .maybeSingle();
+            .single();
+          
+          if (profileError) {
+            console.error("Profile fetch error:", profileError);
+            clearSession();
+            return;
+          }
           
           if (mounted) {
             setIsAdmin(profile?.role === 'admin');
           }
         } else {
           console.log("No active session");
-          if (mounted) {
-            clearSession();
-          }
+          if (mounted) clearSession();
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
-        if (mounted) {
-          clearSession();
-        }
+        if (mounted) clearSession();
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -97,15 +111,16 @@ export const useAuthState = () => {
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
-            .maybeSingle();
+            .single();
           
           if (mounted) {
             setIsAdmin(profile?.role === 'admin');
           }
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
         if (mounted) {
           clearSession();
+          navigate('/');
         }
       }
     });
