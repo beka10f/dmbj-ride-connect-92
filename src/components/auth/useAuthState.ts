@@ -26,7 +26,7 @@ export const useAuthState = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      // Clear the session state
+      // Clear the session state before navigation
       clearSession();
       
       // Show toast and navigate
