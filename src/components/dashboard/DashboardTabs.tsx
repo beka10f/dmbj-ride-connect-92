@@ -30,18 +30,26 @@ export const DashboardTabs = ({ isAdmin, bookings, driverApplications, onBooking
           )}
         </TabsList>
 
-        <TabsContent value="bookings" className="space-y-4 pt-2">
-          <BookingsTable 
-            bookings={bookings} 
-            onBookingUpdated={onBookingUpdated}
-          />
-        </TabsContent>
-
-        {isAdmin && (
-          <TabsContent value="applications" className="space-y-4 pt-2">
-            <ApplicationsTable applications={driverApplications} />
+        <div className="relative">
+          <TabsContent 
+            value="bookings" 
+            className="space-y-4 pt-2 data-[state=inactive]:absolute data-[state=inactive]:inset-0 data-[state=inactive]:hidden animate-in fade-in-0 slide-in-from-left-1/2 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-right-1/2"
+          >
+            <BookingsTable 
+              bookings={bookings} 
+              onBookingUpdated={onBookingUpdated}
+            />
           </TabsContent>
-        )}
+
+          {isAdmin && (
+            <TabsContent 
+              value="applications" 
+              className="space-y-4 pt-2 data-[state=inactive]:absolute data-[state=inactive]:inset-0 data-[state=inactive]:hidden animate-in fade-in-0 slide-in-from-right-1/2 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-left-1/2"
+            >
+              <ApplicationsTable applications={driverApplications} />
+            </TabsContent>
+          )}
+        </div>
       </Tabs>
     </div>
   );
