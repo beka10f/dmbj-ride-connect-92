@@ -6,17 +6,29 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { input } = await req.json()
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY')
 
     if (!GOOGLE_MAPS_API_KEY) {
       throw new Error('Google Maps API key not configured')
     }
+
+    // If it's a GET request, return the API key
+    if (req.method === 'GET') {
+      console.log('Returning API key for Google Maps initialization')
+      return new Response(
+        JSON.stringify({ apiKey: GOOGLE_MAPS_API_KEY }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Handle POST requests for place suggestions
+    const { input } = await req.json()
 
     if (!input || input.length < 3) {
       return new Response(
