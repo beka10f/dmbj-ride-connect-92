@@ -11,23 +11,36 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
+interface BookingPayload {
+  new: {
+    pickup_location: string;
+    dropoff_location: string;
+    status: string;
+    special_instructions: string;
+  };
+}
+
+interface NotificationData {
+  type: 'payment' | 'booking';
+  data: any;
+  time: string;
+}
+
 export const NotificationBell = () => {
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Listen for new bookings and payment updates
     const bookingsChannel = supabase
       .channel('bookings_channel')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'bookings' },
-        (payload) => {
+        (payload: BookingPayload) => {
           console.log("Received booking update:", payload);
           
-          // Check if this is a payment notification
           if (payload.new && 
               payload.new.pickup_location === 'NOTIFICATION' && 
               payload.new.status === 'notification') {
@@ -45,14 +58,12 @@ export const NotificationBell = () => {
                   time: new Date().toISOString()
                 }, ...prev]);
                 
-                // Invalidate queries to refresh the dashboard data
                 queryClient.invalidateQueries({ queryKey: ['bookings'] });
               }
             } catch (e) {
               console.error("Error parsing notification data:", e);
             }
           } else {
-            // Handle regular booking notifications
             setHasNewNotifications(true);
             toast({
               title: "New Booking",
@@ -73,7 +84,7 @@ export const NotificationBell = () => {
     };
   }, [toast, queryClient]);
 
-  const formatNotificationMessage = (notification: any) => {
+  const formatNotificationMessage = (notification: NotificationData) => {
     if (notification.type === 'payment') {
       return `Payment of $${notification.data.amount} received from ${notification.data.customerName}`;
     }
