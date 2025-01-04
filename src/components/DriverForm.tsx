@@ -37,21 +37,24 @@ export const DriverForm = () => {
         throw new Error("Failed to create user account");
       }
 
-      // The profile will be created automatically by the database trigger
-      // Now create the driver application
-      const { error: applicationError } = await supabase
-        .from("driver_applications")
-        .insert({
-          user_id: authData.user.id,
-          years_experience: parseInt(formData.get("experience") as string),
-          license_number: formData.get("license") as string,
-          about_text: formData.get("about") as string,
-        });
+      // Wait for the profile to be available
+      const waitForProfile = async (userId: string, attempts = 0): Promise<void> => {
+        if (attempts > 5) throw new Error("Profile creation timeout");
+        
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select()
+          .eq("id", userId)
+          .single();
+        
+        if (profileError || !profile) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return waitForProfile(userId, attempts + 1);
+        }
+      };
 
-      if (applicationError) {
-        console.error("Application error:", applicationError);
-        throw new Error("Failed to submit application");
-      }
+      // Wait for profile to be created by the trigger
+      await waitForProfile(authData.user.id);
 
       // Update the profile with additional information
       const { error: profileUpdateError } = await supabase
@@ -66,6 +69,21 @@ export const DriverForm = () => {
       if (profileUpdateError) {
         console.error("Profile update error:", profileUpdateError);
         throw new Error("Failed to update profile information");
+      }
+
+      // Now create the driver application
+      const { error: applicationError } = await supabase
+        .from("driver_applications")
+        .insert({
+          user_id: authData.user.id,
+          years_experience: parseInt(formData.get("experience") as string),
+          license_number: formData.get("license") as string,
+          about_text: formData.get("about") as string,
+        });
+
+      if (applicationError) {
+        console.error("Application error:", applicationError);
+        throw new Error("Failed to submit application");
       }
 
       toast({
