@@ -23,7 +23,6 @@ export const useUserProfile = () => {
 
     const fetchProfile = async () => {
       try {
-        console.log("Fetching user profile");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -33,10 +32,8 @@ export const useUserProfile = () => {
         
         if (!session) {
           console.log("No active session in useUserProfile");
-          if (mounted) {
-            setProfile(null);
-            setIsLoading(false);
-          }
+          setProfile(null);
+          setIsLoading(false);
           return;
         }
 
@@ -63,7 +60,6 @@ export const useUserProfile = () => {
           description: "Failed to load user profile",
           variant: "destructive",
         });
-        navigate('/login', { replace: true });
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -97,7 +93,6 @@ export const useUserProfile = () => {
             description: "Failed to load user profile",
             variant: "destructive",
           });
-          navigate('/login', { replace: true });
         }
       } else if (event === 'SIGNED_OUT') {
         if (mounted) {

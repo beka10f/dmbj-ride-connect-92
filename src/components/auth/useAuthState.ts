@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { AuthError } from "@supabase/supabase-js";
 
 export const useAuthState = () => {
   const navigate = useNavigate();
@@ -28,12 +27,12 @@ export const useAuthState = () => {
       if (error) throw error;
       
       clearSession();
-      navigate('/login', { replace: true });
+      navigate('/');
       toast({
         title: "Success",
         description: "Successfully signed out",
       });
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error("Sign out error:", error);
       toast({
         title: "Error",
@@ -50,12 +49,11 @@ export const useAuthState = () => {
 
     const initializeAuth = async () => {
       try {
-        console.log("Initializing auth state");
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session && mounted) {
-          console.log("Active session found:", session.user.id);
+          console.log("Session found:", session.user.id);
           setIsLoggedIn(true);
           
           const { data: profile } = await supabase
@@ -71,14 +69,14 @@ export const useAuthState = () => {
           console.log("No active session");
           if (mounted) {
             clearSession();
-            navigate('/login', { replace: true });
+            navigate('/login');
           }
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (mounted) {
           clearSession();
-          navigate('/login', { replace: true });
+          navigate('/login');
         }
       } finally {
         if (mounted) setIsLoading(false);
@@ -106,7 +104,7 @@ export const useAuthState = () => {
       } else if (event === 'SIGNED_OUT') {
         if (mounted) {
           clearSession();
-          navigate('/login', { replace: true });
+          navigate('/login');
         }
       }
     });

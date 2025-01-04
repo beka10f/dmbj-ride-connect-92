@@ -14,21 +14,17 @@ const Dashboard = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        console.log("Checking session in Dashboard");
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error("Session check error:", error);
-          throw error;
-        }
+        if (error) throw error;
         
         if (!session) {
-          console.log("No active session found in Dashboard, redirecting to login");
-          navigate('/login', { replace: true });
+          console.log("No active session found, redirecting to login");
+          navigate('/login');
           return;
         }
 
-        console.log("Active session found in Dashboard:", session.user.id);
+        console.log("Active session found:", session.user.id);
       } catch (error: any) {
         console.error("Session check failed:", error);
         toast({
@@ -36,7 +32,7 @@ const Dashboard = () => {
           description: "Please sign in to access the dashboard",
           variant: "destructive",
         });
-        navigate('/login', { replace: true });
+        navigate('/login');
       }
     };
 
