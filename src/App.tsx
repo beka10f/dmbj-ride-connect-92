@@ -1,26 +1,39 @@
-import { BrowserRouter as Router } from "react-router-dom";
-import { AuthProvider } from "@/components/auth/AuthProvider";
-import { Toaster } from "@/components/ui/toaster";
-import "./App.css";
-import Dashboard from "@/pages/Dashboard";
-import Login from "@/pages/Login";
-import NotFound from "@/pages/NotFound";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
-import { Routes, Route } from "react-router-dom";
+import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
+import Dashboard from "@/pages/Dashboard";
+import BecomeDriver from "@/pages/BecomeDriver";
+import Admin from "@/pages/Admin";
+import { Toaster } from "@/components/ui/toaster";
+import { Navigation } from "@/components/Navigation";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </AuthProvider>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Router>
+          <div className="min-h-screen flex flex-col">
+            <Navigation />
+            <main className="flex-1 mt-14 sm:mt-16">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/become-driver" element={<BecomeDriver />} />
+                <Route path="/admin" element={<Admin />} />
+              </Routes>
+            </main>
+            <Toaster />
+          </div>
+        </Router>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
