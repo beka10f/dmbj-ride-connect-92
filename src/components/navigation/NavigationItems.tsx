@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { NotificationBell } from "../notifications/NotificationBell";
 
 interface NavigationItemsProps {
   isLoggedIn: boolean;
@@ -19,11 +18,6 @@ export const NavigationItems = memo(({
   <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
     {isLoggedIn ? (
       <>
-        {isAdmin && (
-          <div className="sm:mr-2">
-            <NotificationBell />
-          </div>
-        )}
         <Link 
           to="/dashboard" 
           className="w-full sm:w-auto"
