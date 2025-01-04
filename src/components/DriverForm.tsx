@@ -18,47 +18,59 @@ export const DriverForm = () => {
     try {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
+      const email = formData.get("email") as string;
+      const password = crypto.randomUUID().slice(0, 8); // Generate a random password
 
-      // Generate a UUID for the new profile
-      const newProfileId = crypto.randomUUID();
+      // First, create an auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role: "driver",
+          },
+        },
+      });
 
-      // First, create a profile for the driver
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .insert({
-          id: newProfileId,
-          first_name: formData.get("name")?.toString().split(" ")[0],
-          last_name: formData.get("name")?.toString().split(" ").slice(1).join(" "),
-          email: formData.get("email") as string,
-          phone: formData.get("phone") as string,
-          role: "driver"
-        })
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error("Profile creation error:", profileError);
-        throw new Error("Failed to create profile");
+      if (authError || !authData.user) {
+        console.error("Auth error:", authError);
+        throw new Error("Failed to create user account");
       }
 
-      // Then create the driver application
+      // The profile will be created automatically by the database trigger
+      // Now create the driver application
       const { error: applicationError } = await supabase
         .from("driver_applications")
-        .insert([{
-          user_id: profileData.id,
+        .insert({
+          user_id: authData.user.id,
           years_experience: parseInt(formData.get("experience") as string),
           license_number: formData.get("license") as string,
           about_text: formData.get("about") as string,
-        }]);
+        });
 
       if (applicationError) {
         console.error("Application error:", applicationError);
         throw new Error("Failed to submit application");
       }
 
+      // Update the profile with additional information
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({
+          first_name: formData.get("name")?.toString().split(" ")[0],
+          last_name: formData.get("name")?.toString().split(" ").slice(1).join(" "),
+          phone: formData.get("phone") as string,
+        })
+        .eq("id", authData.user.id);
+
+      if (profileUpdateError) {
+        console.error("Profile update error:", profileUpdateError);
+        throw new Error("Failed to update profile information");
+      }
+
       toast({
         title: "Application Submitted",
-        description: "Thank you for your interest! We'll review your application and contact you soon.",
+        description: "Thank you for your interest! We'll review your application and contact you soon. Check your email for account details.",
       });
       navigate("/");
     } catch (error) {
