@@ -2,8 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -11,19 +9,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { SignUpFormFields } from "./SignUpFormFields";
+import { validatePassword } from "@/utils/passwordValidation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 export const SignUpForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -33,12 +29,27 @@ export const SignUpForm = () => {
     role: "client",
   });
 
+  const handleFieldChange = (field: keyof typeof formData, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    if (field === 'password') {
+      const passwordError = validatePassword(value);
+      setError(passwordError);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const passwordError = validatePassword(formData.password);
+    
+    if (passwordError) {
+      setError(passwordError);
+      setLoading(false);
+      return;
+    }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -51,7 +62,7 @@ export const SignUpForm = () => {
         },
       });
 
-      if (error) throw error;
+      if (signUpError) throw signUpError;
 
       toast({
         title: "Success!",
@@ -80,98 +91,23 @@ export const SignUpForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <InfoIcon className="h-4 w-4" />
+              <AlertTitle>Validation Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-gray-700">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, firstName: e.target.value })
-                  }
-                  className="block w-full rounded-lg border-gray-300 shadow-sm"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-gray-700">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, lastName: e.target.value })
-                  }
-                  className="block w-full rounded-lg border-gray-300 shadow-sm"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700">Email address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="block w-full rounded-lg border-gray-300 shadow-sm"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                className="block w-full rounded-lg border-gray-300 shadow-sm"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-gray-700">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                className="block w-full rounded-lg border-gray-300 shadow-sm"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role" className="text-gray-700">I want to</Label>
-              <Select
-                value={formData.role}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, role: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="client">Book Rides</SelectItem>
-                  <SelectItem value="driver">Become a Driver</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+            <SignUpFormFields 
+              formData={formData}
+              onChange={handleFieldChange}
+              error={error}
+            />
             <Button 
               type="submit" 
               className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-lg transition-colors"
-              disabled={loading}
+              disabled={loading || !!error}
             >
               {loading ? "Creating account..." : "Sign Up"}
             </Button>
