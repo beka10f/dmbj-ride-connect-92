@@ -11,8 +11,18 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
 );
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
   try {
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+
     const signature = req.headers.get('stripe-signature');
     if (!signature) {
       throw new Error('No Stripe signature found');
@@ -40,7 +50,21 @@ serve(async (req) => {
 
       if (bookingId) {
         console.log(`Updating booking ${bookingId} with completed payment`);
-        const { error } = await supabaseClient
+        
+        // First, get the booking details to include in the notification
+        const { data: bookingData, error: bookingError } = await supabaseClient
+          .from('bookings')
+          .select('*, profiles:user_id(first_name, last_name)')
+          .eq('id', bookingId)
+          .single();
+
+        if (bookingError) {
+          console.error('Error fetching booking details:', bookingError);
+          throw bookingError;
+        }
+
+        // Update the booking status
+        const { error: updateError } = await supabaseClient
           .from('bookings')
           .update({ 
             payment_status: 'completed',
@@ -49,17 +73,53 @@ serve(async (req) => {
           })
           .eq('id', bookingId);
 
-        if (error) {
-          console.error('Error updating booking:', error);
-          throw error;
+        if (updateError) {
+          console.error('Error updating booking:', updateError);
+          throw updateError;
+        }
+
+        // Get admin users to notify them
+        const { data: adminUsers, error: adminError } = await supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('role', 'admin');
+
+        if (adminError) {
+          console.error('Error fetching admin users:', adminError);
+          throw adminError;
+        }
+
+        // Broadcast the payment confirmation to the admin channel
+        const { error: broadcastError } = await supabaseClient
+          .from('bookings')
+          .insert({
+            id: crypto.randomUUID(),
+            user_id: adminUsers[0]?.id, // Send to first admin
+            pickup_location: 'NOTIFICATION',
+            dropoff_location: 'NOTIFICATION',
+            pickup_date: new Date().toISOString(),
+            status: 'notification',
+            special_instructions: JSON.stringify({
+              type: 'payment_confirmation',
+              bookingId: bookingId,
+              amount: paymentAmount,
+              customerName: `${bookingData.profiles.first_name} ${bookingData.profiles.last_name}`,
+              pickupLocation: bookingData.pickup_location,
+              dropoffLocation: bookingData.dropoff_location
+            })
+          });
+
+        if (broadcastError) {
+          console.error('Error broadcasting notification:', broadcastError);
+          throw broadcastError;
         }
         
-        console.log(`Successfully updated booking ${bookingId}`);
+        console.log(`Successfully updated booking ${bookingId} and sent notifications`);
       }
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (error) {
@@ -67,7 +127,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       }
     );
