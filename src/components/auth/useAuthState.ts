@@ -102,7 +102,7 @@ export const useAuthState = () => {
             setIsAdmin(profile?.role === 'admin');
           }
         }
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT') {
         if (mounted) {
           clearSession();
           navigate('/login', { replace: true });
