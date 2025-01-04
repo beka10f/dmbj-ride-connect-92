@@ -18,6 +18,7 @@ export const useSession = () => {
           variant: "destructive",
         });
       }
+      console.log("Initial session check:", currentSession?.user?.id || "No session");
       setSession(currentSession);
       setIsLoading(false);
     });
@@ -28,6 +29,11 @@ export const useSession = () => {
     } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       console.log("Auth state changed:", _event, currentSession?.user?.id);
       setSession(currentSession);
+      
+      if (_event === 'SIGNED_OUT') {
+        console.log("User signed out, clearing session");
+        setSession(null);
+      }
     });
 
     return () => subscription.unsubscribe();
