@@ -3,17 +3,33 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export const DriverForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Rate limiting check
+    const now = Date.now();
+    const timeSinceLastSubmit = now - lastSubmitTime;
+    if (timeSinceLastSubmit < 60000) { // 60 seconds
+      toast({
+        title: "Please wait",
+        description: `You can submit again in ${Math.ceil((60000 - timeSinceLastSubmit) / 1000)} seconds.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (loading) return;
     setLoading(true);
+    setLastSubmitTime(now);
 
     try {
       const form = e.target as HTMLFormElement;
@@ -32,57 +48,18 @@ export const DriverForm = () => {
         },
       });
 
-      if (authError || !authData.user) {
-        console.error("Auth error:", authError);
+      if (authError) {
+        if (authError.message.includes("rate_limit")) {
+          throw new Error("Please wait a minute before trying again.");
+        }
         throw new Error("Failed to create user account");
       }
 
-      // Wait for the profile to be available
-      const waitForProfile = async (userId: string, attempts = 0): Promise<void> => {
-        if (attempts > 5) throw new Error("Profile creation timeout");
-        
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select()
-          .eq("id", userId)
-          .single();
-        
-        if (profileError || !profile) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return waitForProfile(userId, attempts + 1);
-        }
-      };
-
-      // Wait for profile to be created by the trigger
-      await waitForProfile(authData.user.id);
-
-      // Update the profile with additional information
-      const { error: profileUpdateError } = await supabase
-        .from("profiles")
-        .update({
-          first_name: formData.get("name")?.toString().split(" ")[0],
-          last_name: formData.get("name")?.toString().split(" ").slice(1).join(" "),
-          phone: formData.get("phone") as string,
-        })
-        .eq("id", authData.user.id);
-
-      if (profileUpdateError) {
-        console.error("Profile update error:", profileUpdateError);
-        throw new Error("Failed to update profile information");
+      if (!authData.user) {
+        throw new Error("No user data returned");
       }
 
-      // Sign in as the new user to create the driver application
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        console.error("Sign in error:", signInError);
-        throw new Error("Failed to sign in as new user");
-      }
-
-      // Now create the driver application
+      // Create the driver application
       const { error: applicationError } = await supabase
         .from("driver_applications")
         .insert({
@@ -97,16 +74,31 @@ export const DriverForm = () => {
         throw new Error("Failed to submit application");
       }
 
+      // Update the profile information
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({
+          first_name: formData.get("name")?.toString().split(" ")[0],
+          last_name: formData.get("name")?.toString().split(" ").slice(1).join(" "),
+          phone: formData.get("phone") as string,
+        })
+        .eq("id", authData.user.id);
+
+      if (profileUpdateError) {
+        console.error("Profile update error:", profileUpdateError);
+        throw new Error("Failed to update profile information");
+      }
+
       toast({
         title: "Application Submitted",
         description: "Thank you for your interest! We'll review your application and contact you soon. Check your email for account details.",
       });
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting application:", error);
       toast({
         title: "Error",
-        description: "Failed to submit application. Please try again.",
+        description: error.message || "Failed to submit application. Please try again.",
         variant: "destructive",
       });
     } finally {
