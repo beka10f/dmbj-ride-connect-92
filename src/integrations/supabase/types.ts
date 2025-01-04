@@ -73,7 +73,7 @@ export type Database = {
           id: string
           license_number: string
           status: string
-          user_id: string
+          user_id: string | null
           years_experience: number
         }
         Insert: {
@@ -82,7 +82,7 @@ export type Database = {
           id?: string
           license_number: string
           status?: string
-          user_id: string
+          user_id?: string | null
           years_experience: number
         }
         Update: {
@@ -91,7 +91,7 @@ export type Database = {
           id?: string
           license_number?: string
           status?: string
-          user_id?: string
+          user_id?: string | null
           years_experience?: number
         }
         Relationships: [

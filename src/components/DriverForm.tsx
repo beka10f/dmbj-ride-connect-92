@@ -34,36 +34,11 @@ export const DriverForm = () => {
     try {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
-      const email = formData.get("email") as string;
-      const password = crypto.randomUUID().slice(0, 8); // Generate a random password
-
-      // First, create an auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            role: "driver",
-          },
-        },
-      });
-
-      if (authError) {
-        if (authError.message.includes("rate_limit")) {
-          throw new Error("Please wait a minute before trying again.");
-        }
-        throw new Error("Failed to create user account");
-      }
-
-      if (!authData.user) {
-        throw new Error("No user data returned");
-      }
 
       // Create the driver application
       const { error: applicationError } = await supabase
         .from("driver_applications")
         .insert({
-          user_id: authData.user.id,
           years_experience: parseInt(formData.get("experience") as string),
           license_number: formData.get("license") as string,
           about_text: formData.get("about") as string,
@@ -74,24 +49,9 @@ export const DriverForm = () => {
         throw new Error("Failed to submit application");
       }
 
-      // Update the profile information
-      const { error: profileUpdateError } = await supabase
-        .from("profiles")
-        .update({
-          first_name: formData.get("name")?.toString().split(" ")[0],
-          last_name: formData.get("name")?.toString().split(" ").slice(1).join(" "),
-          phone: formData.get("phone") as string,
-        })
-        .eq("id", authData.user.id);
-
-      if (profileUpdateError) {
-        console.error("Profile update error:", profileUpdateError);
-        throw new Error("Failed to update profile information");
-      }
-
       toast({
         title: "Application Submitted",
-        description: "Thank you for your interest! We'll review your application and contact you soon. Check your email for account details.",
+        description: "Thank you for your interest! We'll review your application and contact you soon.",
       });
       navigate("/");
     } catch (error: any) {
