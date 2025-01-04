@@ -15,52 +15,79 @@ serve(async (req) => {
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY')
 
     if (!GOOGLE_MAPS_API_KEY) {
-      throw new Error('Google Maps API key not configured')
+      console.error('Google Maps API key not found in environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Google Maps API key not configured' }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     // If it's a GET request, return the API key
     if (req.method === 'GET') {
-      console.log('Returning API key for Google Maps initialization')
+      console.log('Returning API key for Google Maps initialization');
       return new Response(
         JSON.stringify({ apiKey: GOOGLE_MAPS_API_KEY }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Handle POST requests for place suggestions
-    const { input } = await req.json()
+    // For POST requests, expect input for place suggestions
+    if (req.method === 'POST') {
+      const body = await req.json().catch(() => ({}));
+      const input = body?.input;
 
-    if (!input || input.length < 3) {
+      if (!input || input.length < 3) {
+        console.log('Invalid or missing input parameter');
+        return new Response(
+          JSON.stringify({ 
+            predictions: [],
+            message: 'Input must be at least 3 characters long'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('Fetching suggestions for:', input);
+
+      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+        input
+      )}&components=country:us&key=${GOOGLE_MAPS_API_KEY}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      console.log('Google Places API response status:', response.status);
+
+      if (!data.predictions) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response from Google Places API');
+      }
+
       return new Response(
-        JSON.stringify({ predictions: [] }),
+        JSON.stringify(data),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('Fetching suggestions for:', input)
-
-    const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-      input
-    )}&components=country:us&key=${GOOGLE_MAPS_API_KEY}`
-
-    const response = await fetch(url)
-    const data = await response.json()
-
-    console.log('Google Places API response:', data)
-
-    if (!data.predictions) {
-      console.error('Invalid response format:', data)
-      throw new Error('Invalid response from Google Places API')
-    }
-
+    // If neither GET nor POST
     return new Response(
-      JSON.stringify(data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        status: 405,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     )
+
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in google-places function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        details: error.toString()
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
