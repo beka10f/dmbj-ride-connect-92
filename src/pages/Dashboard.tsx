@@ -16,15 +16,7 @@ const Dashboard = () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error("Session check error:", error);
-          toast({
-            title: "Session Error",
-            description: "There was an error checking your session. Please try logging in again.",
-            variant: "destructive",
-          });
-          throw error;
-        }
+        if (error) throw error;
         
         if (!session) {
           console.log("No active session found, redirecting to login");
@@ -45,21 +37,9 @@ const Dashboard = () => {
     };
 
     checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log("Auth state changed in Dashboard:", event);
-      if (event === 'SIGNED_OUT') {
-        console.log("User signed out, redirecting");
-        navigate('/login');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [navigate, toast]);
 
-  if (profileLoading) {
+  if (profileLoading || !profile) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
         <div className="max-w-7xl mx-auto">
@@ -71,8 +51,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  if (!profile) return null;
 
   return <DashboardContent profile={profile} />;
 };
