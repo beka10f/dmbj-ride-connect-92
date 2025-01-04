@@ -8,9 +8,20 @@ interface AddressInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   label?: string;
+  id?: string;
+  error?: string;
+  disabled?: boolean;
 }
 
-export const AddressInput = ({ value, onChange, placeholder, label }: AddressInputProps) => {
+const AddressInput = ({ 
+  value, 
+  onChange, 
+  placeholder, 
+  label,
+  id,
+  error,
+  disabled 
+}: AddressInputProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -47,16 +58,19 @@ export const AddressInput = ({ value, onChange, placeholder, label }: AddressInp
 
   return (
     <div className="relative">
-      {label && <label className="block text-sm font-medium mb-1">{label}</label>}
+      {label && <label className="block text-sm font-medium mb-1" htmlFor={id}>{label}</label>}
       <Input
         type="text"
+        id={id}
         value={value}
         onChange={handleInputChange}
         onFocus={() => value.length >= 3 && setShowSuggestions(true)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
         placeholder={placeholder}
-        className="w-full"
+        className={`w-full ${error ? 'border-red-500' : ''}`}
+        disabled={disabled}
       />
+      {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1">
           {suggestions.map((suggestion, index) => (
@@ -73,3 +87,5 @@ export const AddressInput = ({ value, onChange, placeholder, label }: AddressInp
     </div>
   );
 };
+
+export { AddressInput };
