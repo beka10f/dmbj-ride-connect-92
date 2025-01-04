@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 export const useSession = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     let mounted = true;
@@ -49,10 +51,10 @@ export const useSession = () => {
       console.log("Auth state changed:", event, currentSession?.user?.id);
       
       if (mounted) {
-        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-          console.log("User signed out or deleted, clearing session");
+        if (event === 'SIGNED_OUT') {
+          console.log("User signed out, clearing session");
           setSession(null);
-          localStorage.removeItem('supabase.auth.token');
+          localStorage.removeItem('sb-tzwmuvdnwxbhodguqdid-auth-token');
         } else if (currentSession) {
           setSession(currentSession);
         }
@@ -63,7 +65,7 @@ export const useSession = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [navigate, toast]);
 
   return {
     session,
