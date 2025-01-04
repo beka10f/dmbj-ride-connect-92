@@ -16,26 +16,32 @@ export const DriverForm = () => {
     setLoading(true);
 
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.user) {
-        toast({
-          title: "Error",
-          description: "Please sign in to submit a driver application",
-          variant: "destructive",
-        });
-        navigate("/login");
-        return;
-      }
-
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
 
-      // Insert as an array with a single object
+      // First, create a profile for the driver
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .insert([{
+          first_name: formData.get("name")?.toString().split(" ")[0],
+          last_name: formData.get("name")?.toString().split(" ").slice(1).join(" "),
+          email: formData.get("email") as string,
+          phone: formData.get("phone") as string,
+          role: "driver"
+        }])
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        throw new Error("Failed to create profile");
+      }
+
+      // Then create the driver application
       const { error: applicationError } = await supabase
         .from("driver_applications")
         .insert([{
-          user_id: session.session.user.id,
+          user_id: profileData.id,
           years_experience: parseInt(formData.get("experience") as string),
           license_number: formData.get("license") as string,
           about_text: formData.get("about") as string,
@@ -43,24 +49,19 @@ export const DriverForm = () => {
 
       if (applicationError) {
         console.error("Application error:", applicationError);
-        toast({
-          title: "Error",
-          description: "Failed to submit application. Please try again.",
-          variant: "destructive",
-        });
-        return;
+        throw new Error("Failed to submit application");
       }
 
       toast({
         title: "Application Submitted",
         description: "Thank you for your interest! We'll review your application and contact you soon.",
       });
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       console.error("Error submitting application:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "Failed to submit application. Please try again.",
         variant: "destructive",
       });
     } finally {
