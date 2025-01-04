@@ -10,17 +10,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
-interface BookingPayload extends RealtimePostgresChangesPayload<{
-  [key: string]: any;
-}> {
-  new: {
-    pickup_location: string;
-    dropoff_location: string;
-    status: string;
-    special_instructions: string;
-  };
+type BookingNotification = {
+  pickup_location: string;
+  dropoff_location: string;
+  status: string;
+  special_instructions: string;
 }
 
 interface NotificationData {
@@ -36,19 +32,20 @@ export const NotificationBell = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const bookingsChannel = supabase
+    const bookingsChannel: RealtimeChannel = supabase
       .channel('bookings_channel')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'bookings' },
-        (payload: BookingPayload) => {
+        (payload) => {
           console.log("Received booking update:", payload);
+          const newBooking = payload.new as BookingNotification;
           
-          if (payload.new && 
-              payload.new.pickup_location === 'NOTIFICATION' && 
-              payload.new.status === 'notification') {
+          if (newBooking && 
+              newBooking.pickup_location === 'NOTIFICATION' && 
+              newBooking.status === 'notification') {
             try {
-              const notificationData = JSON.parse(payload.new.special_instructions);
+              const notificationData = JSON.parse(newBooking.special_instructions);
               if (notificationData.type === 'payment_confirmation') {
                 setHasNewNotifications(true);
                 toast({
@@ -66,15 +63,15 @@ export const NotificationBell = () => {
             } catch (e) {
               console.error("Error parsing notification data:", e);
             }
-          } else {
+          } else if (newBooking) {
             setHasNewNotifications(true);
             toast({
               title: "New Booking",
-              description: `New booking received from ${payload.new.pickup_location} to ${payload.new.dropoff_location}`,
+              description: `New booking received from ${newBooking.pickup_location} to ${newBooking.dropoff_location}`,
             });
             setNotifications(prev => [{
               type: 'booking',
-              data: payload.new,
+              data: newBooking,
               time: new Date().toISOString()
             }, ...prev]);
           }
