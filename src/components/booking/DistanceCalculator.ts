@@ -1,27 +1,8 @@
 import { DistanceCalculation } from "@/types/booking";
 
-const loadGoogleMapsScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if (window.google) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Google Maps API'));
-    document.head.appendChild(script);
-  });
-};
-
 export const calculateDistance = async (pickup: string, dropoff: string): Promise<DistanceCalculation> => {
-  try {
-    await loadGoogleMapsScript();
-
-    return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    try {
       const service = new google.maps.DistanceMatrixService();
       
       service.getDistanceMatrix(
@@ -55,9 +36,9 @@ export const calculateDistance = async (pickup: string, dropoff: string): Promis
           }
         }
       );
-    });
-  } catch (error) {
-    console.error('Distance calculation error:', error);
-    throw new Error('Failed to calculate distance');
-  }
+    } catch (error) {
+      console.error('Distance calculation error:', error);
+      reject(new Error('Failed to calculate distance'));
+    }
+  });
 };
