@@ -27,7 +27,7 @@ export const useAuthState = () => {
       if (error) throw error;
       
       clearSession();
-      navigate('/');
+      navigate('/login', { replace: true });
       toast({
         title: "Success",
         description: "Successfully signed out",
@@ -49,11 +49,12 @@ export const useAuthState = () => {
 
     const initializeAuth = async () => {
       try {
+        console.log("Initializing auth state");
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session && mounted) {
-          console.log("Session found:", session.user.id);
+          console.log("Active session found:", session.user.id);
           setIsLoggedIn(true);
           
           const { data: profile } = await supabase
@@ -69,14 +70,14 @@ export const useAuthState = () => {
           console.log("No active session");
           if (mounted) {
             clearSession();
-            navigate('/login');
+            navigate('/login', { replace: true });
           }
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (mounted) {
           clearSession();
-          navigate('/login');
+          navigate('/login', { replace: true });
         }
       } finally {
         if (mounted) setIsLoading(false);
@@ -101,10 +102,10 @@ export const useAuthState = () => {
             setIsAdmin(profile?.role === 'admin');
           }
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         if (mounted) {
           clearSession();
-          navigate('/login');
+          navigate('/login', { replace: true });
         }
       }
     });
